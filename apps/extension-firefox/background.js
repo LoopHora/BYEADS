@@ -24,6 +24,39 @@ const BLOCKED_DOMAINS = [
   "*://*.carbonads.net/*",
   "*://*.clarity.ms/*",
   "*://*.hotjar.com/*",
+  "*://*.monetag.com/*",
+  "*://*.hilltopads.com/*",
+  "*://*.hilltopads.net/*",
+  "*://*.exoclick.com/*",
+  "*://*.exdynsrv.com/*",
+  "*://*.exosrv.com/*",
+  "*://*.realsrv.com/*",
+  "*://*.rtmark.net/*",
+  "*://*.doublepimp.com/*",
+  "*://*.traffichaus.com/*",
+  "*://*.trafficjunky.com/*",
+  "*://*.trafficjunky.net/*",
+  "*://*.juicyads.com/*",
+  "*://*.clickadu.com/*",
+  "*://*.yllix.com/*",
+  "*://*.bidvertiser.com/*",
+  "*://*.admaven.com/*",
+  "*://*.ad-maven.com/*",
+  "*://*.deloton.com/*",
+  "*://*.zeroredirect.com/*",
+  "*://*.alwingulla.com/*",
+  "*://*.onclickperformance.com/*",
+  "*://*.popunder.net/*",
+  "*://*.popmyads.com/*",
+  "*://*.trafficstars.com/*",
+  "*://*.plugrush.com/*",
+  "*://*.directrev.com/*",
+  "*://*.adnetworkperformance.com/*",
+  "*://*.clck.ru/*",
+  "*://*.bet365.com/*",
+  "*://*.1xbet.com/*",
+  "*://*.vulkanvegas.com/*",
+  "*://*.spinanga.com/*",
   "*://*.youtube.com/api/stats/ads*",
   "*://*.youtube.com/pagead/*",
   "*://*.youtube.com/ptracking*",
@@ -87,6 +120,57 @@ if (chrome.downloads && chrome.downloads.onCreated) {
           stats.threatsDetected++;
           chrome.storage.local.set({ byeads_stats: stats });
           logBlockedEvent('download', 'Deceptive File (.pdf.exe)', filename);
+        });
+      }
+    }
+  });
+}
+
+// Pop-up Tab & Unsolicited Redirect Killer
+const POPUP_AD_PATTERNS = [
+  'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
+  'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'exosrv', 'realsrv',
+  'rtmark', 'doublepimp', 'traffichaus', 'clickadu', 'yllix', 'bidvertiser', 'admaven',
+  'ad-maven', 'deloton', 'tsyndicate', 'zeroredirect', 'alwingulla', 'onclickperformance',
+  'popunder', 'trafficstars', 'plugrush', 'popmyads', 'directrev', 'adnetworkperformance',
+  'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain', 'mgid', 'revcontent', 'doubleclick',
+  'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
+  'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
+  'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump'
+];
+
+function isAdOrPopupUrl(url) {
+  if (!url) return false;
+  const lower = String(url).toLowerCase();
+  if (lower.startsWith('chrome://') || lower.startsWith('about:') || lower.startsWith('moz-extension://')) {
+    return false;
+  }
+  return POPUP_AD_PATTERNS.some(d => lower.includes(d));
+}
+
+if (chrome.tabs && chrome.tabs.onCreated) {
+  chrome.tabs.onCreated.addListener((tab) => {
+    if (tab.openerTabId) {
+      const targetUrl = tab.url || tab.title || '';
+      if (isAdOrPopupUrl(targetUrl)) {
+        chrome.tabs.remove(tab.id, () => {
+          stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+          chrome.storage.local.set({ byeads_stats: stats });
+          logBlockedEvent('popup-killer', 'Blocked Unsolicited Popup Tab', targetUrl);
+        });
+      }
+    }
+  });
+}
+
+if (chrome.tabs && chrome.tabs.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url && tab.openerTabId) {
+      if (isAdOrPopupUrl(changeInfo.url)) {
+        chrome.tabs.remove(tabId, () => {
+          stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+          chrome.storage.local.set({ byeads_stats: stats });
+          logBlockedEvent('popup-killer', 'Closed Popunder Redirect Tab', changeInfo.url);
         });
       }
     }

@@ -145,7 +145,36 @@
       div[data-testid="ad-banner"],
       div[data-testid="in-app-ad"],
       div[data-testid="desktop-client-sponsor-container"],
-      div[aria-label="Sponsored"] {
+      div[aria-label="Sponsored"],
+
+      /* Popups, Popunders, Sticky Floaters & Overlay Wrappers */
+      div[class*="popup-ad"],
+      div[id*="popup-ad"],
+      div[class*="popunder"],
+      div[id*="popunder"],
+      div[class*="floating-ad"],
+      div[class*="sticky-ad"],
+      div[id*="floating-ad"],
+      div[class*="interstitial"],
+      div[id*="interstitial"],
+      iframe[src*="adsterra"],
+      iframe[src*="monetag"],
+      iframe[src*="popads"],
+      iframe[src*="exoclick"],
+      iframe[src*="doubleclick"],
+      iframe[src*="googlesyndication"],
+      iframe[src*="juicyads"],
+      iframe[src*="trafficjunky"],
+      iframe[src*="hilltopads"],
+      iframe[src*="adcash"],
+      div[style*="z-index: 2147483647"]:empty,
+      a[href*="popads.net"],
+      a[href*="propellerads.com"],
+      a[href*="adsterra.com"],
+      a[href*="exoclick.com"],
+      a[href*="monetag.com"],
+      a[href*="bet365.com"],
+      a[href*="1xbet.com"] {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -526,6 +555,51 @@
       } catch {}
     });
   }
+
+  // Trap any click on an invisible overlay or ad redirect link in capturing phase
+  window.addEventListener('click', (e) => {
+    if (!byeadsActive || isWhitelisted) return;
+    const target = e.target;
+    if (!target) return;
+
+    // Check if target or parent is an ad-link
+    const anchor = target.closest('a');
+    if (anchor) {
+      const href = String(anchor.href || '').toLowerCase();
+      const AD_PATTERNS = [
+        'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
+        'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'clickadu', 'yllix',
+        'bidvertiser', 'admaven', 'deloton', 'zeroredirect', 'alwingulla', 'onclickperformance',
+        'bet365', '1xbet', 'spinanga', 'vulkanvegas'
+      ];
+      if (AD_PATTERNS.some(p => href.includes(p))) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        anchor.remove();
+        return false;
+      }
+    }
+
+    // Check if clicked element is a transparent overlay
+    const rect = target.getBoundingClientRect();
+    if (rect.width >= window.innerWidth * 0.65 && rect.height >= window.innerHeight * 0.65 && target.tagName !== 'VIDEO') {
+      const style = window.getComputedStyle(target);
+      const isFixed = style.position === 'fixed' || style.position === 'absolute';
+      const isTransparent = parseFloat(style.opacity) <= 0.1 ||
+                            style.backgroundColor === 'transparent' ||
+                            style.backgroundColor.includes('rgba(0, 0, 0, 0)') ||
+                            style.backgroundColor === 'rgba(0,0,0,0)';
+      const textLen = (target.innerText || '').trim().length;
+      if (isFixed && isTransparent && textLen < 15) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        target.remove();
+        return false;
+      }
+    }
+  }, true);
 
   // 8. Smart Auto-Healer (Fix This Page)
   function handleFixThisPage() {

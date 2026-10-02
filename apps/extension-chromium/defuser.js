@@ -1,6 +1,6 @@
 // ===== BYEADS DEFUSER & SCRIPTLET ENGINE =====
 // Runs in document MAIN context before page scripts execute.
-// Neutralizes YouTube player ad feeds, anti-adblock detection, and modal blockers.
+// Neutralizes YouTube player ad feeds, anti-adblock detection, popups, and click-redirection traps.
 
 (function () {
   'use strict';
@@ -94,40 +94,177 @@
     }
   } catch {}
 
-  // 3. Popunder & Unsolicited Window Trap Killer
+  // 3. Air-Tight Pop-Up, Pop-Under & Click-Hijack Defense
+  const POPUP_AD_PATTERNS = [
+    'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
+    'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'exosrv', 'realsrv',
+    'rtmark', 'doublepimp', 'traffichaus', 'clickadu', 'yllix', 'bidvertiser', 'admaven',
+    'ad-maven', 'deloton', 'tsyndicate', 'zeroredirect', 'alwingulla', 'onclickperformance',
+    'popunder', 'trafficstars', 'plugrush', 'popmyads', 'directrev', 'adnetworkperformance',
+    'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain', 'mgid', 'revcontent', 'doubleclick',
+    'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
+    'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
+    'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump'
+  ];
+
+  function isAdPattern(str) {
+    if (!str) return false;
+    const lower = String(str).toLowerCase();
+    return POPUP_AD_PATTERNS.some(p => lower.includes(p));
+  }
+
+  // Safe dummy window proxy that absorbs delayed popup redirection
+  function createDummyWindow() {
+    const dummyLoc = {
+      href: 'about:blank',
+      assign: () => {},
+      replace: () => {},
+      reload: () => {}
+    };
+    return {
+      focus: () => {},
+      blur: () => {},
+      close: () => {},
+      closed: true,
+      document: {
+        write: () => {},
+        writeln: () => {},
+        open: () => {},
+        close: () => {},
+        createElement: () => document.createElement('div')
+      },
+      location: new Proxy(dummyLoc, {
+        get: (t, prop) => t[prop] || '',
+        set: (t, prop, val) => {
+          console.warn('[BYEADS Defuser] Blocked delayed popup location hijack to:', val);
+          return true;
+        }
+      })
+    };
+  }
+
+  // A. Hook window.open
   try {
     const originalWindowOpen = window.open;
-    let lastUserClickTime = 0;
-    window.addEventListener('click', () => {
-      lastUserClickTime = Date.now();
-    }, true);
-
-    const POPUNDER_DOMAINS = [
-      'popads', 'propeller', 'onclickads', 'adcash', 'popcash', 'adsterra',
-      'affiliate', 'trafficjunky', 'exoclick', 'juicyads'
-    ];
 
     window.open = function (url, target, features) {
       const urlStr = String(url || '').toLowerCase();
-      const timeSinceClick = Date.now() - lastUserClickTime;
+      const currentHost = window.location.hostname.replace(/^www\./, '');
 
-      const isPopunderPattern = POPUNDER_DOMAINS.some(d => urlStr.includes(d));
-      const isUnsolicited = timeSinceClick > 1200;
+      // Check if URL matches ad patterns
+      if (isAdPattern(urlStr)) {
+        console.warn('[BYEADS Defuser] Blocked ad popup window.open:', url);
+        return createDummyWindow();
+      }
 
-      if (isPopunderPattern || (isUnsolicited && urlStr.startsWith('http'))) {
-        console.warn('[BYEADS Defuser] Blocked popunder/unsolicited window open:', url);
-        return {
-          focus: () => {},
-          blur: () => {},
-          close: () => {},
-          closed: true,
-          document: {},
-          location: { href: '' }
-        };
+      // Check for blank window opening with intent to redirect later
+      if (!url || url === '' || url === 'about:blank') {
+        // If features contain popunder characteristics (dimensions off-screen or small)
+        const featStr = String(features || '').toLowerCase();
+        if (featStr.includes('top=') || featStr.includes('left=') || featStr.includes('width=1')) {
+          console.warn('[BYEADS Defuser] Blocked popunder window.open features:', features);
+          return createDummyWindow();
+        }
+      }
+
+      // If URL has a different domain that is not related to current domain
+      if (urlStr.startsWith('http')) {
+        try {
+          const parsed = new URL(urlStr);
+          const destHost = parsed.hostname.replace(/^www\./, '');
+          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
+
+          if (!isSameDomain && isAdPattern(destHost)) {
+            console.warn('[BYEADS Defuser] Blocked cross-domain ad redirect window.open:', url);
+            return createDummyWindow();
+          }
+        } catch {}
       }
 
       return originalWindowOpen.apply(this, arguments);
     };
+  } catch {}
+
+  // B. Hook HTMLAnchorElement.prototype.click (blocks synthetic <a> ad clicks)
+  try {
+    const originalAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      const href = String(this.href || '').toLowerCase();
+      const isAd = isAdPattern(href);
+
+      // Check if element is invisible, detached, or synthetic popup trigger
+      const isDetached = !this.isConnected;
+      const isHidden = this.style.display === 'none' ||
+                       this.style.visibility === 'hidden' ||
+                       this.style.opacity === '0' ||
+                       (this.offsetWidth === 0 && this.offsetHeight === 0);
+
+      if (isAd || (this.target === '_blank' && (isDetached || isHidden))) {
+        console.warn('[BYEADS Defuser] Blocked synthetic anchor click ad redirect:', this.href);
+        return;
+      }
+
+      return originalAnchorClick.apply(this, arguments);
+    };
+  } catch {}
+
+  // C. Hook HTMLFormElement.prototype.submit (blocks hidden form popup submits)
+  try {
+    const originalFormSubmit = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () {
+      const action = String(this.action || '').toLowerCase();
+      if (isAdPattern(action) || (this.target === '_blank' && this.style.display === 'none')) {
+        console.warn('[BYEADS Defuser] Blocked synthetic form submit ad popup:', this.action);
+        return;
+      }
+      return originalFormSubmit.apply(this, arguments);
+    };
+  } catch {}
+
+  // D. Capturing Click Listener: Trap Transparent Overlays & Ad Links
+  try {
+    window.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!target) return;
+
+      // 1. Check if user clicked an ad link
+      const anchor = target.closest('a');
+      if (anchor) {
+        const href = String(anchor.href || '').toLowerCase();
+        if (isAdPattern(href)) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          anchor.remove();
+          console.warn('[BYEADS Defuser] Neutralized click on ad link:', href);
+          return false;
+        }
+      }
+
+      // 2. Check if target is a full-screen transparent clickjack overlay
+      const rect = target.getBoundingClientRect();
+      const isFullWidth = rect.width >= window.innerWidth * 0.65;
+      const isFullHeight = rect.height >= window.innerHeight * 0.65;
+
+      if (isFullWidth && isFullHeight && target.tagName !== 'VIDEO') {
+        const cs = window.getComputedStyle(target);
+        const isFixedOrAbs = cs.position === 'fixed' || cs.position === 'absolute';
+        const isTransparent = parseFloat(cs.opacity) <= 0.1 ||
+                              cs.backgroundColor === 'transparent' ||
+                              cs.backgroundColor.includes('rgba(0, 0, 0, 0)') ||
+                              cs.backgroundColor === 'rgba(0,0,0,0)';
+
+        const textLen = (target.innerText || '').trim().length;
+        if (isFixedOrAbs && isTransparent && textLen < 15) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          target.remove();
+          console.warn('[BYEADS Defuser] Neutralized and removed full-screen clickjack overlay');
+          return false;
+        }
+      }
+    }, true);
   } catch {}
 
   // 4. Prevent Anti-Adblock & Nag-Wall Overlays from Locking Body Scroll
