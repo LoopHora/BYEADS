@@ -397,10 +397,10 @@ export default function InstallPage() {
                   marginBottom: '12px'
                 }}>
                   <code>
-                    irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
+                    irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
                   </code>
                   <button
-                    onClick={() => handleCopy('irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex', 'ps_remote')}
+                    onClick={() => handleCopy('irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex', 'ps_remote')}
                     className="btn btn-secondary btn-sm"
                     style={{ position: 'absolute', right: '12px', top: '10px' }}
                   >
@@ -639,10 +639,10 @@ export default function InstallPage() {
                   gap: '12px'
                 }}>
                   <code style={{ wordBreak: 'break-all' }}>
-                    https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt
+                    https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt
                   </code>
                   <button
-                    onClick={() => handleCopy('https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt', 'wblock_url')}
+                    onClick={() => handleCopy('https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt', 'wblock_url')}
                     className="btn btn-primary btn-sm"
                     style={{ flexShrink: 0 }}
                   >

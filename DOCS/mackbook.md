@@ -139,7 +139,7 @@ To avoid expensive Apple Developer Program memberships, avoid submitting closed 
 1. Install **wBlock** from the Mac App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
 2. Open Safari > Settings > Extensions > Enable wBlock content blockers.
 3. Open wBlock > Filter Lists > Add Custom List > Paste the raw URL:
-   `https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt`
+   `https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt`
 4. Tap Update. Safari now compiles the rules directly into high-speed WebKit bytecode.
 
 In short: MacBook users get high-performance native Safari ad blocking via wBlock and BYEADS's curated rules, without requiring BYEADS to build or publish a proprietary macOS native app.

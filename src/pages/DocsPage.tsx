@@ -847,7 +847,7 @@ const docs: DocEntry[] = [
         {
           title: 'Quick Start',
           items: [
-            'Clone the repository: git clone https://github.com/AzeemS24/BYEADS',
+            'Clone the repository: git clone https://github.com/LoopHora/BYEADS',
             'Install dependencies: pnpm install',
             'Build the core: cargo build --release',
             'Build the extension: pnpm build',

@@ -63,7 +63,7 @@ export default function Footer() {
               <div className="footer-col-title">Community</div>
               <div className="footer-col-links">
                 <a
-                  href="https://github.com/AzeemS24/BYEADS"
+                  href="https://github.com/LoopHora/BYEADS"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="footer-col-link"

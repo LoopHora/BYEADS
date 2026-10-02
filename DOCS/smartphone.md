@@ -210,7 +210,7 @@ In short: On iPhone, BYEADS uses the **wBlock Hybrid Architecture**: users insta
 1. Install **wBlock** from the iOS App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
 2. Open iPhone **Settings** > **Safari** > **Extensions** > toggle **wBlock** content blockers ON.
 3. Open the **wBlock** app > tap **Filter Lists** > **+ Add Custom List** > paste:
-   `https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt`
+   `https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt`
 4. Tap **Save & Update**. Safari immediately applies high-speed WebKit compiled domain and cosmetic element blocking.
 
 Okay, now I understand what you're describing. You want BYEADS to automatically recognize when a user has configured its DNS and added the BYEADS PWA to their iPhone home screen, then activate the dashboard with live protection status and monitoring, rather than showing a static dashboard with manual setup instructions.

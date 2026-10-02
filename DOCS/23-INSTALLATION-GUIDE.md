@@ -39,7 +39,7 @@ Directory: `platforms/windows/`
 1. Open PowerShell as Administrator.
 2. Run the secure setup command:
    ```powershell
-   irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
+   irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
    ```
 3. Or if running from a local cloned repository:
    ```powershell
@@ -120,7 +120,7 @@ Directory: `apps/extension-firefox/`
 Run the full automated test suite covering DNS filtering, Deception Engine, Download Guard, Redirect Intelligence, and platform configurations:
 
 ```bash
-git clone https://github.com/AzeemS24/BYEADS.git
+git clone https://github.com/LoopHora/BYEADS.git
 cd BYEADS
 npm install
 npm test

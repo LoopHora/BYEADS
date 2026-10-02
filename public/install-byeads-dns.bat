@@ -39,7 +39,7 @@ echo [*] Applying BYEADS Anycast Encrypted DNS...
 if exist "%~dp0setup-windows-doh.ps1" (
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0setup-windows-doh.ps1"
 ) else (
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1) | iex"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1) | iex"
 )
 goto FINISH
 
@@ -49,7 +49,7 @@ echo [*] Applying BYEADS Malware Shield...
 if exist "%~dp0setup-windows-doh.ps1" (
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0setup-windows-doh.ps1" -DohTemplate "https://security.cloudflare-dns.com/dns-query"
 ) else (
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1))) -DohTemplate 'https://security.cloudflare-dns.com/dns-query'"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1))) -DohTemplate 'https://security.cloudflare-dns.com/dns-query'"
 )
 goto FINISH
 

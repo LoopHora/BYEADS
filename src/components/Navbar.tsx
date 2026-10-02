@@ -132,7 +132,7 @@ export default function Navbar() {
 
             {/* GitHub Link */}
             <a
-              href="https://github.com/AzeemS24/BYEADS"
+              href="https://github.com/LoopHora/BYEADS"
               target="_blank"
               rel="noopener noreferrer"
               className="header-nav-link hide-mobile"
@@ -197,7 +197,7 @@ export default function Navbar() {
               </Link>
           ))}
           <a
-            href="https://github.com/AzeemS24/BYEADS"
+            href="https://github.com/LoopHora/BYEADS"
             target="_blank"
             rel="noopener noreferrer"
             className="mobile-nav-link"

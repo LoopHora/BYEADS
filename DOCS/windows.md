@@ -256,7 +256,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-doh.ps1 
 #### Method C: One-Liner Web Installer (PowerShell Terminal)
 Run directly inside an elevated PowerShell prompt:
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/LoopHora/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
 ```
 
 ### Self-Elevation Protection

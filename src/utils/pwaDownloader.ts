@@ -8,8 +8,8 @@ export interface DownloadResult {
   isIosProfileNotice?: boolean;
 }
 
-export const GITHUB_REPO_URL = 'https://github.com/AzeemS24/BYEADS';
-export const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/AzeemS24/BYEADS/main';
+export const GITHUB_REPO_URL = 'https://github.com/LoopHora/BYEADS';
+export const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/LoopHora/BYEADS/main';
 
 /**
  * Returns the direct, canonical GitHub raw download URL for any platform artifact

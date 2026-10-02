@@ -2,7 +2,7 @@
 ! Title: BYEADS Custom Filter List (wBlock Compatible)
 ! Description: Official BYEADS ruleset for wBlock on iOS, iPadOS, and macOS Safari.
 ! Version: 1.0.0
-! Homepage: https://github.com/AzeemS24/BYEADS
+! Homepage: https://github.com/LoopHora/BYEADS
 ! License: MIT
 ! Last Modified: 2026-10-02
 ! Expires: 4 days
