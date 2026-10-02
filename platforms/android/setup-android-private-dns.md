@@ -9,8 +9,7 @@ Android 9.0 (Pie) through Android 15+ natively includes system-wide encrypted **
 3. Tap **Private DNS** (often under Advanced or More Connection Settings).
 4. Select **Private DNS provider hostname**.
 5. Enter your preferred DoT endpoint hostname:
-   - For BYEADS Cloud Provider: `security.cloudflare-dns.com`
-   - For BYEADS Self-Hosted Server: `dns.yourdomain.com` (or your local DoT resolver hostname)
+   - Enter endpoint hostname: `security.cloudflare-dns.com`
 6. Tap **Save**.
 
 Once saved, Android will test and immediately encrypt all DNS lookups across all apps and browsers.

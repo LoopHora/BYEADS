@@ -25,7 +25,7 @@ BYEADS supports Windows 10 (Build 19628+) and Windows 11 natively using system-l
 3. Next to **DNS server assignment**, click **Edit**.
 4. Change from *Automatic (DHCP)* to **Manual**.
 5. Toggle **IPv4** to **On**:
-   - **Preferred DNS**: `1.1.1.2` (or your self-hosted BYEADS IP)
+   - **Preferred DNS**: `1.1.1.2`
    - **DNS over HTTPS**: Select **Encrypted only (DNS over HTTPS)** or **Encrypted preferred**
    - **Alternate DNS**: `1.0.0.2`
 6. Click **Save**.

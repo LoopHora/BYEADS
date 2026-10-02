@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const [connState, setConnState] = useState<VerificationState>('connected_verified');
   const [latency, setLatency] = useState<number>(24);
   const [lastCheck, setLastCheck] = useState<string>('Just now');
-  const [resolverProvider, setResolverProvider] = useState<string>('Cloudflare Security (1.1.1.2) / Local CoreDNS');
+  const [resolverProvider, setResolverProvider] = useState<string>('Cloudflare Security (1.1.1.2) / Encrypted DoH');
   const [targetDomain, setTargetDomain] = useState<string>('probe.byeads.net');
   const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
 

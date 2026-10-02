@@ -47,23 +47,20 @@ describe('Platform Artifacts & Configurations', () => {
     expect(script).toContain('Add-DnsClientDohServerAddress');
   });
 
-  it('Docker Compose stack should define resolver and cache services', () => {
-    const composePath = path.join(root, 'platforms', 'self-host', 'docker-compose.yml');
-    expect(fs.existsSync(composePath)).toBe(true);
+  it('Android Private DNS configuration guide should specify valid DoT endpoints', () => {
+    const androidPath = path.join(root, 'platforms', 'android', 'setup-android-private-dns.md');
+    expect(fs.existsSync(androidPath)).toBe(true);
 
-    const compose = fs.readFileSync(composePath, 'utf-8');
-    expect(compose).toContain('byeads-dns');
-    expect(compose).toContain('coredns/coredns');
-    expect(compose).toContain('53:53/udp');
+    const guide = fs.readFileSync(androidPath, 'utf-8');
+    expect(guide).toContain('security.cloudflare-dns.com');
+    expect(guide).toContain('private_dns_specifier');
   });
 
-  it('DNS blocklist file should have valid 0.0.0.0 entries', () => {
-    const blocklistPath = path.join(root, 'platforms', 'self-host', 'byeads-blocklist.txt');
-    expect(fs.existsSync(blocklistPath)).toBe(true);
-
-    const lines = fs.readFileSync(blocklistPath, 'utf-8').split('\n');
-    const validEntries = lines.filter((l: string) => l.startsWith('0.0.0.0 '));
-    expect(validEntries.length).toBeGreaterThanOrEqual(15);
+  it('Firefox WebExtension package should include content and background scripts', () => {
+    const bgPath = path.join(root, 'apps', 'extension-firefox', 'background.js');
+    const csPath = path.join(root, 'apps', 'extension-firefox', 'content.js');
+    expect(fs.existsSync(bgPath)).toBe(true);
+    expect(fs.existsSync(csPath)).toBe(true);
   });
 
   it('Firefox manifest.json should be valid WebExtension', () => {

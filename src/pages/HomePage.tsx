@@ -95,7 +95,6 @@ const protectionModules = [
       { label: 'Windows 11/10 Native DoH PowerShell', path: '/install' },
       { label: 'Apple macOS & iOS .mobileconfig Profile', path: '/install' },
       { label: 'Android Private DNS Guide', path: '/install' },
-      { label: 'Self-Hosted Docker CoreDNS Stack', path: '/install' },
     ],
   },
 ];

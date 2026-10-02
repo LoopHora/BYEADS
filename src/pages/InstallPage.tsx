@@ -19,7 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-type PlatformId = 'chrome' | 'windows' | 'apple' | 'android' | 'docker';
+type PlatformId = 'chrome' | 'firefox' | 'windows' | 'apple' | 'android';
 
 export default function InstallPage() {
   const [activeTab, setActiveTab] = useState<PlatformId>('chrome');
@@ -33,10 +33,10 @@ export default function InstallPage() {
 
   const platforms = [
     { id: 'chrome' as PlatformId, name: 'Chrome / Brave / Edge', icon: Globe, badge: 'Implemented & Tested' },
+    { id: 'firefox' as PlatformId, name: 'Mozilla Firefox', icon: Globe, badge: 'Implemented & Tested' },
     { id: 'windows' as PlatformId, name: 'Windows 11 / 10', icon: Monitor, badge: 'Implemented & Tested' },
     { id: 'apple' as PlatformId, name: 'macOS & iOS', icon: Laptop, badge: 'Implemented & Tested' },
     { id: 'android' as PlatformId, name: 'Android', icon: Smartphone, badge: 'Implemented & Tested' },
-    { id: 'docker' as PlatformId, name: 'Docker / Self-Host', icon: Server, badge: 'Implemented & Tested' },
   ];
 
   return (
@@ -440,9 +440,6 @@ export default function InstallPage() {
                     <span>{copiedKey === 'dot_host' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '6px' }}>
-                  Or enter your private self-hosted BYEADS CoreDNS hostname (e.g. <code>dns.yourdomain.com</code>).
-                </div>
               </div>
 
               <div>
@@ -460,16 +457,16 @@ export default function InstallPage() {
             </div>
           )}
 
-          {/* TAB: DOCKER / SELF-HOST */}
-          {activeTab === 'docker' && (
+          {/* TAB: MOZILLA FIREFOX */}
+          {activeTab === 'firefox' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    Docker &amp; Self-Host Stack
+                    Mozilla Firefox WebExtension
                   </h2>
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
-                    Run a dedicated CoreDNS resolver container with built-in ad/malware domain blocklists.
+                    Open-source WebExtension implementing Web Shield, Deception Engine, and Download Guard.
                   </p>
                 </div>
                 <div className="badge badge-protection">
@@ -478,50 +475,112 @@ export default function InstallPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                  1. Clone and Deploy Stack
-                </h3>
-                <div style={{
-                  background: 'var(--bg-sidebar)',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-sub)',
-                  fontFamily: 'monospace',
-                  fontSize: '0.8125rem',
-                  color: 'var(--text-main)',
-                  position: 'relative',
-                  overflowX: 'auto'
-                }}>
-                  <code>
-                    git clone https://github.com/AzeemS24/BYEADS.git<br />
-                    cd BYEADS/platforms/self-host<br />
-                    docker compose up -d
-                  </code>
+              {/* Direct Download Banner */}
+              <div style={{
+                background: 'var(--bg-sidebar)',
+                border: '1px solid var(--border-sub)',
+                borderRadius: 'var(--radius-md)',
+                padding: '20px',
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <FolderArchive style={{ width: 32, height: 32, color: 'var(--brand-primary)', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                      Download Firefox Extension Package
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
+                      Version 1.0.0 · Pre-packaged zip archive for Firefox
+                    </div>
+                  </div>
                 </div>
+
+                <a
+                  href="/byeads-extension-firefox.zip"
+                  download="byeads-extension-firefox.zip"
+                  className="btn btn-primary"
+                >
+                  <Download style={{ width: 16, height: 16 }} />
+                  <span>Download .ZIP</span>
+                </a>
               </div>
 
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                  2. Verify Active Filtering
-                </h3>
-                <div style={{
-                  background: 'var(--bg-sidebar)',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-sub)',
-                  fontFamily: 'monospace',
-                  fontSize: '0.8125rem',
-                  color: 'var(--text-main)',
-                  position: 'relative',
-                  overflowX: 'auto'
-                }}>
-                  <code>
-                    # Query blocked domain (should return 0.0.0.0)<br />
-                    nslookup doubleclick.net 127.0.0.1<br /><br />
-                    # Query regular domain (should resolve normally)<br />
-                    nslookup wikipedia.org 127.0.0.1
-                  </code>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-sidebar)',
+                    border: '1px solid var(--border-sub)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    color: 'var(--brand-primary)',
+                    flexShrink: 0
+                  }}>1</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Unpack the Downloaded Archive
+                    </h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
+                      Extract <code>byeads-extension-firefox.zip</code> into a directory on your machine.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-sidebar)',
+                    border: '1px solid var(--border-sub)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    color: 'var(--brand-primary)',
+                    flexShrink: 0
+                  }}>2</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Open Firefox Debugging
+                    </h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
+                      In Firefox, navigate to <code>about:debugging#/runtime/this-firefox</code> in the address bar.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-sidebar)',
+                    border: '1px solid var(--border-sub)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    color: 'var(--brand-primary)',
+                    flexShrink: 0
+                  }}>3</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                      Load Temporary Add-on
+                    </h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
+                      Click <strong>Load Temporary Add-on...</strong> and select the extracted <code>manifest.json</code>. BYEADS will load into Firefox with immediate protection.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

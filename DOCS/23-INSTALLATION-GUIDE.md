@@ -96,25 +96,22 @@ adb shell settings put global private_dns_specifier security.cloudflare-dns.com
 
 ---
 
-## 5. Docker & Self-Hosting Stack
+## 5. Mozilla Firefox (WebExtension)
 
-Directory: `platforms/self-host/`
+Directory: `apps/extension-firefox/`
 
-### Quickstart
-```bash
-git clone https://github.com/AzeemS24/BYEADS.git
-cd BYEADS/platforms/self-host
-docker compose up -d
-```
-
-### Verification
-```bash
-# Verify ad blocking (returns 0.0.0.0)
-nslookup doubleclick.net 127.0.0.1
-
-# Verify normal resolution
-nslookup wikipedia.org 127.0.0.1
-```
+### Installation Steps (Temporary Add-on / Debugging)
+1. Open Mozilla Firefox and navigate to:
+   ```
+   about:debugging#/runtime/this-firefox
+   ```
+2. Click **Load Temporary Add-on...**
+3. In the file picker, select:
+   ```
+   apps/extension-firefox/manifest.json
+   ```
+   (or unzip the release package `byeads-extension-firefox.zip` and select `manifest.json`).
+4. Click **Open**. The BYEADS shield icon will activate in your Firefox toolbar.
 
 ---
 
@@ -143,4 +140,4 @@ All 37 test specifications execute and pass with zero failures.
 7. Windows requires automated tests before stable release.
 8. macOS and iOS are defined subsystems of BYEADS.
 9. Chromium MV3 is a defined subsystem of BYEADS.
-10. Self-hosting via Docker is a defined subsystem of BYEADS.
+10. Firefox WebExtension is a defined subsystem of BYEADS.
