@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, FileText, CheckCircle2, Menu, Search, X } fr
 /* ===== Document Registry ===== */
 interface DocEntry {
   id: string;
+  alias?: string;
   title: string;
   category: string;
   content: DocContent;
@@ -1044,11 +1045,163 @@ const docs: DocEntry[] = [
       ],
     },
   },
+  {
+    id: '31',
+    alias: 'windows',
+    title: 'Windows Desktop Architecture',
+    category: 'Platform Architectures',
+    content: {
+      heading: 'BYEADS — Windows: How It Works & User Workflow',
+      status: 'Finalized Architecture Specification',
+      sections: [
+        {
+          title: 'How BYEADS Works on Windows 10 & 11',
+          items: [
+            'Windows PC architecture combines dual-layer defense: Chromium MV3 / Firefox MV2 browser extensions and system-level DNS-over-HTTPS (DoH)',
+            'Browser extension applies in-page element defusal, synthetic click trapping, video/audio ad fast-forwarding, and heuristic deception scoring',
+            'DNS filtering routes system-wide domain lookups through BYEADS Anycast DNS Shield (dns.byeads.net), dropping malware, ad, and tracker domains before network transmission',
+            'BYEADS Dashboard / PWA continuously checks resolver reachability and establishes a secure window.postMessage bridge with active browser extensions',
+            'Independent status reporting: Browser extension connectivity and DNS filtering are verified and reported independently',
+          ],
+        },
+        {
+          title: 'Windows User Workflow',
+          items: [
+            '1. Install Browser Extension: User installs the Chromium MV3 (Chrome, Edge, Brave) or Firefox MV2 package from the Install Center',
+            '2. Configure Encrypted DNS: User runs the automated PowerShell setup script (setup-windows-doh.ps1) or configures manual DoH under Windows 11 Network Settings',
+            '3. Open BYEADS Dashboard: Dashboard auto-detects Windows 10/11 desktop OS and performs real-time RFC 8484 DNS reachability probes',
+            '4. Browse with God-Level Defense: Web Shield neutralizes deceptive buttons, TeraBox modals, and popunders while DNS blocks ad domains system-wide',
+            '5. Verify Protection & Allowlisting: User inspects live blocking telemetry in the dashboard or extension popup, with domain-level allowlist override',
+          ],
+        },
+        {
+          title: 'Capabilities & Expectations on Windows',
+          items: [
+            'Browser-level filtering: Guaranteed auto-skipping and unmuting on YouTube and Spotify, TeraBox overlay removal, and social media ad defusal',
+            'Domain blocking: System-wide across all native Windows applications, background updaters, and games using system DNS',
+            'Popunder defusal: document_start window proxying intercepts synthetic anchor clicks and transparent zero-opacity overlay traps',
+            'Privacy & Zero Telemetry: 100% local heuristic analysis without remote browsing history transmission or telemetry logging',
+          ],
+        },
+        {
+          title: 'Automatic Device Detection & Live Monitoring',
+          items: [
+            'Dashboard auto-identifies Windows desktop clients via user-agent detection',
+            'Browser extension communicates with localhost/byeads.net dashboards via secure bidirectional postMessage handshake',
+            'Extension streams live blocked-in-tab metrics, active rule counts (77+ rules), and active defense flags directly to the dashboard',
+            'DNS probe validates resolver reachability with millisecond latency measurement without false positive assumptions',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: '32',
+    alias: 'smartphone',
+    title: 'Smartphone (Android & iOS) Architecture',
+    category: 'Platform Architectures',
+    content: {
+      heading: 'BYEADS — Smartphone (Android & iOS): How It Works & User Workflow',
+      status: 'Finalized Architecture Specification',
+      sections: [
+        {
+          title: 'How BYEADS Works on Android',
+          items: [
+            'Three distinct approaches: Android Private DNS (DoT), mobile browser extensions, and the BYEADS Progressive Web App (PWA)',
+            'Android Private DNS (Android 9+): Enter dns.byeads.net under Network & Internet → Private DNS for system-wide ad and tracker blocking on port 853',
+            'Mobile Browser Extension: Supported on mobile browsers with extension APIs (Kiwi, Lemur, Firefox for Android) for in-page YouTube/Spotify defusal',
+            'BYEADS PWA: Add to Home Screen provides app-like dashboard access and connection diagnostics without requiring Google Play Store services',
+            'System boundary: PWA is a dashboard interface; it cannot independently inspect other apps or inject extensions into Chrome mobile',
+          ],
+        },
+        {
+          title: 'How BYEADS Works on iPhone (iOS)',
+          items: [
+            'Three distinct approaches: Encrypted DNS Profile (.mobileconfig), Safari content blocker / WebExtension, and BYEADS PWA',
+            'Apple Encrypted DNS: Signed byeads-encrypted-dns.mobileconfig profile enables system-wide DoH/DoT across Wi-Fi and Cellular LTE/5G networks',
+            'Safari Protection: Safari WebExtension format enforces declarative content blocking rules matching desktop ad-blocking engines',
+            'Home Screen PWA: Installed via Safari Share → Add to Home Screen for convenient status verification and live telemetry display',
+            'iOS boundary: Safari content blocker rules do not apply to third-party native apps; DNS profile handles network-level domain filtering',
+          ],
+        },
+        {
+          title: 'Verification & Scope Boundaries on Mobile',
+          items: [
+            'DNS verified status confirms the test probe used the expected DNS path; it does not guarantee third-party apps with hardcoded DNS are filtered',
+            'Lifecycle realities: Mobile operating systems aggressively suspend background PWA execution to preserve battery life',
+            'While PWA is in foreground, live probe and telemetry refresh in real time; while suspended, DNS filtering continues seamlessly at the OS level',
+            'YouTube on Mobile: In-stream video ads share CDN domains with media; DNS alone cannot filter them—mobile Firefox/Kiwi with BYEADS extension is recommended',
+          ],
+        },
+        {
+          title: 'Automatic Device Detection & Real-Time Dashboard',
+          items: [
+            'Dashboard auto-identifies Android and iOS mobile devices dynamically',
+            'Interactive device selector card explains mobile-specific delivery mechanisms and lifecycle constraints',
+            'Live probe provides immediate visual feedback on encrypted resolver latency and connection integrity',
+            'Clear separation of states: Connected & Verified vs Configured Unverified vs Needs Setup',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: '33',
+    alias: 'macbook',
+    title: 'MacBook (macOS) Architecture',
+    category: 'Platform Architectures',
+    content: {
+      heading: 'BYEADS — MacBook (macOS): Automatic Device Detection & Live Monitoring',
+      status: 'Finalized Architecture Specification',
+      sections: [
+        {
+          title: 'How BYEADS Works on MacBook (macOS)',
+          items: [
+            'macOS multi-layer integration: Safari WebExtension, Chromium & Firefox desktop extensions, and Apple Encrypted DNS configuration',
+            'Browser extension provides browser-level filtering, DOM zapper, synthetic redirect interception, and video/audio ad fast-forwarding',
+            'Apple Encrypted DNS Profile: Signed byeads-encrypted-dns.mobileconfig installs into macOS System Settings → Privacy & Security → Profiles',
+            'BYEADS PWA / Dashboard: Can be added to the macOS Dock via Safari (macOS Sonoma+) or Chrome for native-app convenience',
+            'Verified Protection Status: Independently validates browser extension handshake and DNS resolver reachability',
+          ],
+        },
+        {
+          title: 'MacBook User Workflow',
+          items: [
+            '1. Open BYEADS on MacBook in Safari, Chrome, or Firefox',
+            '2. Install Browser Extension: Install Safari WebExtension package or Chrome/Firefox archive from Install Center',
+            '3. Install DNS Profile: Download byeads-encrypted-dns.mobileconfig and approve in macOS System Settings',
+            '4. Add to Dock: Add BYEADS dashboard to Dock for quick access to telemetry and diagnostics',
+            '5. Automatic Verification: Dashboard automatically identifies macOS, verifies DNS probe, and establishes live extension bridge',
+            '6. Live Monitoring: View real-time blocked counts, active DNR rules, and threat defusal streams',
+          ],
+        },
+        {
+          title: 'Safari WebExtension Implementation',
+          items: [
+            'Fully compatible Safari WebExtension Manifest V3 package located in apps/extension-safari/',
+            'Enforces 77+ declarativeNetRequest rules matching Chromium and Firefox distributions',
+            'Content scripts defuse YouTube/Spotify ads, TeraBox modals, popunder traps, and social media trackers in Safari tabs',
+            'Native packaging script generates byeads-extension-safari.zip ready for Safari extension testing and deployment',
+          ],
+        },
+        {
+          title: 'macOS Detection & Monitoring Engine',
+          items: [
+            'Dashboard auto-detects macOS platform via navigator.userAgent inspection',
+            'Secure extension bridge uses window.postMessage with strict origin checks on localhost and byeads.net',
+            'Real-time telemetry reports extension version, tab blocked counts, active rules, and individual shield states',
+            'Controlled RFC 8484 DNS test query measures resolver response time and validates active filtering',
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 /* ===== Category groupings ===== */
 const categories = [
   { name: 'Getting Started', ids: ['01', '23', '24', '30'] },
+  { name: 'Platform Architectures', ids: ['31', '32', '33'] },
   { name: 'Protection', ids: ['04', '05', '06', '07', '08', '09', '10'] },
   { name: 'Privacy', ids: ['13', '19'] },
   { name: 'Security', ids: ['03', '15', '16', '22', '29'] },
@@ -1063,7 +1216,7 @@ export default function DocsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const activeId = docId || '01';
-  const activeDoc = docs.find((d) => d.id === activeId) || docs[0];
+  const activeDoc = docs.find((d) => d.id === activeId || d.alias === activeId) || docs[0];
 
   const handleDocClick = (id: string) => {
     navigate(`/docs/${id}`);
@@ -1197,7 +1350,7 @@ export default function DocsPage() {
           }}>
             {(() => {
               const allIds = docs.map(d => d.id);
-              const currentIndex = allIds.indexOf(activeId);
+              const currentIndex = docs.findIndex(d => d.id === activeDoc.id);
               const prevDoc = currentIndex > 0 ? docs[currentIndex - 1] : null;
               const nextDoc = currentIndex < docs.length - 1 ? docs[currentIndex + 1] : null;
               return (

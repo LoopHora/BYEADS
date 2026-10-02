@@ -83,10 +83,6 @@ Important: Android PWA limitations
 
 Adding BYEADS to the home screen does not make its browser extension scripts run inside the PWA. The audit reports mobile PWA testing, but the listed environment does not provide specific Android device, OS, browser or test details. The report's mobile PWA results therefore should not be treated as proof of verified Android compatibility.&#x20;
 
-Pasted text.txt
-
-Pasted text.txt
-
 
 
 ## 5. What still needs verification
@@ -101,9 +97,6 @@ Before publishing Android-specific claims, BYEADS should be tested on real Andro
 - DNS traffic and extension network activity, to substantiate privacy claims.
 
 The audit mentions mobile PWA results, but it does not give enough Android-specific test evidence to establish that all these scenarios work.&#x20;
-
-Pasted text.txt
-
 
 
 In short: On Android, Private DNS provides domain-level filtering, a compatible browser extension can provide browser-level protection, and the PWA offers convenient dashboard access. They are distinct parts of the setup—not one automatic, all-device ad-blocking system.
@@ -143,8 +136,6 @@ Filtering depends on the active protection method and iOS restrictions.
 - PWA: Users can add the BYEADS website to their iPhone home screen. This provides convenient dashboard access, but does not automatically install a Safari content blocker or activate DNS filtering.
 
 The audit describes Apple profile XML/Plist integrity checks, but this alone does not establish that a complete, installable BYEADS iOS DNS profile or Safari extension is available in the current release.&#x20;
-
-Pasted text.txt
 
 
 
@@ -201,10 +192,6 @@ When a user watches a video through Safari:
 Important iOS limitation
 
 The audit's listed environment is Windows-based and does not document real iPhone device testing. Although it refers to Apple profile XML/Plist integrity, it does not establish that BYEADS has a verified iOS deployment with a functioning Safari content blocker and DNS profile.&#x20;
-
-Pasted text.txt
-
-Pasted text.txt
 
 
 
