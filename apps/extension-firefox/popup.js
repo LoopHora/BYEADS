@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isWhitelisted = false;
 
   // 1. Detect Current Tab & Get Site Domain
-  if (chrome.tabs && chrome.tabs.query) {
+  if (window.chrome && chrome.tabs && chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs[0] && tabs[0].url) {
         activeTabId = tabs[0].id;
@@ -50,10 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  } else {
+    currentHost = 'youtube.com';
+    siteDomain.textContent = currentHost;
+    siteBlockedCount.textContent = '18';
+    totalBlockedText.textContent = 'Total: 1,420 threats blocked';
   }
 
   function fetchPageBlockedCount() {
-    if (!activeTabId) return;
+    if (!activeTabId || !window.chrome || !chrome.tabs) return;
     try {
       chrome.tabs.sendMessage(activeTabId, { type: 'GET_TAB_STATS' }, (res) => {
         if (!chrome.runtime.lastError && res && typeof res.count === 'number') {
@@ -65,11 +70,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Whitelist Check & State Sync
   function checkWhitelist() {
-    chrome.storage.local.get(['byeads_whitelist'], (res) => {
-      const whitelist = res.byeads_whitelist || [];
-      isWhitelisted = whitelist.includes(currentHost);
+    if (window.chrome && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['byeads_whitelist'], (res) => {
+        const whitelist = res.byeads_whitelist || [];
+        isWhitelisted = whitelist.includes(currentHost);
+        syncUI();
+      });
+    } else {
       syncUI();
-    });
+    }
   }
 
   function syncUI() {
@@ -101,14 +110,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function toggleProtection(e) {
     if (e) e.preventDefault();
     isEnabled = !isEnabled;
-    chrome.storage.local.set({ byeads_enabled: isEnabled }, () => {
+    if (window.chrome && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ byeads_enabled: isEnabled }, () => {
+        syncUI();
+        if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.updateEnabledRulesets) {
+          chrome.declarativeNetRequest.updateEnabledRulesets({
+            [isEnabled ? 'enableRulesetIds' : 'disableRulesetIds']: ['byeads_core_rules']
+          });
+        }
+      });
+    } else {
       syncUI();
-      if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.updateEnabledRulesets) {
-        chrome.declarativeNetRequest.updateEnabledRulesets({
-          [isEnabled ? 'enableRulesetIds' : 'disableRulesetIds']: ['byeads_core_rules']
-        });
-      }
-    });
+    }
   }
 
   toggleShieldZone.addEventListener('click', toggleProtection);
@@ -119,28 +132,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e) e.preventDefault();
     if (!currentHost || currentHost === 'internal') return;
 
-    chrome.storage.local.get(['byeads_whitelist'], (res) => {
-      let whitelist = res.byeads_whitelist || [];
-      const alreadyWhitelisted = whitelist.includes(currentHost);
+    if (window.chrome && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['byeads_whitelist'], (res) => {
+        let whitelist = res.byeads_whitelist || [];
+        const alreadyWhitelisted = whitelist.includes(currentHost);
 
-      if (alreadyWhitelisted) {
-        whitelist = whitelist.filter((d) => d !== currentHost);
-        isWhitelisted = false;
-      } else {
-        whitelist.push(currentHost);
-        isWhitelisted = true;
-      }
-
-      chrome.storage.local.set({ byeads_whitelist: whitelist }, () => {
-        syncUI();
-        if (activeTabId) {
-          chrome.tabs.sendMessage(activeTabId, {
-            type: 'TOGGLE_WHITELIST',
-            isWhitelisted
-          });
+        if (alreadyWhitelisted) {
+          whitelist = whitelist.filter((d) => d !== currentHost);
+          isWhitelisted = false;
+        } else {
+          whitelist.push(currentHost);
+          isWhitelisted = true;
         }
+
+        chrome.storage.local.set({ byeads_whitelist: whitelist }, () => {
+          syncUI();
+          if (activeTabId) {
+            chrome.tabs.sendMessage(activeTabId, {
+              type: 'TOGGLE_WHITELIST',
+              isWhitelisted
+            });
+          }
+        });
       });
-    });
+    } else {
+      isWhitelisted = !isWhitelisted;
+      syncUI();
+    }
   }
 
   pauseSiteBtn.addEventListener('click', toggleSiteWhitelist);
@@ -149,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Block Element (Zapper)
   zapBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (activeTabId) {
+    if (activeTabId && window.chrome && chrome.tabs) {
       chrome.tabs.sendMessage(activeTabId, { type: 'START_ZAPPER' }, () => {
         window.close();
       });
@@ -159,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 6. Fix Page (Healer)
   healBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    if (activeTabId) {
+    if (activeTabId && window.chrome && chrome.tabs) {
       chrome.tabs.sendMessage(activeTabId, { type: 'FIX_THIS_PAGE' }, () => {
         healBtn.classList.add('healed');
         healText.textContent = 'Healed!';
@@ -168,32 +186,43 @@ document.addEventListener('DOMContentLoaded', () => {
           healBtn.classList.remove('healed');
         }, 3000);
       });
+    } else {
+      healBtn.classList.add('healed');
+      healText.textContent = 'Healed!';
+      setTimeout(() => {
+        healText.textContent = 'Fix Page';
+        healBtn.classList.remove('healed');
+      }, 3000);
     }
   });
 
   // 7. Load Total Stats
-  chrome.storage.local.get(['byeads_enabled', 'byeads_stats'], (res) => {
-    isEnabled = res.byeads_enabled !== false;
+  if (window.chrome && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get(['byeads_enabled', 'byeads_stats'], (res) => {
+      isEnabled = res.byeads_enabled !== false;
+      syncUI();
+
+      const stats = res.byeads_stats || {};
+      const total = (stats.adsBlocked || 0) +
+                    (stats.mediaAdsBlocked || 0) +
+                    (stats.threatsDetected || 0) +
+                    (stats.blockedDownloads || 0);
+
+      totalBlockedText.textContent = `Total: ${total.toLocaleString()} threats blocked`;
+
+      if (siteBlockedCount.textContent === '0' && stats.adsBlocked > 0) {
+        siteBlockedCount.textContent = Math.min(stats.adsBlocked, 12).toString();
+      }
+    });
+  } else {
     syncUI();
-
-    const stats = res.byeads_stats || {};
-    const total = (stats.adsBlocked || 0) +
-                  (stats.mediaAdsBlocked || 0) +
-                  (stats.threatsDetected || 0) +
-                  (stats.blockedDownloads || 0);
-
-    totalBlockedText.textContent = `Total: ${total.toLocaleString()} threats blocked`;
-
-    if (siteBlockedCount.textContent === '0' && stats.adsBlocked > 0) {
-      siteBlockedCount.textContent = Math.min(stats.adsBlocked, 12).toString();
-    }
-  });
+  }
 
   // 8. Open Dashboard
   function goToDashboard(e) {
     e.preventDefault();
     const url = 'http://localhost:5173/#/dashboard';
-    if (chrome.tabs && chrome.tabs.create) {
+    if (window.chrome && chrome.tabs && chrome.tabs.create) {
       chrome.tabs.create({ url });
     } else {
       window.open(url, '_blank');
@@ -203,3 +232,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dashboardLink) dashboardLink.addEventListener('click', goToDashboard);
   if (openDashboardBottom) openDashboardBottom.addEventListener('click', goToDashboard);
 });
+
