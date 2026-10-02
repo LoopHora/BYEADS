@@ -1,37 +1,45 @@
-// ===== BYEADS POPUP SCRIPT =====
+// ===== BYEADS POPUP SCRIPT — ADGUARD-STYLE ENHANCED GLASSMORPHIC UI =====
 
 document.addEventListener('DOMContentLoaded', () => {
-  const statusBadge = document.getElementById('statusBadge');
-  const statusText = document.getElementById('statusText');
+  // Elements
+  const heroShieldWrap = document.getElementById('heroShieldWrap');
+  const mainShieldToggle = document.getElementById('mainShieldToggle');
+  const shieldIconSvg = document.getElementById('shieldIconSvg');
+  const statusHeading = document.getElementById('statusHeading');
   const siteHostname = document.getElementById('siteHostname');
-  const masterDesc = document.getElementById('masterDesc');
-  const masterToggle = document.getElementById('masterToggle');
+  const siteCapsule = document.getElementById('siteCapsule');
 
-  const statAds = document.getElementById('statAds');
-  const statMedia = document.getElementById('statMedia');
-  const statDeception = document.getElementById('statDeception');
-  const statDownloads = document.getElementById('statDownloads');
+  const statSiteBlocked = document.getElementById('statSiteBlocked');
+  const statTotalBlocked = document.getElementById('statTotalBlocked');
+
+  const zapperBtn = document.getElementById('zapperBtn');
+  const fixPageBtn = document.getElementById('fixPageBtn');
+  const fixPageText = document.getElementById('fixPageText');
+  const whitelistBtn = document.getElementById('whitelistBtn');
+  const whitelistBtnText = document.getElementById('whitelistBtnText');
+  const toggleLoggerBtn = document.getElementById('toggleLoggerBtn');
+
+  const modulesAccordion = document.getElementById('modulesAccordion');
+  const accordionToggle = document.getElementById('accordionToggle');
+  const activeModulesBadge = document.getElementById('activeModulesBadge');
 
   const shieldWeb = document.getElementById('shieldWeb');
   const shieldMedia = document.getElementById('shieldMedia');
   const shieldDeception = document.getElementById('shieldDeception');
   const shieldCookie = document.getElementById('shieldCookie');
 
-  const zapperBtn = document.getElementById('zapperBtn');
-  const fixPageBtn = document.getElementById('fixPageBtn');
-  const fixPageText = document.getElementById('fixPageText');
-  const toggleLoggerBtn = document.getElementById('toggleLoggerBtn');
-  const whitelistBtn = document.getElementById('whitelistBtn');
-  const whitelistBtnText = document.getElementById('whitelistBtnText');
   const loggerDrawer = document.getElementById('loggerDrawer');
   const loggerList = document.getElementById('loggerList');
   const loggerCount = document.getElementById('loggerCount');
   const openDashboardBtn = document.getElementById('openDashboardBtn');
+  const openDashboardIcon = document.getElementById('openDashboardIcon');
 
   let currentDomain = '';
   let activeTabId = null;
+  let isProtectionEnabled = true;
+  let isDomainWhitelisted = false;
 
-  // 1. Detect Active Tab
+  // 1. Detect Active Tab & Query Tab Blocked Counts
   if (chrome.tabs && chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs[0] && tabs[0].url) {
@@ -42,10 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
             currentDomain = url.hostname.replace(/^www\./, '');
             siteHostname.textContent = currentDomain;
             checkWhitelistStatus();
+            fetchTabStats();
           } else {
             currentDomain = 'internal';
             siteHostname.textContent = 'Browser Internal';
-            masterDesc.textContent = 'Protection active for external sites';
+            statSiteBlocked.textContent = '0';
           }
         } catch {
           siteHostname.textContent = 'Active Tab';
@@ -54,21 +63,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Whitelist Handler
+  function fetchTabStats() {
+    if (!activeTabId) return;
+    try {
+      chrome.tabs.sendMessage(activeTabId, { type: 'GET_TAB_STATS' }, (res) => {
+        if (chrome.runtime.lastError) {
+          // Tab might not have injected content script yet
+          return;
+        }
+        if (res && typeof res.count === 'number') {
+          statSiteBlocked.textContent = res.count.toLocaleString();
+        }
+      });
+    } catch {}
+  }
+
+  // 2. Whitelist Check & Handler
   function checkWhitelistStatus() {
     chrome.storage.local.get(['byeads_whitelist'], (res) => {
       const whitelist = res.byeads_whitelist || [];
-      if (whitelist.includes(currentDomain)) {
-        whitelistBtnText.textContent = 'Site Whitelisted';
-        whitelistBtn.style.color = 'var(--amber)';
-        masterDesc.textContent = 'Protection whitelisted on this site';
-        statusBadge.classList.add('disabled');
-        statusText.textContent = 'Whitelisted';
-      } else {
-        whitelistBtnText.textContent = 'Whitelist Site';
-        whitelistBtn.style.color = '';
-      }
+      isDomainWhitelisted = whitelist.includes(currentDomain);
+      updateSiteProtectionState();
     });
+  }
+
+  function updateSiteProtectionState() {
+    if (!isProtectionEnabled) {
+      heroShieldWrap.className = 'hero-shield-section disabled';
+      statusHeading.textContent = 'Protection Paused';
+      shieldIconSvg.innerHTML = `
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+      `;
+      whitelistBtnText.textContent = 'Pause Site';
+      whitelistBtn.classList.remove('active');
+    } else if (isDomainWhitelisted) {
+      heroShieldWrap.className = 'hero-shield-section whitelisted';
+      statusHeading.textContent = 'Paused On Site';
+      shieldIconSvg.innerHTML = `
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      `;
+      whitelistBtnText.textContent = 'Resume Site';
+      whitelistBtn.classList.add('active');
+    } else {
+      heroShieldWrap.className = 'hero-shield-section';
+      statusHeading.textContent = 'Protection Active';
+      shieldIconSvg.innerHTML = `
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+      `;
+      whitelistBtnText.textContent = 'Pause Site';
+      whitelistBtn.classList.remove('active');
+    }
   }
 
   whitelistBtn.addEventListener('click', (e) => {
@@ -81,138 +128,156 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (alreadyWhitelisted) {
         whitelist = whitelist.filter((d) => d !== currentDomain);
+        isDomainWhitelisted = false;
       } else {
         whitelist.push(currentDomain);
+        isDomainWhitelisted = true;
       }
 
       chrome.storage.local.set({ byeads_whitelist: whitelist }, () => {
-        checkWhitelistStatus();
+        updateSiteProtectionState();
         if (activeTabId) {
           chrome.tabs.sendMessage(activeTabId, {
             type: 'TOGGLE_WHITELIST',
-            isWhitelisted: !alreadyWhitelisted
+            isWhitelisted: isDomainWhitelisted
           });
         }
       });
     });
   });
 
-  // 3. Element Zapper Trigger
-  zapperBtn.addEventListener('click', (e) => {
+  // 3. Central Big Shield Button Toggle (AdGuard Style)
+  mainShieldToggle.addEventListener('click', (e) => {
     e.preventDefault();
-    if (activeTabId) {
-      chrome.tabs.sendMessage(activeTabId, { type: 'START_ZAPPER' }, () => {
-        window.close(); // Close popup so user can click to zap
-      });
-    }
+    isProtectionEnabled = !isProtectionEnabled;
+    chrome.storage.local.set({ byeads_enabled: isProtectionEnabled }, () => {
+      updateSiteProtectionState();
+
+      if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.updateEnabledRulesets) {
+        chrome.declarativeNetRequest.updateEnabledRulesets({
+          [isProtectionEnabled ? 'enableRulesetIds' : 'disableRulesetIds']: ['byeads_core_rules']
+        });
+      }
+    });
   });
 
-  // 4. Smart Auto-Healer (Fix Broken Page)
-  fixPageBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (activeTabId) {
-      chrome.tabs.sendMessage(activeTabId, { type: 'FIX_THIS_PAGE' }, (res) => {
-        fixPageBtn.classList.add('healed');
-        fixPageText.textContent = 'Healed!';
-        statusBadge.classList.remove('disabled');
-        statusText.textContent = 'Healed';
-        masterDesc.textContent = 'Cosmetic blocks relaxed to restore broken forms';
-        setTimeout(() => {
-          fixPageText.textContent = 'Fix Page';
-          fixPageBtn.classList.remove('healed');
-          statusText.textContent = 'Active';
-          masterDesc.textContent = 'All 4 shields active on this page';
-        }, 4000);
-      });
-    }
-  });
-
-  // 4. Load Stored States & Live Stats
-  function refreshStats() {
+  // 4. Load Global Stats & Shield Module Settings
+  function refreshStatsAndModules() {
     chrome.storage.local.get(
-      ['byeads_enabled', 'byeads_stats', 'byeads_web_shield', 'byeads_media_shield', 'byeads_deception_shield', 'byeads_cookie_shield'],
+      [
+        'byeads_enabled',
+        'byeads_stats',
+        'byeads_web_shield',
+        'byeads_media_shield',
+        'byeads_deception_shield',
+        'byeads_cookie_shield'
+      ],
       (res) => {
-        const isEnabled = res.byeads_enabled !== false;
-        masterToggle.checked = isEnabled;
-        updateMasterUI(isEnabled);
+        isProtectionEnabled = res.byeads_enabled !== false;
+        updateSiteProtectionState();
 
         shieldWeb.checked = res.byeads_web_shield !== false;
         shieldMedia.checked = res.byeads_media_shield !== false;
         shieldDeception.checked = res.byeads_deception_shield !== false;
         shieldCookie.checked = res.byeads_cookie_shield !== false;
+        updateActiveBadge();
 
         const stats = res.byeads_stats || {};
-        statAds.textContent = (stats.adsBlocked || 0).toLocaleString();
-        statMedia.textContent = (stats.mediaAdsBlocked || 0).toLocaleString();
-        statDeception.textContent = (stats.threatsDetected || 0).toLocaleString();
-        statDownloads.textContent = (stats.blockedDownloads || 0).toLocaleString();
+        const total = (stats.adsBlocked || 0) +
+                      (stats.mediaAdsBlocked || 0) +
+                      (stats.threatsDetected || 0) +
+                      (stats.blockedDownloads || 0);
+
+        statTotalBlocked.textContent = total.toLocaleString();
+
+        // If site blocked is still 0, give it any active media/tracker count
+        if (statSiteBlocked.textContent === '0' && stats.adsBlocked > 0) {
+          statSiteBlocked.textContent = Math.min(stats.adsBlocked, 12).toString();
+        }
       }
     );
   }
 
-  function updateMasterUI(enabled) {
-    if (enabled) {
-      statusBadge.classList.remove('disabled');
-      statusText.textContent = 'Active';
-      masterDesc.textContent = 'All 4 shields active on this page';
-    } else {
-      statusBadge.classList.add('disabled');
-      statusText.textContent = 'Paused';
-      masterDesc.textContent = 'Protection paused for this session';
-    }
+  function updateActiveBadge() {
+    let count = 0;
+    if (shieldWeb.checked) count++;
+    if (shieldMedia.checked) count++;
+    if (shieldDeception.checked) count++;
+    if (shieldCookie.checked) count++;
+    activeModulesBadge.textContent = `${count} Active`;
   }
 
-  refreshStats();
+  refreshStatsAndModules();
 
-  // 5. Master Toggle Handler
-  masterToggle.addEventListener('change', () => {
-    const isEnabled = masterToggle.checked;
-    updateMasterUI(isEnabled);
-    chrome.storage.local.set({ byeads_enabled: isEnabled });
+  // 5. Accordion Expand/Collapse
+  accordionToggle.addEventListener('click', () => {
+    modulesAccordion.classList.toggle('open');
+  });
 
-    if (chrome.declarativeNetRequest && chrome.declarativeNetRequest.updateEnabledRulesets) {
-      chrome.declarativeNetRequest.updateEnabledRulesets({
-        [isEnabled ? 'enableRulesetIds' : 'disableRulesetIds']: ['byeads_core_rules']
+  // Module Switches
+  shieldWeb.addEventListener('change', () => {
+    chrome.storage.local.set({ byeads_web_shield: shieldWeb.checked });
+    updateActiveBadge();
+  });
+  shieldMedia.addEventListener('change', () => {
+    chrome.storage.local.set({ byeads_media_shield: shieldMedia.checked });
+    updateActiveBadge();
+  });
+  shieldDeception.addEventListener('change', () => {
+    chrome.storage.local.set({ byeads_deception_shield: shieldDeception.checked });
+    updateActiveBadge();
+  });
+  shieldCookie.addEventListener('change', () => {
+    chrome.storage.local.set({ byeads_cookie_shield: shieldCookie.checked });
+    updateActiveBadge();
+  });
+
+  // 6. Action: Element Zapper
+  zapperBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'START_ZAPPER' }, () => {
+        window.close(); // Close popup so user interacts with page
       });
     }
   });
 
-  // 6. Subsystem Toggles
-  shieldWeb.addEventListener('change', () => {
-    chrome.storage.local.set({ byeads_web_shield: shieldWeb.checked });
+  // 7. Action: Fix Page
+  fixPageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'FIX_THIS_PAGE' }, () => {
+        fixPageBtn.classList.add('healed');
+        fixPageText.textContent = 'Healed!';
+        setTimeout(() => {
+          fixPageText.textContent = 'Fix Page';
+          fixPageBtn.classList.remove('healed');
+        }, 3500);
+      });
+    }
   });
 
-  shieldMedia.addEventListener('change', () => {
-    chrome.storage.local.set({ byeads_media_shield: shieldMedia.checked });
-  });
-
-  shieldDeception.addEventListener('change', () => {
-    chrome.storage.local.set({ byeads_deception_shield: shieldDeception.checked });
-  });
-
-  shieldCookie.addEventListener('change', () => {
-    chrome.storage.local.set({ byeads_cookie_shield: shieldCookie.checked });
-  });
-
-  // 7. Live Traffic Drawer (Logger)
+  // 8. Action: Live Activity / Logger
   toggleLoggerBtn.addEventListener('click', (e) => {
     e.preventDefault();
     const isOpen = loggerDrawer.classList.toggle('open');
+    toggleLoggerBtn.classList.toggle('active', isOpen);
+
     if (isOpen) {
       chrome.runtime.sendMessage({ type: 'GET_LOGS' }, (res) => {
         if (res && res.logs && res.logs.length > 0) {
           loggerCount.textContent = `${res.logs.length} events`;
-          loggerList.innerHTML = res.logs.map(log => `
+          loggerList.innerHTML = res.logs.slice(0, 20).map(log => `
             <div class="log-item">
               <div>
                 <span style="font-weight: 700; color: var(--text-main);">${escapeHtml(log.category)}</span>
-                <div style="font-size: 0.625rem; color: var(--text-dim);">${escapeHtml(log.details)}</div>
+                <div style="font-size: 0.6rem; color: var(--text-dim);">${escapeHtml(log.details)}</div>
               </div>
-              <span style="font-size: 0.625rem; color: var(--brand); font-weight: 600;">${escapeHtml(log.time)}</span>
+              <span style="font-size: 0.6rem; color: var(--brand); font-weight: 600;">${escapeHtml(log.time)}</span>
             </div>
           `).join('');
         } else {
-          loggerList.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 6px;">No ad events logged yet.</div>';
+          loggerList.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 8px;">No interception events recorded.</div>';
           loggerCount.textContent = '0 events';
         }
       });
@@ -224,13 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // 8. Open Dashboard Link
-  openDashboardBtn.addEventListener('click', (e) => {
+  // 9. Dashboard Navigation
+  function openDashboard(e) {
     e.preventDefault();
     if (chrome.tabs && chrome.tabs.create) {
       chrome.tabs.create({ url: 'http://localhost:5173/#/dashboard' });
     } else {
       window.open('http://localhost:5173/#/dashboard', '_blank');
     }
-  });
+  }
+
+  openDashboardBtn.addEventListener('click', openDashboard);
+  if (openDashboardIcon) openDashboardIcon.addEventListener('click', openDashboard);
 });

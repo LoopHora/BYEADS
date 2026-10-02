@@ -566,8 +566,27 @@
     } else if (msg.type === 'FIX_THIS_PAGE') {
       handleFixThisPage();
       sendResponse({ healed: true });
+    } else if (msg.type === 'GET_TAB_STATS') {
+      sendResponse({ count: getTabBlockedCount() });
+      return true;
     }
   });
+
+  function getTabBlockedCount() {
+    const cosmeticSelectors = [
+      'ins.adsbygoogle', 'div[id^="google_ads_"]', 'div[id^="div-gpt-ad"]', 'div[class*="ad-slot"]',
+      'div[class*="ad-banner"]', 'div[id*="taboola-"]', 'div[class*="outbrain"]', '.ad-container',
+      '[data-ad-unit]', '[data-ad-slot]', '#tads', '#tadsb', '#bottomads', 'ytd-ad-slot-renderer',
+      '#player-ads', '.ytp-ad-overlay-container', 'ytmusic-player-bar .advertisement',
+      'div[data-testid="ad-banner"]'
+    ];
+    let count = 0;
+    try {
+      const els = document.querySelectorAll(cosmeticSelectors.join(','));
+      count = els.length;
+    } catch {}
+    return count;
+  }
 
   // Run initializations
   injectCosmeticFilter();
