@@ -5,6 +5,7 @@
   "description": "Free, open-source protection against intrusive ads, tracking, scams, and deceptive downloads by LoopHora.",
   "permissions": [
     "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
     "storage",
     "tabs",
     "downloads"

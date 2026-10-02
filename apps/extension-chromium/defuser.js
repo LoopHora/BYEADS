@@ -51,6 +51,16 @@
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
+      // Block & Mock Spotify ad logic and ad playlists with empty response so it immediately skips
+      if (
+        url.includes('spclient.wg.spotify.com/ad-logic/') ||
+        url.includes('spclient.wg.spotify.com/ads/') ||
+        url.includes('heads-fa.spotify.com') ||
+        url.includes('adeventtracker.spotify.com')
+      ) {
+        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+
       const response = await originalFetch.apply(this, args);
 
       // Sanitize JSON response for dynamic player streams
@@ -72,6 +82,73 @@
       return response;
     };
   }
+
+  // Hook XMLHttpRequest for background ad fetches
+  try {
+    const origXHROpen = XMLHttpRequest.prototype.open;
+    const origXHRSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      this._byeads_url = String(url || '');
+      return origXHROpen.apply(this, [method, url, ...rest]);
+    };
+    XMLHttpRequest.prototype.send = function (...args) {
+      if (this._byeads_url) {
+        const u = this._byeads_url;
+        if (
+          u.includes('/api/stats/ads') ||
+          u.includes('spclient.wg.spotify.com/ad-logic/') ||
+          u.includes('spclient.wg.spotify.com/ads/') ||
+          u.includes('adeventtracker.spotify.com')
+        ) {
+          Object.defineProperty(this, 'status', { value: 200, writable: false });
+          Object.defineProperty(this, 'responseText', { value: '{}', writable: false });
+          Object.defineProperty(this, 'response', { value: '{}', writable: false });
+          Object.defineProperty(this, 'readyState', { value: 4, writable: false });
+          setTimeout(() => {
+            this.dispatchEvent(new Event('readystatechange'));
+            this.dispatchEvent(new Event('load'));
+            this.dispatchEvent(new Event('loadend'));
+          }, 5);
+          return;
+        }
+      }
+      return origXHRSend.apply(this, args);
+    };
+  } catch {}
+
+  // Hook HTMLMediaElement.prototype.play for seamless Spotify & Web Player ad skipping
+  try {
+    const origMediaPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (...args) {
+      try {
+        if (window.location.hostname.includes('spotify.com')) {
+          const isAd =
+            document.title.toLowerCase().includes('advertisement') ||
+            document.querySelector(
+              '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], a[href*="adeventtracker"]'
+            );
+
+          if (isAd) {
+            this.muted = true;
+            this.volume = 0;
+            if (this.duration && !isNaN(this.duration)) {
+              this.currentTime = this.duration;
+            }
+            this.dispatchEvent(new Event('ended'));
+            const skipBtn =
+              document.querySelector('[data-testid="control-button-skip-forward"]') ||
+              document.querySelector('button[aria-label="Next"]');
+            if (skipBtn && !skipBtn.disabled) {
+              skipBtn.click();
+            }
+            window.postMessage({ type: 'BYEADS_SPOTIFY_AD_DEFUSED' }, '*');
+          }
+        }
+      } catch {}
+      return origMediaPlay.apply(this, args);
+    };
+  } catch {}
+
 
   // 2. Anti-Adblock Defuser & Bait Object Emulation
   try {

@@ -61,7 +61,13 @@ const BLOCKED_DOMAINS = [
   "*://*.youtube.com/pagead/*",
   "*://*.youtube.com/ptracking*",
   "*://*.music.youtube.com/api/stats/ads*",
-  "*://*.googleads.g.doubleclick.net/pagead/*"
+  "*://*.googleads.g.doubleclick.net/pagead/*",
+  "*://spclient.wg.spotify.com/ads/*",
+  "*://spclient.wg.spotify.com/ad-logic/*",
+  "*://heads-fa.spotify.com/*",
+  "*://adeventtracker.spotify.com/*",
+  "*://audio-ak-spotify-com.akamaized.net/*",
+  "*://upgrade.spotify.com/*"
 ];
 
 let stats = {
@@ -72,6 +78,7 @@ let stats = {
   lastUpdated: Date.now()
 };
 
+const tabBlockedCounts = {};
 const recentLogs = [];
 
 function logBlockedEvent(domain, category, details) {
@@ -85,11 +92,61 @@ function logBlockedEvent(domain, category, details) {
   if (recentLogs.length > 60) recentLogs.pop();
 }
 
+function updateBadge(targetTabId) {
+  const badgeObj = chrome.browserAction || chrome.action;
+  if (!badgeObj) return;
+
+  if (targetTabId && tabBlockedCounts[targetTabId]) {
+    const tabCount = tabBlockedCounts[targetTabId];
+    badgeObj.setBadgeText({
+      tabId: targetTabId,
+      text: tabCount > 999 ? '999+' : String(tabCount)
+    });
+    badgeObj.setBadgeBackgroundColor({
+      tabId: targetTabId,
+      color: '#10b981'
+    });
+  } else {
+    const total = (stats.adsBlocked || 0) + (stats.mediaAdsBlocked || 0) + (stats.threatsDetected || 0);
+    badgeObj.setBadgeText({ text: total > 0 ? (total > 999 ? '999+' : String(total)) : 'ON' });
+    badgeObj.setBadgeBackgroundColor({ color: '#10b981' });
+  }
+}
+
+// Track active tab changes to update badge
+if (chrome.tabs && chrome.tabs.onActivated) {
+  chrome.tabs.onActivated.addListener((activeInfo) => {
+    updateBadge(activeInfo.tabId);
+  });
+}
+
+// Clean up tab counts when tab closes or navigates
+if (chrome.tabs && chrome.tabs.onRemoved) {
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    delete tabBlockedCounts[tabId];
+  });
+}
+
+if (chrome.tabs && chrome.tabs.onUpdated) {
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.status === 'loading' && changeInfo.url) {
+      tabBlockedCounts[tabId] = 0;
+      updateBadge(tabId);
+    }
+  });
+}
+
 // WebRequest blocking filter
 if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
   chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
       stats.adsBlocked++;
+      if (details.tabId && details.tabId > 0) {
+        tabBlockedCounts[details.tabId] = (tabBlockedCounts[details.tabId] || 0) + 1;
+        updateBadge(details.tabId);
+      } else {
+        updateBadge();
+      }
       chrome.storage.local.set({ byeads_stats: stats });
       try {
         const u = new URL(details.url);
@@ -179,22 +236,66 @@ if (chrome.tabs && chrome.tabs.onUpdated) {
 
 // Message listener for in-page detections & stats
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'MEDIA_AD_BLOCKED') {
-    stats.mediaAdsBlocked = (stats.mediaAdsBlocked || 0) + (msg.count || 1);
-    stats.adsBlocked = (stats.adsBlocked || 0) + (msg.count || 1);
+  const senderTabId = sender?.tab?.id || msg.tabId;
+
+  if (msg.type === 'INCREMENT_TAB_STATS') {
+    const addCount = Number(msg.count) || 1;
+    if (senderTabId && senderTabId > 0) {
+      tabBlockedCounts[senderTabId] = (tabBlockedCounts[senderTabId] || 0) + addCount;
+      updateBadge(senderTabId);
+    } else {
+      updateBadge();
+    }
+    stats.adsBlocked = (stats.adsBlocked || 0) + addCount;
+    if (msg.category === 'spotify-ad' || msg.site === 'spotify.com') {
+      stats.mediaAdsBlocked = (stats.mediaAdsBlocked || 0) + addCount;
+    }
     chrome.storage.local.set({ byeads_stats: stats });
-    logBlockedEvent(msg.site || 'youtube.com', 'YouTube In-Stream Ad', 'Muted & Fast-Forwarded to skip');
-    sendResponse({ success: true, stats });
+    logBlockedEvent(msg.site || msg.domain || 'active-tab', msg.category || 'Threat Blocked', `Count +${addCount}`);
+    sendResponse({ success: true, count: senderTabId ? tabBlockedCounts[senderTabId] : stats.adsBlocked });
+    return true;
+  } else if (msg.type === 'GET_TAB_STATS') {
+    const targetId = msg.tabId || senderTabId;
+    const count = (targetId && tabBlockedCounts[targetId]) || 0;
+    sendResponse({ count });
+    return true;
+  } else if (msg.type === 'MEDIA_AD_BLOCKED') {
+    const addCount = Number(msg.count) || 1;
+    stats.mediaAdsBlocked = (stats.mediaAdsBlocked || 0) + addCount;
+    stats.adsBlocked = (stats.adsBlocked || 0) + addCount;
+    if (senderTabId && senderTabId > 0) {
+      tabBlockedCounts[senderTabId] = (tabBlockedCounts[senderTabId] || 0) + addCount;
+      updateBadge(senderTabId);
+    } else {
+      updateBadge();
+    }
+    chrome.storage.local.set({ byeads_stats: stats });
+    const siteName = msg.site || (sender?.tab?.url ? new URL(sender.tab.url).hostname : 'Media Stream');
+    logBlockedEvent(siteName, 'In-Stream Media Ad Defused', 'Muted & skipped automatically');
+    sendResponse({ success: true, stats, tabCount: senderTabId ? tabBlockedCounts[senderTabId] : undefined });
+    return true;
   } else if (msg.type === 'DECEPTION_DETECTED') {
     stats.threatsDetected = (stats.threatsDetected || 0) + 1;
+    if (senderTabId && senderTabId > 0) {
+      tabBlockedCounts[senderTabId] = (tabBlockedCounts[senderTabId] || 0) + 1;
+      updateBadge(senderTabId);
+    }
     chrome.storage.local.set({ byeads_stats: stats });
     logBlockedEvent(msg.targetDomain || 'external', 'Deceptive Button Target', msg.claimedText);
     sendResponse({ success: true, stats });
+    return true;
   } else if (msg.type === 'CLICKJACK_NEUTRALIZED') {
     stats.threatsDetected = (stats.threatsDetected || 0) + 1;
+    if (senderTabId && senderTabId > 0) {
+      tabBlockedCounts[senderTabId] = (tabBlockedCounts[senderTabId] || 0) + 1;
+      updateBadge(senderTabId);
+    } else {
+      updateBadge();
+    }
     chrome.storage.local.set({ byeads_stats: stats });
     logBlockedEvent(msg.domain || 'page', 'Clickjack Overlay Trapped', 'Removed transparent intercepting overlay');
     sendResponse({ success: true, stats });
+    return true;
   } else if (msg.type === 'GET_STATS') {
     chrome.storage.local.get(['byeads_stats'], (res) => {
       if (res && res.byeads_stats) stats = { ...stats, ...res.byeads_stats };
@@ -207,7 +308,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   } else if (msg.type === 'RESET_STATS') {
     stats = { adsBlocked: 0, mediaAdsBlocked: 0, blockedDownloads: 0, threatsDetected: 0, lastUpdated: Date.now() };
     recentLogs.length = 0;
+    Object.keys(tabBlockedCounts).forEach((k) => delete tabBlockedCounts[k]);
     chrome.storage.local.set({ byeads_stats: stats }, () => {
+      updateBadge();
       sendResponse({ success: true, stats });
     });
     return true;

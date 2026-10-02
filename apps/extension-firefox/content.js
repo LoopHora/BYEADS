@@ -14,6 +14,23 @@
   let isWhitelisted = false;
   let zapperActive = false;
   let lastAdSkippedTime = 0;
+  let localTabBlockedCount = 0;
+  let lastReportedCosmeticCount = 0;
+
+  // Listen for defuser events from MAIN world
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'BYEADS_SPOTIFY_AD_DEFUSED') {
+      localTabBlockedCount++;
+      try {
+        chrome.runtime.sendMessage({
+          type: 'INCREMENT_TAB_STATS',
+          site: 'spotify.com',
+          category: 'spotify-ad',
+          count: 1
+        });
+      } catch {}
+    }
+  });
 
   // 1. Check Whitelist & Global Status
   try {
@@ -269,9 +286,13 @@
 
     // --- B. Spotify Web Player (open.spotify.com) ---
     if (hostname.includes('spotify.com')) {
-      const isSpotifyAd = !!document.querySelector(
-        '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"]'
-      );
+      const isSpotifyAd =
+        document.title.toLowerCase().includes('advertisement') ||
+        !!document.querySelector(
+          '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], a[href*="adeventtracker"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
+        ) ||
+        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement' ||
+        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-subtitles"]')?.textContent?.toLowerCase().includes('advertisement');
 
       const audios = document.querySelectorAll('audio');
 
@@ -281,26 +302,46 @@
             audio.muted = true;
             wasMutedByAd = true;
           }
+          audio.volume = 0;
           try {
+            if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+              audio.currentTime = audio.duration;
+            } else {
+              audio.currentTime = 9999;
+            }
             audio.playbackRate = 16.0;
+            audio.dispatchEvent(new Event('ended'));
+            audio.dispatchEvent(new Event('timeupdate'));
           } catch {}
         });
 
-        // Try skipping the ad track if the control is active
-        const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
+        // Try skipping the ad track via Next / Skip controls
+        const skipBtn =
+          document.querySelector('[data-testid="control-button-skip-forward"]') ||
+          document.querySelector('button[aria-label="Next"]') ||
+          document.querySelector('button[aria-label="Skip forward"]');
         if (skipBtn && !skipBtn.disabled) {
           try {
             skipBtn.click();
           } catch {}
         }
 
+        // Purge visual billboard and modal overlays
+        document.querySelectorAll(
+          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-message-wrapper"], [data-testid="ad-break"], div[class*="GenericModal"]'
+        ).forEach((el) => {
+          try { el.remove(); } catch {}
+        });
+
         const now = Date.now();
-        if (now - lastSpotifyMuteTime > 3000) {
+        if (now - lastSpotifyMuteTime > 1500) {
           lastSpotifyMuteTime = now;
+          localTabBlockedCount++;
           try {
             chrome.runtime.sendMessage({
-              type: 'MEDIA_AD_BLOCKED',
+              type: 'INCREMENT_TAB_STATS',
               site: 'spotify.com',
+              category: 'spotify-ad',
               count: 1
             });
           } catch {}
@@ -310,6 +351,7 @@
         audios.forEach((audio) => {
           if (wasMutedByAd) {
             audio.muted = false;
+            audio.volume = 1.0;
           }
           if (audio.playbackRate > 1.0) {
             audio.playbackRate = 1.0;
@@ -641,19 +683,22 @@
       handleFixThisPage();
       sendResponse({ healed: true });
     } else if (msg.type === 'GET_TAB_STATS') {
-      sendResponse({ count: getTabBlockedCount() });
+      trackCosmeticBlocks();
+      sendResponse({ count: Math.max(localTabBlockedCount, getTabBlockedCount()) });
       return true;
     }
   });
 
+  const cosmeticSelectors = [
+    'ins.adsbygoogle', 'div[id^="google_ads_"]', 'div[id^="div-gpt-ad"]', 'div[class*="ad-slot"]',
+    'div[class*="ad-banner"]', 'div[id*="taboola-"]', 'div[class*="outbrain"]', '.ad-container',
+    '[data-ad-unit]', '[data-ad-slot]', '#tads', '#tadsb', '#bottomads', 'ytd-ad-slot-renderer',
+    '#player-ads', '.ytp-ad-overlay-container', 'ytmusic-player-bar .advertisement',
+    'div[data-testid="ad-banner"]', '[data-testid="billboard-ad"]', '[data-testid="leaderboard-ad"]',
+    '[data-testid="top-bar-ad"]', '[data-testid="in-app-message-wrapper"]', 'a[href*="spotify:ad:"]'
+  ];
+
   function getTabBlockedCount() {
-    const cosmeticSelectors = [
-      'ins.adsbygoogle', 'div[id^="google_ads_"]', 'div[id^="div-gpt-ad"]', 'div[class*="ad-slot"]',
-      'div[class*="ad-banner"]', 'div[id*="taboola-"]', 'div[class*="outbrain"]', '.ad-container',
-      '[data-ad-unit]', '[data-ad-slot]', '#tads', '#tadsb', '#bottomads', 'ytd-ad-slot-renderer',
-      '#player-ads', '.ytp-ad-overlay-container', 'ytmusic-player-bar .advertisement',
-      'div[data-testid="ad-banner"]'
-    ];
     let count = 0;
     try {
       const els = document.querySelectorAll(cosmeticSelectors.join(','));
@@ -662,15 +707,38 @@
     return count;
   }
 
+  function trackCosmeticBlocks() {
+    if (!byeadsActive || isWhitelisted) return;
+    try {
+      const current = getTabBlockedCount();
+      if (current > lastReportedCosmeticCount) {
+        const delta = current - lastReportedCosmeticCount;
+        lastReportedCosmeticCount = current;
+        localTabBlockedCount += delta;
+        try {
+          chrome.runtime.sendMessage({
+            type: 'INCREMENT_TAB_STATS',
+            count: delta,
+            category: 'cosmetic-ad',
+            site: hostname
+          });
+        } catch {}
+      }
+    } catch {}
+  }
+
   // Run initializations
   injectCosmeticFilter();
   scanForDeceptiveButtons();
   killInvisibleClickjacks();
   setTimeout(handleCookieBanners, 800);
+  setTimeout(trackCosmeticBlocks, 1200);
 
-  // Fast loop for media streaming & clickjacks
-  setInterval(handleMediaStreamAds, 250);
+  // Fast loop for media streaming & clickjacks (runs at 150ms on Spotify)
+  const loopInterval = hostname.includes('spotify.com') ? 150 : 250;
+  setInterval(handleMediaStreamAds, loopInterval);
   setInterval(killInvisibleClickjacks, 1000);
+  setInterval(trackCosmeticBlocks, 2000);
 
   // Dynamic mutation observer
   const observer = new MutationObserver(() => {
@@ -678,6 +746,7 @@
     scanForDeceptiveButtons();
     handleCookieBanners();
     killInvisibleClickjacks();
+    trackCosmeticBlocks();
   });
 
   observer.observe(document.body || document.documentElement, {
@@ -685,3 +754,4 @@
     subtree: true
   });
 })();
+

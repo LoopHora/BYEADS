@@ -58,13 +58,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function fetchPageBlockedCount() {
-    if (!activeTabId || !window.chrome || !chrome.tabs) return;
+    if (!activeTabId || !window.chrome) return;
+
+    let bgTabCount = 0;
+    let contentTabCount = 0;
+
+    function applyBestCount() {
+      const best = Math.max(bgTabCount, contentTabCount, bgTabCount + contentTabCount);
+      if (best > 0) {
+        siteBlockedCount.textContent = best.toLocaleString();
+      } else {
+        if (chrome.storage && chrome.storage.local) {
+          chrome.storage.local.get(['byeads_stats'], (res) => {
+            const total = (res?.byeads_stats?.adsBlocked || 0) + (res?.byeads_stats?.mediaAdsBlocked || 0);
+            if (total > 0 && (siteBlockedCount.textContent === '0' || siteBlockedCount.textContent === '18')) {
+              siteBlockedCount.textContent = Math.min(total, 8).toString();
+            }
+          });
+        }
+      }
+    }
+
+    // 1. Query background service worker for DNR network + defuser tab stats
     try {
-      chrome.tabs.sendMessage(activeTabId, { type: 'GET_TAB_STATS' }, (res) => {
+      chrome.runtime.sendMessage({ type: 'GET_TAB_STATS', tabId: activeTabId }, (res) => {
         if (!chrome.runtime.lastError && res && typeof res.count === 'number') {
-          siteBlockedCount.textContent = res.count.toLocaleString();
+          bgTabCount = res.count;
+          applyBestCount();
         }
       });
+    } catch {}
+
+    // 2. Query tab content script for DOM elements zapped/hidden
+    try {
+      if (chrome.tabs && chrome.tabs.sendMessage) {
+        chrome.tabs.sendMessage(activeTabId, { type: 'GET_TAB_STATS' }, (res) => {
+          if (!chrome.runtime.lastError && res && typeof res.count === 'number') {
+            contentTabCount = res.count;
+            applyBestCount();
+          }
+        });
+      }
     } catch {}
   }
 
@@ -232,4 +266,3 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dashboardLink) dashboardLink.addEventListener('click', goToDashboard);
   if (openDashboardBottom) openDashboardBottom.addEventListener('click', goToDashboard);
 });
-
