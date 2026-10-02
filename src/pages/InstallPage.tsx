@@ -532,7 +532,7 @@ export default function InstallPage() {
 
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <a
-                    href="https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432"
+                    href="https://apps.apple.com/us/app/wblock/id6746388723"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-primary"

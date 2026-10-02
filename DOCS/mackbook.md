@@ -136,7 +136,7 @@ To avoid expensive Apple Developer Program memberships, avoid submitting closed 
 4. **Optional System-Wide DNS**: System-wide DNS is optional (e.g. NextDNS, Cloudflare 1.1.1.2, or BYEADS mobileconfig). We are transparent that DNS filtering does not block in-stream video ads.
 
 ### macOS wBlock Setup Steps:
-1. Install **wBlock** from the Mac App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
+1. Install **wBlock** from the Mac App Store: `https://apps.apple.com/us/app/wblock/id6746388723`.
 2. Open Safari > Settings > Extensions > Enable wBlock content blockers.
 3. Open wBlock > Filter Lists > Add Custom List > Paste the raw URL:
    `https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt`

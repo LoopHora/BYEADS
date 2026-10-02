@@ -58,7 +58,7 @@ No heavy background executables (`.exe`) wasting RAM:
 
 ### 2. Apple iOS, iPadOS & macOS (wBlock Hybrid Setup)
 BYEADS uses a zero-cost open-source hybrid approach for Apple devices:
-1. Install **wBlock** (free & open-source GPL-3.0) from the [App Store](https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432) or [GitHub](https://github.com/0x00dev/wBlock).
+1. Install **wBlock** (free & open-source GPL-3.0) from the [App Store](https://apps.apple.com/us/app/wblock/id6746388723) or [GitHub](https://github.com/0x00dev/wBlock).
 2. Enable wBlock in **Settings → Safari → Extensions** (macOS: **Safari → Settings → Extensions**).
 3. In wBlock, go to **Filter Lists → Add Custom List** and paste:
    ```

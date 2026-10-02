@@ -207,7 +207,7 @@ The audit's listed environment is Windows-based and does not document real iPhon
 In short: On iPhone, BYEADS uses the **wBlock Hybrid Architecture**: users install **wBlock** from the App Store and subscribe to the official BYEADS declarative filter list (`byeads-wblock-filters.txt`), avoiding Apple Developer account fees and keeping the software 100% free and open. Optional encrypted DNS can be configured for system-wide domain filtering, but is transparently acknowledged to not block in-stream video ads. The PWA provides dashboard monitoring access.
 
 ### iOS wBlock Setup Steps:
-1. Install **wBlock** from the iOS App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
+1. Install **wBlock** from the iOS App Store: `https://apps.apple.com/us/app/wblock/id6746388723`.
 2. Open iPhone **Settings** > **Safari** > **Extensions** > toggle **wBlock** content blockers ON.
 3. Open the **wBlock** app > tap **Filter Lists** > **+ Add Custom List** > paste:
    `https://raw.githubusercontent.com/LoopHora/BYEADS/main/public/byeads-wblock-filters.txt`
