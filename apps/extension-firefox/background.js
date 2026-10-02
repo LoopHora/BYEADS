@@ -39,12 +39,29 @@ let stats = {
   lastUpdated: Date.now()
 };
 
+const recentLogs = [];
+
+function logBlockedEvent(domain, category, details) {
+  recentLogs.unshift({
+    id: Date.now() + Math.random(),
+    domain,
+    category,
+    details: details || '',
+    time: new Date().toLocaleTimeString()
+  });
+  if (recentLogs.length > 60) recentLogs.pop();
+}
+
 // WebRequest blocking filter
 if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
   chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
       stats.adsBlocked++;
       chrome.storage.local.set({ byeads_stats: stats });
+      try {
+        const u = new URL(details.url);
+        logBlockedEvent(u.hostname, 'Network Ad / Tracker', details.url);
+      } catch {}
       return { cancel: true };
     },
     { urls: BLOCKED_DOMAINS },
@@ -69,6 +86,7 @@ if (chrome.downloads && chrome.downloads.onCreated) {
           stats.blockedDownloads++;
           stats.threatsDetected++;
           chrome.storage.local.set({ byeads_stats: stats });
+          logBlockedEvent('download', 'Deceptive File (.pdf.exe)', filename);
         });
       }
     }
@@ -81,10 +99,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     stats.mediaAdsBlocked = (stats.mediaAdsBlocked || 0) + (msg.count || 1);
     stats.adsBlocked = (stats.adsBlocked || 0) + (msg.count || 1);
     chrome.storage.local.set({ byeads_stats: stats });
+    logBlockedEvent(msg.site || 'youtube.com', 'YouTube In-Stream Ad', 'Muted & Fast-Forwarded to skip');
     sendResponse({ success: true, stats });
   } else if (msg.type === 'DECEPTION_DETECTED') {
     stats.threatsDetected = (stats.threatsDetected || 0) + 1;
     chrome.storage.local.set({ byeads_stats: stats });
+    logBlockedEvent(msg.targetDomain || 'external', 'Deceptive Button Target', msg.claimedText);
     sendResponse({ success: true, stats });
   } else if (msg.type === 'GET_STATS') {
     chrome.storage.local.get(['byeads_stats'], (res) => {
@@ -92,8 +112,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ stats });
     });
     return true;
+  } else if (msg.type === 'GET_LOGS') {
+    sendResponse({ logs: recentLogs });
+    return true;
   } else if (msg.type === 'RESET_STATS') {
     stats = { adsBlocked: 0, mediaAdsBlocked: 0, blockedDownloads: 0, threatsDetected: 0, lastUpdated: Date.now() };
+    recentLogs.length = 0;
     chrome.storage.local.set({ byeads_stats: stats }, () => {
       sendResponse({ success: true, stats });
     });

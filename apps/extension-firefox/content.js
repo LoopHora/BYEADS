@@ -1,16 +1,51 @@
 // ===== BYEADS WEB SHIELD & DECEPTION ENGINE =====
-// Multi-layer in-page protection: YouTube/Music stream ad neutralization,
-// universal cosmetic ad removal, and deceptive link heuristics.
+// Multi-layer in-page protection:
+// 1. YouTube & YouTube Music stream ad neutralization
+// 2. Universal cosmetic ad removal
+// 3. Smart Cookie Banner Auto-Dismiss (GDPR/CCPA)
+// 4. Visual Element Zapper & Custom Rules Engine
+// 5. Deception Engine fake download button scanner
 
 (function () {
   'use strict';
 
+  const hostname = window.location.hostname.replace(/^www\./, '');
   let byeadsActive = true;
-  let blockedCount = 0;
+  let isWhitelisted = false;
+  let zapperActive = false;
   let lastAdSkippedTime = 0;
 
-  // 1. Inject Universal & Streaming Cosmetic CSS Rules
+  // 1. Check Whitelist & Global Status
+  try {
+    chrome.storage.local.get(['byeads_enabled', 'byeads_whitelist', 'byeads_custom_zaps'], (res) => {
+      if (res.byeads_enabled === false) byeadsActive = false;
+      const whitelist = res.byeads_whitelist || [];
+      if (whitelist.includes(hostname)) {
+        isWhitelisted = true;
+        byeadsActive = false;
+      }
+
+      // Apply any custom zapped elements for this site
+      const zaps = res.byeads_custom_zaps || {};
+      const siteZaps = zaps[hostname] || [];
+      if (siteZaps.length > 0) {
+        applyCustomZaps(siteZaps);
+      }
+    });
+  } catch {}
+
+  function applyCustomZaps(selectors) {
+    selectors.forEach((sel) => {
+      try {
+        const els = document.querySelectorAll(sel);
+        els.forEach((el) => el.remove());
+      } catch {}
+    });
+  }
+
+  // 2. Inject Universal & Streaming Cosmetic CSS Rules
   function injectCosmeticFilter() {
+    if (!byeadsActive || isWhitelisted) return;
     if (document.getElementById('byeads-cosmetic-shield')) return;
 
     const style = document.createElement('style');
@@ -67,11 +102,10 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
-  // 2. YouTube & YouTube Music Active Stream Interceptor & Ad Skipper
+  // 3. YouTube & YouTube Music Active Stream Interceptor & Ad Skipper
   function handleMediaStreamAds() {
-    if (!byeadsActive) return;
+    if (!byeadsActive || isWhitelisted) return;
 
-    const hostname = window.location.hostname;
     const isYouTube = hostname.includes('youtube.com');
     if (!isYouTube) return;
 
@@ -108,11 +142,10 @@
         } catch {}
       });
 
-      // Throttle recording stats
+      // Record stats
       const now = Date.now();
       if (now - lastAdSkippedTime > 1500) {
         lastAdSkippedTime = now;
-        blockedCount++;
         try {
           chrome.runtime.sendMessage({
             type: 'MEDIA_AD_BLOCKED',
@@ -130,9 +163,55 @@
     }
   }
 
-  // 3. Deception Engine: Fake Button & Deceptive Link Scanner
+  // 4. Smart Cookie Banner Auto-Dismiss (GDPR/CCPA)
+  function handleCookieBanners() {
+    if (!byeadsActive || isWhitelisted) return;
+
+    // Auto-click Reject / Decline buttons if present
+    const rejectSelectors = [
+      '#onetrust-reject-all-handler',
+      '.osano-cm-denyAll',
+      'button[id*="reject"]',
+      'button[aria-label*="reject"]',
+      'button[aria-label*="decline"]',
+      '.didomi-dismiss-button',
+      '#didomi-notice-agree-button',
+      'button[class*="cookie-reject"]',
+      'button[class*="cookie-decline"]'
+    ];
+
+    for (const sel of rejectSelectors) {
+      try {
+        const btn = document.querySelector(sel);
+        if (btn && btn.offsetParent !== null) {
+          btn.click();
+          return;
+        }
+      } catch {}
+    }
+
+    // Hide lingering modal overlays and restore scroll
+    const modalSelectors = [
+      '#onetrust-banner-sdk',
+      '.osano-cm-window',
+      '.didomi-popup-container',
+      '#CybotCookiebotDialog'
+    ];
+
+    modalSelectors.forEach((sel) => {
+      try {
+        const modal = document.querySelector(sel);
+        if (modal) {
+          modal.style.display = 'none';
+          document.body.style.setProperty('overflow', 'auto', 'important');
+        }
+      } catch {}
+    });
+  }
+
+  // 5. Deception Engine: Fake Button & Deceptive Link Scanner
   function scanForDeceptiveButtons() {
-    if (!byeadsActive) return;
+    if (!byeadsActive || isWhitelisted) return;
 
     const currentDomain = window.location.hostname.replace(/^www\./, '');
     const buttons = document.querySelectorAll('a, button, [role="button"]');
@@ -150,7 +229,6 @@
           const targetUrl = new URL(href, window.location.href);
           const targetDomain = targetUrl.hostname.replace(/^www\./, '');
 
-          // Check if link claims to be download but points to known ad domain or distinct third party
           const isSuspiciousRedirect = targetDomain.includes('adnxs') ||
             targetDomain.includes('popads') ||
             targetDomain.includes('onclick') ||
@@ -169,33 +247,137 @@
               claimedText: text
             });
           }
-        } catch {
-          // ignore parsing error
-        }
+        } catch {}
       }
     });
   }
 
-  // Check state from storage
-  try {
-    chrome.storage.local.get(['byeads_enabled'], (res) => {
-      if (res && res.byeads_enabled === false) {
-        byeadsActive = false;
+  // 6. Visual Element Zapper Controller
+  function initElementZapper() {
+    if (zapperActive) return;
+    zapperActive = true;
+
+    let hoveredEl = null;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'byeads-zapper-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 9999999;
+      background: #0d1117;
+      color: #f0f6fc;
+      border: 1px solid #f97316;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    `;
+    overlay.innerHTML = `
+      <span style="color: #f97316; font-weight: bold;">[BYEADS Zapper]</span>
+      <span>Click any element to permanently zap it. Press Esc to cancel.</span>
+    `;
+    document.body.appendChild(overlay);
+
+    function onMouseMove(e) {
+      if (!zapperActive) return;
+      if (e.target === overlay || overlay.contains(e.target)) return;
+
+      if (hoveredEl && hoveredEl !== e.target) {
+        hoveredEl.style.outline = '';
       }
-    });
-  } catch {}
+      hoveredEl = e.target;
+      hoveredEl.style.outline = '3px dashed #ef4444';
+      hoveredEl.style.cursor = 'crosshair';
+    }
+
+    function onClick(e) {
+      if (!zapperActive) return;
+      if (e.target === overlay || overlay.contains(e.target)) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const el = e.target;
+      const selector = generateSelector(el);
+      el.remove();
+
+      // Persist custom zap selector
+      chrome.storage.local.get(['byeads_custom_zaps'], (res) => {
+        const zaps = res.byeads_custom_zaps || {};
+        if (!zaps[hostname]) zaps[hostname] = [];
+        if (!zaps[hostname].includes(selector)) {
+          zaps[hostname].push(selector);
+        }
+        chrome.storage.local.set({ byeads_custom_zaps: zaps });
+      });
+
+      cleanup();
+    }
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') cleanup();
+    }
+
+    function cleanup() {
+      zapperActive = false;
+      if (hoveredEl) hoveredEl.style.outline = '';
+      overlay.remove();
+      document.removeEventListener('mousemove', onMouseMove, true);
+      document.removeEventListener('click', onClick, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    }
+
+    document.addEventListener('mousemove', onMouseMove, true);
+    document.addEventListener('click', onClick, true);
+    document.addEventListener('keydown', onKeyDown, true);
+  }
+
+  function generateSelector(el) {
+    if (el.id) return `#${el.id}`;
+    if (el.className && typeof el.className === 'string') {
+      const cls = el.className.trim().split(/\s+/)[0];
+      if (cls && !cls.includes(':')) return `${el.tagName.toLowerCase()}.${cls}`;
+    }
+    return el.tagName.toLowerCase();
+  }
+
+  // 7. Message Dispatcher
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === 'START_ZAPPER') {
+      initElementZapper();
+      sendResponse({ status: 'Zapper started' });
+    } else if (msg.type === 'TOGGLE_WHITELIST') {
+      isWhitelisted = msg.isWhitelisted;
+      byeadsActive = !isWhitelisted;
+      if (isWhitelisted) {
+        const style = document.getElementById('byeads-cosmetic-shield');
+        if (style) style.remove();
+      } else {
+        injectCosmeticFilter();
+      }
+      sendResponse({ success: true });
+    }
+  });
 
   // Run initializations
   injectCosmeticFilter();
   scanForDeceptiveButtons();
+  setTimeout(handleCookieBanners, 800);
 
-  // High-frequency media ad guard loop for YouTube / YT Music
+  // Fast loop for media streaming
   setInterval(handleMediaStreamAds, 250);
 
-  // MutationObserver for dynamic insertions
+  // Dynamic mutation observer
   const observer = new MutationObserver(() => {
     handleMediaStreamAds();
     scanForDeceptiveButtons();
+    handleCookieBanners();
   });
 
   observer.observe(document.body || document.documentElement, {

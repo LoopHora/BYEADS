@@ -16,9 +16,9 @@
       --brand: #f97316;
       --brand-hover: #ea580c;
       --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.25);
       --red: #f43f5e;
       --amber: #f59e0b;
+      --blue: #38bdf8;
       --radius: 8px;
     }
 
@@ -29,13 +29,23 @@
     }
 
     body {
-      width: 340px;
-      min-height: 480px;
+      width: 350px;
+      max-height: 580px;
+      overflow-y: auto;
       background-color: var(--bg-app);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      padding: 16px;
+      padding: 14px;
       user-select: none;
+    }
+
+    /* Scrollbar */
+    body::-webkit-scrollbar {
+      width: 4px;
+    }
+    body::-webkit-scrollbar-thumb {
+      background: var(--border-accent);
+      border-radius: 4px;
     }
 
     /* Top Brand & Status Header */
@@ -43,9 +53,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 12px;
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--border-sub);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .brand {
@@ -55,8 +65,8 @@
     }
 
     .brand-icon {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 6px;
       background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
       display: flex;
@@ -64,7 +74,7 @@
       justify-content: center;
       color: #fff;
       font-weight: 900;
-      font-size: 14px;
+      font-size: 13px;
       box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
     }
 
@@ -73,9 +83,7 @@
       font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      line-height: 1.1;
     }
 
     .brand-kicker {
@@ -93,11 +101,10 @@
       background-color: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 9999px;
-      padding: 3px 10px;
+      padding: 3px 8px;
       font-size: 0.6875rem;
       font-weight: 700;
       color: var(--green);
-      transition: all 0.2s ease;
     }
 
     .status-pill.disabled {
@@ -124,7 +131,7 @@
       background-color: var(--bg-card);
       border: 1px solid var(--border-sub);
       border-radius: var(--radius);
-      padding: 14px 16px;
+      padding: 12px 14px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -135,7 +142,7 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
-      max-width: 210px;
+      max-width: 220px;
     }
 
     .current-site {
@@ -155,8 +162,8 @@
     /* Big Power Toggle Switch */
     .power-switch {
       position: relative;
-      width: 48px;
-      height: 26px;
+      width: 44px;
+      height: 24px;
       cursor: pointer;
     }
 
@@ -175,21 +182,20 @@
       bottom: 0;
       background-color: #21262d;
       border: 1px solid var(--border-accent);
-      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 13px;
+      transition: 0.25s;
+      border-radius: 12px;
     }
 
     .power-slider:before {
       position: absolute;
       content: "";
-      height: 20px;
-      width: 20px;
+      height: 18px;
+      width: 18px;
       left: 2px;
       bottom: 2px;
       background-color: #f0f6fc;
-      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: 0.25s;
       border-radius: 50%;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
 
     .power-switch input:checked + .power-slider {
@@ -198,7 +204,7 @@
     }
 
     .power-switch input:checked + .power-slider:before {
-      transform: translateX(22px);
+      transform: translateX(20px);
     }
 
     /* 4-Tile Stats Grid */
@@ -206,36 +212,29 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .stat-tile {
       background-color: var(--bg-card);
       border: 1px solid var(--border-sub);
       border-radius: var(--radius);
-      padding: 10px 12px;
+      padding: 8px 10px;
       text-align: left;
     }
 
     .stat-number {
-      font-size: 1.25rem;
+      font-size: 1.1875rem;
       font-weight: 800;
       color: var(--text-main);
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
 
-    .stat-number.green {
-      color: var(--green);
-    }
-
-    .stat-number.brand {
-      color: var(--brand);
-    }
-
-    .stat-number.amber {
-      color: var(--amber);
-    }
+    .stat-number.green { color: var(--green); }
+    .stat-number.brand { color: var(--brand); }
+    .stat-number.amber { color: var(--amber); }
+    .stat-number.blue  { color: var(--blue); }
 
     .stat-label {
       font-size: 0.6875rem;
@@ -244,22 +243,21 @@
       margin-top: 2px;
     }
 
-    /* Shields Subsystems Accordion / List */
+    /* Shields Subsystems */
     .shields-list {
       background-color: var(--bg-card);
       border: 1px solid var(--border-sub);
       border-radius: var(--radius);
       overflow: hidden;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .shield-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-bottom: 1px solid var(--border-sub);
-      transition: background 0.15s ease;
     }
 
     .shield-row:last-child {
@@ -273,21 +271,21 @@
     }
 
     .shield-name {
-      font-size: 0.8125rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
       color: var(--text-main);
     }
 
     .shield-sub {
-      font-size: 0.6875rem;
+      font-size: 0.625rem;
       color: var(--text-dim);
     }
 
     /* Mini Toggle */
     .mini-switch {
       position: relative;
-      width: 34px;
-      height: 18px;
+      width: 32px;
+      height: 17px;
       cursor: pointer;
     }
 
@@ -307,14 +305,14 @@
       background-color: #21262d;
       border: 1px solid var(--border-accent);
       transition: 0.2s;
-      border-radius: 9px;
+      border-radius: 8px;
     }
 
     .mini-slider:before {
       position: absolute;
       content: "";
-      height: 14px;
-      width: 14px;
+      height: 13px;
+      width: 13px;
       left: 1px;
       bottom: 1px;
       background-color: #f0f6fc;
@@ -328,48 +326,98 @@
     }
 
     .mini-switch input:checked + .mini-slider:before {
-      transform: translateX(16px);
+      transform: translateX(15px);
     }
 
     /* Action Buttons */
     .action-row {
       display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin-bottom: 10px;
     }
 
     .btn {
       flex: 1;
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
       font-weight: 600;
       text-align: center;
       text-decoration: none;
       cursor: pointer;
-      border: 1px solid transparent;
+      border: 1px solid var(--border-sub);
+      background-color: var(--bg-card);
+      color: var(--text-main);
       transition: all 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 5px;
     }
 
-    .btn-secondary {
-      background-color: var(--bg-card);
-      border-color: var(--border-sub);
-      color: var(--text-main);
-    }
-
-    .btn-secondary:hover {
+    .btn:hover {
       background-color: var(--bg-card-hover);
       border-color: var(--border-accent);
+    }
+
+    .btn-zapper {
+      border-color: rgba(249, 115, 22, 0.4);
+      color: var(--brand);
+    }
+
+    .btn-zapper:hover {
+      background-color: rgba(249, 115, 22, 0.1);
+      border-color: var(--brand);
+    }
+
+    /* Live Traffic Drawer */
+    .logger-drawer {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-sub);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .logger-drawer.open {
+      display: block;
+    }
+
+    .logger-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .logger-list {
+      max-height: 120px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.6875rem;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      background: var(--bg-app);
+      border-radius: 4px;
+      border: 1px solid var(--border-sub);
     }
 
     /* Footer */
     .footer {
       border-top: 1px solid var(--border-sub);
-      padding-top: 10px;
+      padding-top: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -380,11 +428,6 @@
     .footer a {
       color: var(--text-sub);
       text-decoration: none;
-      transition: color 0.15s;
-    }
-
-    .footer a:hover {
-      color: var(--brand);
     }
   </style>
 </head>
@@ -404,13 +447,13 @@
     </div>
   </div>
 
-  <!-- Master Shield Card -->
+  <!-- Master Shield Card with Whitelist Option -->
   <div class="master-card">
     <div class="master-info">
-      <div class="current-site" id="siteHostname">Checking tab...</div>
+      <div class="current-site" id="siteHostname">Active Tab</div>
       <div class="master-desc" id="masterDesc">All 4 shields active on this page</div>
     </div>
-    <label class="power-switch">
+    <label class="power-switch" title="Toggle protection for this session">
       <input type="checkbox" id="masterToggle" checked>
       <span class="power-slider"></span>
     </label>
@@ -424,14 +467,14 @@
     </div>
     <div class="stat-tile">
       <div class="stat-number brand" id="statMedia">0</div>
-      <div class="stat-label">YouTube / Audio Ads</div>
+      <div class="stat-label">YouTube In-Stream</div>
     </div>
     <div class="stat-tile">
       <div class="stat-number amber" id="statDeception">0</div>
       <div class="stat-label">Deceptions Caught</div>
     </div>
     <div class="stat-tile">
-      <div class="stat-number" id="statDownloads">0</div>
+      <div class="stat-number blue" id="statDownloads">0</div>
       <div class="stat-label">Unsafe Downloads</div>
     </div>
   </div>
@@ -452,7 +495,7 @@
     <div class="shield-row">
       <div class="shield-meta">
         <div class="shield-name">YouTube &amp; Media Guard</div>
-        <div class="shield-sub">Instant skip &amp; mute video/music ads</div>
+        <div class="shield-sub">Defuser &amp; Instant stream skip</div>
       </div>
       <label class="mini-switch">
         <input type="checkbox" id="shieldMedia" checked>
@@ -473,11 +516,11 @@
 
     <div class="shield-row">
       <div class="shield-meta">
-        <div class="shield-name">Download Guard</div>
-        <div class="shield-sub">Double-extension (.pdf.exe) interceptor</div>
+        <div class="shield-name">Cookie Banner Auto-Reject</div>
+        <div class="shield-sub">Automatic GDPR decline &amp; dismissal</div>
       </div>
       <label class="mini-switch">
-        <input type="checkbox" id="shieldDownload" checked>
+        <input type="checkbox" id="shieldCookie" checked>
         <span class="mini-slider"></span>
       </label>
     </div>
@@ -485,18 +528,32 @@
 
   <!-- Action Row -->
   <div class="action-row">
-    <a href="#" id="openDashboardBtn" class="btn btn-secondary">
-      <span>Open Dashboard</span>
-    </a>
-    <a href="#" id="resetStatsBtn" class="btn btn-secondary" style="flex: 0 0 80px;">
-      <span>Reset</span>
-    </a>
+    <button id="zapperBtn" class="btn btn-zapper" title="Point and click any annoying element to permanently zap it">
+      <span>Element Zapper</span>
+    </button>
+    <button id="toggleLoggerBtn" class="btn" title="View live blocked network events on this tab">
+      <span>Traffic Log</span>
+    </button>
+    <button id="whitelistBtn" class="btn" title="Allow ads on this site">
+      <span id="whitelistBtnText">Whitelist Site</span>
+    </button>
+  </div>
+
+  <!-- Live Traffic Log Drawer -->
+  <div class="logger-drawer" id="loggerDrawer">
+    <div class="logger-header">
+      <span>Live Interception Events</span>
+      <span id="loggerCount">0 events</span>
+    </div>
+    <div class="logger-list" id="loggerList">
+      <div style="color: var(--text-dim); text-align: center; padding: 6px;">No ad events logged yet.</div>
+    </div>
   </div>
 
   <!-- Footer -->
   <div class="footer">
-    <span>v1.0.0 · MPL-2.0</span>
-    <span>Local Heuristics · Zero Telemetry</span>
+    <a href="#" id="openDashboardBtn">Open Dashboard</a>
+    <span>v1.0.0 · Local Heuristics</span>
   </div>
 
   <script src="popup.js"></script>
