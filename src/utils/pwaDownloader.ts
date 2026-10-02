@@ -1,4 +1,5 @@
 // ===== PWA & MOBILE ROBUST DOWNLOAD HELPER =====
+// Directly downloads from official GitHub repository (raw.githubusercontent.com)
 // Solves PWA standalone webview download blocking across iOS, Android, macOS, and Windows
 
 export interface DownloadResult {
@@ -7,31 +8,64 @@ export interface DownloadResult {
   isIosProfileNotice?: boolean;
 }
 
-export function downloadPwaFile(url: string, filename: string): DownloadResult {
+export const GITHUB_REPO_URL = 'https://github.com/AzeemS24/BYEADS';
+export const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/AzeemS24/BYEADS/main';
+
+/**
+ * Returns the direct, canonical GitHub raw download URL for any platform artifact
+ */
+export function getGithubDownloadUrl(pathOrFilename: string): string {
+  if (pathOrFilename.startsWith('http://') || pathOrFilename.startsWith('https://')) {
+    return pathOrFilename;
+  }
+  const clean = pathOrFilename.replace(/^\/+/, '');
+  if (clean.includes('mobileconfig')) {
+    return `${GITHUB_RAW_BASE}/public/byeads-encrypted-dns.mobileconfig`;
+  }
+  if (clean.includes('install-byeads-dns.bat')) {
+    return `${GITHUB_RAW_BASE}/public/install-byeads-dns.bat`;
+  }
+  if (clean.includes('setup-windows-doh.ps1')) {
+    return `${GITHUB_RAW_BASE}/public/setup-windows-doh.ps1`;
+  }
+  if (clean.includes('chromium')) {
+    return `${GITHUB_RAW_BASE}/public/byeads-extension-chromium.zip`;
+  }
+  if (clean.includes('firefox')) {
+    return `${GITHUB_RAW_BASE}/public/byeads-extension-firefox.zip`;
+  }
+  if (clean.includes('safari')) {
+    return `${GITHUB_RAW_BASE}/public/byeads-extension-safari.zip`;
+  }
+  return `${GITHUB_RAW_BASE}/public/${clean}`;
+}
+
+export function downloadPwaFile(urlOrPath: string, filename: string): DownloadResult {
   if (typeof window === 'undefined') {
     return { success: false, message: 'Window not defined' };
   }
 
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+  // Resolve to direct GitHub download URL
+  const targetUrl = getGithubDownloadUrl(urlOrPath);
+
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   const isMobileConfig = filename.endsWith('.mobileconfig');
 
   // iOS Standalone PWA limitation:
   // Apple WKWebView in standalone mode prohibits downloading device configuration profiles directly.
-  // The profile MUST be opened in Safari so iOS triggers the "Profile Downloaded" prompt.
+  // The profile MUST be opened in Safari so iOS triggers the native "Profile Downloaded" prompt.
   if (isIos && isMobileConfig) {
-    // Open directly in Safari via blank target or window.location
-    window.location.href = url;
+    window.location.href = targetUrl;
     return {
       success: true,
       isIosProfileNotice: true,
-      message: 'Opening profile in Safari. When prompted, tap "Allow", then open iPhone Settings -> Profile Downloaded to install.'
+      message: 'Opening profile directly from GitHub in Safari. Tap "Allow", then open iPhone Settings -> Profile Downloaded to install.'
     };
   }
 
   try {
     const link = document.createElement('a');
-    link.href = url;
+    link.href = targetUrl;
     link.download = filename;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -43,14 +77,14 @@ export function downloadPwaFile(url: string, filename: string): DownloadResult {
 
     return {
       success: true,
-      message: `Downloaded ${filename} successfully.`
+      message: `Downloading ${filename} directly from GitHub.`
     };
   } catch (err: any) {
     // Fallback: direct window.open
-    window.open(url, '_blank');
+    window.open(targetUrl, '_blank');
     return {
       success: true,
-      message: `Opened ${filename} in new window.`
+      message: `Opened ${filename} from GitHub in new window.`
     };
   }
 }

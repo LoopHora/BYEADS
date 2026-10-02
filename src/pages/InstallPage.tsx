@@ -18,6 +18,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
+import { getGithubDownloadUrl, downloadPwaFile } from '../utils/pwaDownloader';
 
 type PlatformId = 'chrome' | 'firefox' | 'windows' | 'apple' | 'android';
 
@@ -181,17 +182,22 @@ export default function InstallPage() {
                 </div>
 
                 <a
-                  href="/byeads-extension-chromium.zip"
+                  href={getGithubDownloadUrl('/byeads-extension-chromium.zip')}
                   download="byeads-extension-chromium.zip"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadPwaFile('/byeads-extension-chromium.zip', 'byeads-extension-chromium.zip');
+                  }}
                   className="btn btn-primary"
                   style={{
                     boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                     padding: '10px 20px',
                     borderRadius: 'var(--radius-md)'
                   }}
+                  title="Direct download from GitHub"
                 >
                   <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .ZIP</span>
+                  <span>Download .ZIP (GitHub)</span>
                 </a>
               </div>
 
@@ -351,17 +357,22 @@ export default function InstallPage() {
                 </div>
 
                 <a
-                  href="/install-byeads-dns.bat"
+                  href={getGithubDownloadUrl('/install-byeads-dns.bat')}
                   download="install-byeads-dns.bat"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadPwaFile('/install-byeads-dns.bat', 'install-byeads-dns.bat');
+                  }}
                   className="btn btn-primary"
                   style={{
                     boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                     padding: '10px 20px',
                     borderRadius: 'var(--radius-md)'
                   }}
+                  title="Direct download from GitHub"
                 >
                   <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .BAT</span>
+                  <span>Download .BAT (GitHub)</span>
                 </a>
               </div>
 
@@ -502,17 +513,22 @@ export default function InstallPage() {
                 </div>
 
                 <a
-                  href="/byeads-encrypted-dns.mobileconfig"
+                  href={getGithubDownloadUrl('/byeads-encrypted-dns.mobileconfig')}
                   download="byeads-encrypted-dns.mobileconfig"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadPwaFile('/byeads-encrypted-dns.mobileconfig', 'byeads-encrypted-dns.mobileconfig');
+                  }}
                   className="btn btn-primary"
                   style={{
                     boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                     padding: '10px 20px',
                     borderRadius: 'var(--radius-md)'
                   }}
+                  title="Direct download from GitHub"
                 >
                   <Download style={{ width: 16, height: 16 }} />
-                  <span>Download Profile</span>
+                  <span>Download Profile (GitHub)</span>
                 </a>
               </div>
 
@@ -597,17 +613,22 @@ export default function InstallPage() {
                   </div>
 
                   <a
-                    href="/byeads-extension-safari.zip"
+                    href={getGithubDownloadUrl('/byeads-extension-safari.zip')}
                     download="byeads-extension-safari.zip"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      downloadPwaFile('/byeads-extension-safari.zip', 'byeads-extension-safari.zip');
+                    }}
                     className="btn btn-primary"
                     style={{
                       boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                       padding: '10px 20px',
                       borderRadius: 'var(--radius-md)'
                     }}
+                    title="Direct download from GitHub"
                   >
                     <Download style={{ width: 16, height: 16 }} />
-                    <span>Download Safari .ZIP</span>
+                    <span>Download Safari .ZIP (GitHub)</span>
                   </a>
                 </div>
               </div>
@@ -781,17 +802,22 @@ export default function InstallPage() {
                 </div>
 
                 <a
-                  href="/byeads-extension-firefox.zip"
+                  href={getGithubDownloadUrl('/byeads-extension-firefox.zip')}
                   download="byeads-extension-firefox.zip"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    downloadPwaFile('/byeads-extension-firefox.zip', 'byeads-extension-firefox.zip');
+                  }}
                   className="btn btn-primary"
                   style={{
                     boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                     padding: '10px 20px',
                     borderRadius: 'var(--radius-md)'
                   }}
+                  title="Direct download from GitHub"
                 >
                   <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .ZIP</span>
+                  <span>Download .ZIP (GitHub)</span>
                 </a>
               </div>
 
