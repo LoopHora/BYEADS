@@ -197,6 +197,50 @@
       div[class*="soundBadge__sponsored"],
       .streamAds,
 
+      /* Facebook & Instagram Sponsored Feeds & Login Walls */
+      div[data-pagelet*="FeedUnit"]:has(a[href*="/ads/about"]),
+      div[id="login_popup_cta"],
+      div[role="dialog"]:has(a[href*="accounts/login"]),
+      div[class*="login-cta"],
+      article:has(a[href*="/about/ads"]),
+      div[data-testid="fb-sponsored-feed-unit"],
+
+      /* LinkedIn Promoted Feed & Upsell Bars */
+      aside.scaffold-layout__aside div:has(a[href*="premium"]),
+      div[class*="premium-upsell"],
+      div[data-view-name*="premium-upsell"],
+
+      /* TikTok Web In-Feed Ads & App Download Prompts */
+      div[data-e2e="feed-item"]:has([data-e2e="ad-tag"]),
+      div[class*="DivBottomBanner"],
+      div[class*="DivAppDownload"],
+      div[class*="DivModalContainer"]:has(a[href*="apps.apple.com"]),
+
+      /* Quora Promoted Answers & Signup Walls */
+      div.q-box:has(a[href*="/ad/"]),
+      div[class*="AdAnswer"],
+      .signup_wall,
+      .BaseSignupForm,
+      .signup_modal,
+      div[class*="SignupWall"],
+
+      /* Pinterest Promoted Pins & Full Screen Signups */
+      div[data-test-id="pin"]:has([data-test-id="badge-promoted"]),
+      div[data-test-id="gift-wrap"],
+      div[data-test-id="full-page-signup"],
+      div[data-test-id="login-modal-default"],
+
+      /* Cloud File Hosters Fake Download Ads & Timer Traps (MediaFire, 1Fichier, RapidGator) */
+      div.dl-promo-cont,
+      #ad-desktop-1,
+      #ad-desktop-2,
+      div[class*="dl-ad"],
+      div[class*="download-ad"],
+      div[id*="ad-direct"],
+      .ads-middle,
+      .ads-bottom,
+      div[class*="promo-download"],
+
       /* Popups, Popunders, Sticky Floaters & Overlay Wrappers */
       div[class*="popup-ad"],
       div[id*="popup-ad"],
@@ -587,9 +631,126 @@
         try { el.remove(); } catch {}
       });
     }
+
+    // E. Facebook & Instagram sponsored feed cleaner & login popups
+    if (hostname.includes('facebook.com') || hostname.includes('instagram.com')) {
+      document.querySelectorAll('div[data-pagelet*="FeedUnit"]:has(a[href*="/ads/about"]), div[data-testid="fb-sponsored-feed-unit"], article:has(a[href*="/about/ads"])').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+      // Neutralize sticky login wall modals blocking page viewing
+      document.querySelectorAll('div[id="login_popup_cta"], div[class*="login-cta"], div[role="dialog"]:has(a[href*="accounts/login"])').forEach((el) => {
+        try {
+          el.remove();
+          if (document.body) {
+            document.body.style.setProperty('overflow', 'auto', 'important');
+          }
+        } catch {}
+      });
+    }
+
+    // F. LinkedIn promoted feeds & premium upsells
+    if (hostname.includes('linkedin.com')) {
+      document.querySelectorAll('.feed-shared-update-v2:has(.feed-shared-actor__sub-description), div[data-urn*="urn:li:activity"]').forEach((card) => {
+        try {
+          const text = (card.innerText || '').toLowerCase();
+          if (text.includes('promoted') || text.includes('sponsored')) {
+            card.remove();
+          }
+        } catch {}
+      });
+      document.querySelectorAll('aside.scaffold-layout__aside div:has(a[href*="premium"]), div[class*="premium-upsell"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+    }
+
+    // G. TikTok web in-feed ads & app download banners
+    if (hostname.includes('tiktok.com')) {
+      document.querySelectorAll('div[data-e2e="feed-item"]:has([data-e2e="ad-tag"]), div[class*="DivBottomBanner"], div[class*="DivAppDownload"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+    }
+
+    // H. Quora sponsored answers & signup wall unblur
+    if (hostname.includes('quora.com')) {
+      document.querySelectorAll('div.q-box:has(a[href*="/ad/"]), div[class*="AdAnswer"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+      const signupWall = document.querySelectorAll('.signup_wall, .BaseSignupForm, .signup_modal, div[class*="SignupWall"]');
+      if (signupWall.length > 0) {
+        signupWall.forEach((el) => {
+          try { el.remove(); } catch {}
+        });
+        if (document.body) {
+          document.body.style.setProperty('overflow', 'auto', 'important');
+        }
+        document.querySelectorAll('div[id="root"], div[class*="content"], div[class*="layout"]').forEach((el) => {
+          el.style.setProperty('filter', 'none', 'important');
+        });
+      }
+    }
+
+    // I. Pinterest promoted pins & signup dialog
+    if (hostname.includes('pinterest.com')) {
+      document.querySelectorAll('div[data-test-id="pin"]:has([data-test-id="badge-promoted"]), div[data-test-id="gift-wrap"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+      document.querySelectorAll('div[data-test-id="full-page-signup"], div[data-test-id="login-modal-default"]').forEach((el) => {
+        try {
+          el.remove();
+          if (document.body) {
+            document.body.style.setProperty('overflow', 'auto', 'important');
+          }
+        } catch {}
+      });
+    }
   }
 
-  // 7. Deception Engine: Fake Button & Deceptive Link Scanner
+  // 7. Universal File Hoster & Cloud Portal Protection (MediaFire, RapidGator, 1Fichier, Mega)
+  function handleFileHosterCleaners() {
+    if (!byeadsActive || isWhitelisted) return;
+    const isHoster =
+      hostname.includes('mediafire.com') ||
+      hostname.includes('rapidgator.net') ||
+      hostname.includes('1fichier.com') ||
+      hostname.includes('mega.nz') ||
+      hostname.includes('filefactory.com') ||
+      hostname.includes('uploaded.net') ||
+      hostname.includes('zippyshare');
+
+    if (!isHoster) return;
+
+    // MediaFire specific ad wrappers and direct download protection
+    if (hostname.includes('mediafire.com')) {
+      document.querySelectorAll('div.dl-promo-cont, #ad-desktop-1, #ad-desktop-2, div[class*="dl-ad"], div.ads, div[id*="ad_"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+      const dlBtn = document.getElementById('downloadButton');
+      if (dlBtn) {
+        dlBtn.style.setProperty('display', 'block', 'important');
+        dlBtn.style.setProperty('visibility', 'visible', 'important');
+        dlBtn.style.setProperty('pointer-events', 'auto', 'important');
+      }
+    }
+
+    // Generic file hoster fake buttons & countdown timer overlays
+    const fakeDlSelectors = [
+      'div[class*="download-ad"]',
+      'div[id*="ad-direct"]',
+      '.ads-middle',
+      '.ads-bottom',
+      'div[class*="promo-download"]',
+      'div[id*="banner-container"]',
+      'iframe[src*="ad"]'
+    ];
+    fakeDlSelectors.forEach((sel) => {
+      try {
+        const els = document.querySelectorAll(sel);
+        els.forEach((el) => el.remove());
+      } catch {}
+    });
+  }
+
+  // 8. Deception Engine: Fake Button & Deceptive Link Scanner
   function scanForDeceptiveButtons() {
     if (!byeadsActive || isWhitelisted) return;
 
@@ -909,6 +1070,7 @@
   // Run initializations
   injectCosmeticFilter();
   handleTeraBoxProtections();
+  handleFileHosterCleaners();
   handleSocialMediaCleaners();
   scanForDeceptiveButtons();
   killInvisibleClickjacks();
@@ -919,6 +1081,7 @@
   const loopInterval = hostname.includes('spotify.com') ? 150 : 250;
   setInterval(handleMediaStreamAds, loopInterval);
   setInterval(handleTeraBoxProtections, 500);
+  setInterval(handleFileHosterCleaners, 1000);
   setInterval(handleSocialMediaCleaners, 1000);
   setInterval(killInvisibleClickjacks, 1000);
   setInterval(trackCosmeticBlocks, 2000);
@@ -927,6 +1090,7 @@
   const observer = new MutationObserver(() => {
     handleMediaStreamAds();
     handleTeraBoxProtections();
+    handleFileHosterCleaners();
     handleSocialMediaCleaners();
     scanForDeceptiveButtons();
     handleCookieBanners();
