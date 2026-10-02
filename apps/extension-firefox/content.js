@@ -164,6 +164,39 @@
       div[data-testid="desktop-client-sponsor-container"],
       div[aria-label="Sponsored"],
 
+      /* TeraBox Ad & Forced App Download Guide Modals */
+      div[class*="GuideModal"],
+      div[class*="app-download-guide"],
+      div[class*="download-tip"],
+      div[class*="app-guide"],
+      div[class*="privilege-box"],
+      div[class*="claim-vip"],
+      div[class*="popup-guide"],
+      div[class*="ad-box"],
+      div[class*="banner-ad"],
+      div[class*="cloud-ad"],
+      div[class*="client-guide-modal"],
+
+      /* X / Twitter Promoted Ads & Premium Nagging */
+      div[data-testid="cellInnerDiv"]:has([data-testid="placementTracking"]),
+      aside[aria-label*="Subscribe to Premium"],
+      aside[aria-label*="Who to follow"],
+      div[data-testid="inline-upgrade-prompt"],
+
+      /* Reddit Promoted Posts & App Selector Modals */
+      shreddit-post[is-promoted="true"],
+      .promotedlink,
+      [data-adclickarea="media"],
+      [data-adclickarea="top"],
+      div[class*="promoted-post"],
+
+      /* Twitch & SoundCloud Stream Overlays & Promos */
+      .stream-display-ad__wrapper,
+      .video-player__ad-overlay,
+      div[data-test-selector="ad-banner-default-text"],
+      div[class*="soundBadge__sponsored"],
+      .streamAds,
+
       /* Popups, Popunders, Sticky Floaters & Overlay Wrappers */
       div[class*="popup-ad"],
       div[id*="popup-ad"],
@@ -430,7 +463,133 @@
     });
   }
 
-  // 5. Deception Engine: Fake Button & Deceptive Link Scanner
+  // 5. Specialized TeraBox & Cloud Storage Protection
+  function handleTeraBoxProtections() {
+    if (!byeadsActive || isWhitelisted) return;
+    const isTeraBoxDomain =
+      hostname.includes('terabox') ||
+      hostname.includes('1024tera') ||
+      hostname.includes('terasharelink') ||
+      hostname.includes('nephobox') ||
+      hostname.includes('4funbox') ||
+      hostname.includes('mirrobox') ||
+      hostname.includes('momerybox') ||
+      hostname.includes('tibibox');
+
+    if (!isTeraBoxDomain) return;
+
+    // 1. Obliterate forced app download guides, privilege / VIP popups, client modals
+    const teraAdSelectors = [
+      'div[class*="GuideModal"]',
+      'div[class*="app-download-guide"]',
+      'div[class*="download-tip"]',
+      'div[class*="app-guide"]',
+      'div[class*="privilege-box"]',
+      'div[class*="claim-vip"]',
+      'div[class*="popup-guide"]',
+      'div[class*="ad-box"]',
+      'div[class*="banner-ad"]',
+      'div[class*="cloud-ad"]',
+      'div[class*="client-guide-modal"]',
+      'div[class*="open-app-modal"]',
+      'div[class*="install-app-dialog"]',
+      'div[class*="dialog-wrapper"]:has(button[class*="client"])',
+      'div[class*="modal-wrapper"]:has(div[class*="app"])',
+      'div.guide-modal',
+      '.web-download-tip',
+      'div[class*="bottom-bar-tip"]'
+    ];
+
+    let removedModal = false;
+    teraAdSelectors.forEach((sel) => {
+      try {
+        const els = document.querySelectorAll(sel);
+        els.forEach((el) => {
+          el.remove();
+          removedModal = true;
+        });
+      } catch {}
+    });
+
+    // 2. Unfreeze page body and restore natural scrolling
+    if (removedModal || (document.body && document.body.style.overflow === 'hidden')) {
+      try {
+        if (document.body) {
+          document.body.style.setProperty('overflow', 'auto', 'important');
+          document.body.style.setProperty('pointer-events', 'auto', 'important');
+        }
+        if (document.documentElement) {
+          document.documentElement.style.setProperty('overflow', 'auto', 'important');
+        }
+      } catch {}
+    }
+
+    // 3. Neutralize video player clickjack overlays on TeraBox
+    try {
+      const playerOverlays = document.querySelectorAll('.vjs-modal-dialog, div[class*="player-ad-overlay"], div[class*="click-layer"]');
+      playerOverlays.forEach((ov) => ov.remove());
+    } catch {}
+
+    // 4. Reveal & ensure direct browser download button is clickable
+    try {
+      const downloadBtns = document.querySelectorAll(
+        '.download-btn, button[class*="download"], div[class*="download-file-btn"], [data-action="download"], div[class*="common-download"]'
+      );
+      downloadBtns.forEach((btn) => {
+        btn.style.setProperty('display', 'inline-flex', 'important');
+        btn.style.setProperty('visibility', 'visible', 'important');
+        btn.style.setProperty('opacity', '1', 'important');
+        btn.style.setProperty('pointer-events', 'auto', 'important');
+      });
+    } catch {}
+  }
+
+  // 6. Social Media Ad & Feed Cleanser (X / Twitter, Reddit, Twitch, SoundCloud)
+  function handleSocialMediaCleaners() {
+    if (!byeadsActive || isWhitelisted) return;
+
+    // A. X / Twitter timeline sponsored cleaner
+    if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
+      const sponsoredCells = document.querySelectorAll('div[data-testid="cellInnerDiv"]:has([data-testid="placementTracking"])');
+      sponsoredCells.forEach((c) => {
+        try { c.remove(); } catch {}
+      });
+      document.querySelectorAll('aside[aria-label*="Subscribe to Premium"], div[data-testid="inline-upgrade-prompt"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+    }
+
+    // B. Reddit promoted posts & "Open in App" killer
+    if (hostname.includes('reddit.com')) {
+      document.querySelectorAll('shreddit-post[is-promoted="true"], .promotedlink, [data-adclickarea]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+      document.querySelectorAll('shreddit-async-loader[bundlename="bottom_sheet"], reddit-bottom-sheet, xpromo-app-selector').forEach((el) => {
+        try {
+          el.remove();
+          if (document.body) {
+            document.body.style.setProperty('overflow', 'auto', 'important');
+          }
+        } catch {}
+      });
+    }
+
+    // C. Twitch stream ad banners & Turbo nags
+    if (hostname.includes('twitch.tv')) {
+      document.querySelectorAll('.stream-display-ad__wrapper, .video-player__ad-overlay, div[data-test-selector="ad-banner-default-text"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+    }
+
+    // D. SoundCloud sponsored stream audio banners
+    if (hostname.includes('soundcloud.com')) {
+      document.querySelectorAll('div[class*="soundBadge__sponsored"], .streamAds, div[class*="sidebarAd"]').forEach((el) => {
+        try { el.remove(); } catch {}
+      });
+    }
+  }
+
+  // 7. Deception Engine: Fake Button & Deceptive Link Scanner
   function scanForDeceptiveButtons() {
     if (!byeadsActive || isWhitelisted) return;
 
@@ -749,6 +908,8 @@
 
   // Run initializations
   injectCosmeticFilter();
+  handleTeraBoxProtections();
+  handleSocialMediaCleaners();
   scanForDeceptiveButtons();
   killInvisibleClickjacks();
   setTimeout(handleCookieBanners, 800);
@@ -757,12 +918,16 @@
   // Fast loop for media streaming & clickjacks (runs at 150ms on Spotify)
   const loopInterval = hostname.includes('spotify.com') ? 150 : 250;
   setInterval(handleMediaStreamAds, loopInterval);
+  setInterval(handleTeraBoxProtections, 500);
+  setInterval(handleSocialMediaCleaners, 1000);
   setInterval(killInvisibleClickjacks, 1000);
   setInterval(trackCosmeticBlocks, 2000);
 
   // Dynamic mutation observer
   const observer = new MutationObserver(() => {
     handleMediaStreamAds();
+    handleTeraBoxProtections();
+    handleSocialMediaCleaners();
     scanForDeceptiveButtons();
     handleCookieBanners();
     killInvisibleClickjacks();
