@@ -10,14 +10,41 @@ const BLOCKED_DOMAINS = [
   "*://*.adnxs.com/*",
   "*://*.outbrain.com/*",
   "*://*.taboola.com/*",
-  "*://*.onclickads.net/*"
+  "*://*.onclickads.net/*",
+  "*://*.criteo.com/*",
+  "*://*.amazon-adsystem.com/*",
+  "*://*.adsterra.com/*",
+  "*://*.adcash.com/*",
+  "*://*.popcash.net/*",
+  "*://*.revcontent.com/*",
+  "*://*.mgid.com/*",
+  "*://*.ezoic.com/*",
+  "*://*.media.net/*",
+  "*://*.buysellads.com/*",
+  "*://*.carbonads.net/*",
+  "*://*.clarity.ms/*",
+  "*://*.hotjar.com/*",
+  "*://*.youtube.com/api/stats/ads*",
+  "*://*.youtube.com/pagead/*",
+  "*://*.youtube.com/ptracking*",
+  "*://*.music.youtube.com/api/stats/ads*",
+  "*://*.googleads.g.doubleclick.net/pagead/*"
 ];
+
+let stats = {
+  adsBlocked: 0,
+  mediaAdsBlocked: 0,
+  blockedDownloads: 0,
+  threatsDetected: 0,
+  lastUpdated: Date.now()
+};
 
 // WebRequest blocking filter
 if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
   chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
-      console.log(`[BYEADS Firefox] Blocked ad/tracker: ${details.url}`);
+      stats.adsBlocked++;
+      chrome.storage.local.set({ byeads_stats: stats });
       return { cancel: true };
     },
     { urls: BLOCKED_DOMAINS },
@@ -33,13 +60,43 @@ if (chrome.downloads && chrome.downloads.onCreated) {
     if (parts.length >= 3) {
       const realExt = parts[parts.length - 1].toLowerCase();
       const fakeExt = parts[parts.length - 2].toLowerCase();
-      const DANGEROUS = new Set(['exe', 'scr', 'bat', 'cmd', 'ps1', 'msi']);
+      const DANGEROUS = new Set(['exe', 'scr', 'bat', 'cmd', 'ps1', 'msi', 'iso']);
       const DOCS = new Set(['pdf', 'doc', 'docx', 'xlsx', 'mp4', 'zip', 'txt']);
 
       if (DANGEROUS.has(realExt) && DOCS.has(fakeExt)) {
         console.warn(`[BYEADS Firefox] Deception detected! Cancelling: ${filename}`);
-        chrome.downloads.cancel(item.id);
+        chrome.downloads.cancel(item.id, () => {
+          stats.blockedDownloads++;
+          stats.threatsDetected++;
+          chrome.storage.local.set({ byeads_stats: stats });
+        });
       }
     }
   });
 }
+
+// Message listener for in-page detections & stats
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'MEDIA_AD_BLOCKED') {
+    stats.mediaAdsBlocked = (stats.mediaAdsBlocked || 0) + (msg.count || 1);
+    stats.adsBlocked = (stats.adsBlocked || 0) + (msg.count || 1);
+    chrome.storage.local.set({ byeads_stats: stats });
+    sendResponse({ success: true, stats });
+  } else if (msg.type === 'DECEPTION_DETECTED') {
+    stats.threatsDetected = (stats.threatsDetected || 0) + 1;
+    chrome.storage.local.set({ byeads_stats: stats });
+    sendResponse({ success: true, stats });
+  } else if (msg.type === 'GET_STATS') {
+    chrome.storage.local.get(['byeads_stats'], (res) => {
+      if (res && res.byeads_stats) stats = { ...stats, ...res.byeads_stats };
+      sendResponse({ stats });
+    });
+    return true;
+  } else if (msg.type === 'RESET_STATS') {
+    stats = { adsBlocked: 0, mediaAdsBlocked: 0, blockedDownloads: 0, threatsDetected: 0, lastUpdated: Date.now() };
+    chrome.storage.local.set({ byeads_stats: stats }, () => {
+      sendResponse({ success: true, stats });
+    });
+    return true;
+  }
+});

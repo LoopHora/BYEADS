@@ -2,179 +2,501 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BYEADS Protection</title>
+  <title>BYEADS — LoopHora</title>
   <style>
     :root {
-      --bg-app: #121214;
-      --bg-card: #161618;
-      --border-card: #26262a;
-      --text-main: #ffffff;
-      --text-sub: #8e8e93;
+      --bg-app: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-hover: #1c2128;
+      --border-sub: #21262d;
+      --border-accent: #30363d;
+      --text-main: #f0f6fc;
+      --text-sub: #8b949e;
+      --text-dim: #6e7681;
       --brand: #f97316;
-      --green: #22c55e;
+      --brand-hover: #ea580c;
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.25);
+      --red: #f43f5e;
+      --amber: #f59e0b;
+      --radius: 8px;
     }
-    body {
-      width: 280px;
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 16px;
+      padding: 0;
+    }
+
+    body {
+      width: 340px;
+      min-height: 480px;
       background-color: var(--bg-app);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 16px;
       user-select: none;
     }
+
+    /* Top Brand & Status Header */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid var(--border-card);
       padding-bottom: 12px;
-      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-sub);
+      margin-bottom: 14px;
     }
+
     .brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+    }
+
     .brand-title {
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-weight: 800;
       letter-spacing: -0.02em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .brand-sub {
+
+    .brand-kicker {
       font-size: 0.625rem;
       font-weight: 700;
-      color: var(--text-sub);
+      color: var(--brand);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    .status-badge {
+
+    .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background-color: #0f2e1b;
-      color: var(--green);
-      border: 1px solid #1a4a2c;
+      background-color: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 9999px;
-      padding: 4px 10px;
+      padding: 3px 10px;
       font-size: 0.6875rem;
-      font-weight: 600;
+      font-weight: 700;
+      color: var(--green);
+      transition: all 0.2s ease;
     }
-    .dot {
+
+    .status-pill.disabled {
+      background-color: rgba(244, 63, 94, 0.12);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: var(--red);
+    }
+
+    .pulse-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
       background-color: var(--green);
+      box-shadow: 0 0 8px var(--green);
     }
-    .stats-card {
+
+    .status-pill.disabled .pulse-dot {
+      background-color: var(--red);
+      box-shadow: none;
+    }
+
+    /* Master Shield Panel */
+    .master-card {
       background-color: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-radius: 8px;
-      padding: 12px;
+      border: 1px solid var(--border-sub);
+      border-radius: var(--radius);
+      padding: 14px 16px;
       margin-bottom: 12px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      text-align: center;
-    }
-    .stat-val {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: var(--brand);
-    }
-    .stat-lbl {
-      font-size: 0.6875rem;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-    .toggle-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 0;
+    }
+
+    .master-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      max-width: 210px;
+    }
+
+    .current-site {
       font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .master-desc {
+      font-size: 0.6875rem;
       color: var(--text-sub);
     }
-    .toggle-btn {
-      width: 40px;
-      height: 22px;
-      background: #26262a;
-      border-radius: 11px;
+
+    /* Big Power Toggle Switch */
+    .power-switch {
       position: relative;
+      width: 48px;
+      height: 26px;
       cursor: pointer;
-      transition: background 0.2s;
     }
-    .toggle-btn.active {
-      background: var(--brand);
+
+    .power-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
-    .toggle-knob {
-      width: 18px;
-      height: 18px;
-      background: #fff;
-      border-radius: 50%;
+
+    .power-slider {
       position: absolute;
-      top: 2px;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #21262d;
+      border: 1px solid var(--border-accent);
+      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 13px;
+    }
+
+    .power-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
       left: 2px;
-      transition: transform 0.2s;
+      bottom: 2px;
+      background-color: #f0f6fc;
+      transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
-    .toggle-btn.active .toggle-knob {
-      transform: translateX(18px);
+
+    .power-switch input:checked + .power-slider {
+      background-color: var(--green);
+      border-color: var(--green);
     }
-    .footer-links {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border-card);
+
+    .power-switch input:checked + .power-slider:before {
+      transform: translateX(22px);
+    }
+
+    /* 4-Tile Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat-tile {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-sub);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .stat-number {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .stat-number.green {
+      color: var(--green);
+    }
+
+    .stat-number.brand {
+      color: var(--brand);
+    }
+
+    .stat-number.amber {
+      color: var(--amber);
+    }
+
+    .stat-label {
+      font-size: 0.6875rem;
+      color: var(--text-sub);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* Shields Subsystems Accordion / List */
+    .shields-list {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-sub);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .shield-row {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      font-size: 0.75rem;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-sub);
+      transition: background 0.15s ease;
     }
-    .footer-links a {
+
+    .shield-row:last-child {
+      border-bottom: none;
+    }
+
+    .shield-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .shield-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .shield-sub {
+      font-size: 0.6875rem;
+      color: var(--text-dim);
+    }
+
+    /* Mini Toggle */
+    .mini-switch {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .mini-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .mini-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #21262d;
+      border: 1px solid var(--border-accent);
+      transition: 0.2s;
+      border-radius: 9px;
+    }
+
+    .mini-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 1px;
+      bottom: 1px;
+      background-color: #f0f6fc;
+      transition: 0.2s;
+      border-radius: 50%;
+    }
+
+    .mini-switch input:checked + .mini-slider {
+      background-color: var(--green);
+      border-color: var(--green);
+    }
+
+    .mini-switch input:checked + .mini-slider:before {
+      transform: translateX(16px);
+    }
+
+    /* Action Buttons */
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-card);
+      border-color: var(--border-sub);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-card-hover);
+      border-color: var(--border-accent);
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-sub);
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.6875rem;
+      color: var(--text-dim);
+    }
+
+    .footer a {
       color: var(--text-sub);
       text-decoration: none;
+      transition: color 0.15s;
     }
-    .footer-links a:hover {
-      color: var(--text-main);
+
+    .footer a:hover {
+      color: var(--brand);
     }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <div class="header">
     <div class="brand">
+      <div class="brand-icon">B</div>
       <div>
-        <div class="brand-sub">LoopHora</div>
+        <div class="brand-kicker">LoopHora</div>
         <div class="brand-title">BYEADS</div>
       </div>
     </div>
-    <div class="status-badge" id="statusBadge">
-      <span class="dot"></span>
+    <div class="status-pill" id="statusBadge">
+      <span class="pulse-dot"></span>
       <span id="statusText">Active</span>
     </div>
   </div>
 
-  <div class="stats-card">
-    <div>
-      <div class="stat-val" id="threatsCount">0</div>
-      <div class="stat-lbl">Deceptions</div>
+  <!-- Master Shield Card -->
+  <div class="master-card">
+    <div class="master-info">
+      <div class="current-site" id="siteHostname">Checking tab...</div>
+      <div class="master-desc" id="masterDesc">All 4 shields active on this page</div>
     </div>
-    <div>
-      <div class="stat-val" id="blockedCount">0</div>
-      <div class="stat-lbl">Shields Up</div>
+    <label class="power-switch">
+      <input type="checkbox" id="masterToggle" checked>
+      <span class="power-slider"></span>
+    </label>
+  </div>
+
+  <!-- 4-Tile Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-tile">
+      <div class="stat-number green" id="statAds">0</div>
+      <div class="stat-label">Ads &amp; Trackers</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-number brand" id="statMedia">0</div>
+      <div class="stat-label">YouTube / Audio Ads</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-number amber" id="statDeception">0</div>
+      <div class="stat-label">Deceptions Caught</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-number" id="statDownloads">0</div>
+      <div class="stat-label">Unsafe Downloads</div>
     </div>
   </div>
 
-  <div class="toggle-row">
-    <span>Web Shield</span>
-    <div class="toggle-btn active" id="shieldToggle"><div class="toggle-knob"></div></div>
+  <!-- Individual Shields Subsystems -->
+  <div class="shields-list">
+    <div class="shield-row">
+      <div class="shield-meta">
+        <div class="shield-name">Web Shield (DNR)</div>
+        <div class="shield-sub">Declarative ad and tracker blocker</div>
+      </div>
+      <label class="mini-switch">
+        <input type="checkbox" id="shieldWeb" checked>
+        <span class="mini-slider"></span>
+      </label>
+    </div>
+
+    <div class="shield-row">
+      <div class="shield-meta">
+        <div class="shield-name">YouTube &amp; Media Guard</div>
+        <div class="shield-sub">Instant skip &amp; mute video/music ads</div>
+      </div>
+      <label class="mini-switch">
+        <input type="checkbox" id="shieldMedia" checked>
+        <span class="mini-slider"></span>
+      </label>
+    </div>
+
+    <div class="shield-row">
+      <div class="shield-meta">
+        <div class="shield-name">Deception Engine</div>
+        <div class="shield-sub">Fake button &amp; overlay detector</div>
+      </div>
+      <label class="mini-switch">
+        <input type="checkbox" id="shieldDeception" checked>
+        <span class="mini-slider"></span>
+      </label>
+    </div>
+
+    <div class="shield-row">
+      <div class="shield-meta">
+        <div class="shield-name">Download Guard</div>
+        <div class="shield-sub">Double-extension (.pdf.exe) interceptor</div>
+      </div>
+      <label class="mini-switch">
+        <input type="checkbox" id="shieldDownload" checked>
+        <span class="mini-slider"></span>
+      </label>
+    </div>
   </div>
 
-  <div class="toggle-row">
-    <span>Deception Engine</span>
-    <div class="toggle-btn active" id="deceptionToggle"><div class="toggle-knob"></div></div>
+  <!-- Action Row -->
+  <div class="action-row">
+    <a href="#" id="openDashboardBtn" class="btn btn-secondary">
+      <span>Open Dashboard</span>
+    </a>
+    <a href="#" id="resetStatsBtn" class="btn btn-secondary" style="flex: 0 0 80px;">
+      <span>Reset</span>
+    </a>
   </div>
 
-  <div class="footer-links">
-    <a href="http://localhost:5173/#/docs" target="_blank">Specs</a>
-    <a href="http://localhost:5173/#/install" target="_blank">Install Hub</a>
-    <a href="https://github.com/AzeemS24/BYEADS" target="_blank">GitHub</a>
+  <!-- Footer -->
+  <div class="footer">
+    <span>v1.0.0 · MPL-2.0</span>
+    <span>Local Heuristics · Zero Telemetry</span>
   </div>
 
   <script src="popup.js"></script>
