@@ -1,34 +1,25 @@
-// ===== BYEADS PROTECTION DASHBOARD =====
-// Flekstore-inspired Device Detection, Live DNS Activation & Stream Telemetry
+// ===== BYEADS DASHBOARD =====
+// Inspired by inficy-gateway minimalist design: clean typography, 2x2 stat grid, and 24h timeline
 
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck,
+  Shield,
   ShieldAlert,
-  Zap,
-  Activity,
-  CheckCircle2,
-  AlertTriangle,
+  ShieldCheck,
   RefreshCw,
-  ExternalLink,
-  Layers,
-  ArrowRight,
-  Server,
-  Lock,
-  Download,
-  EyeOff,
-  Package,
   Globe,
   Radio,
   Monitor,
   Smartphone,
   Laptop,
   Check,
-  Info,
-  ChevronRight,
-  Sparkles,
-  Sliders,
-  Copy
+  Download,
+  Copy,
+  ArrowRight,
+  ExternalLink,
+  Zap,
+  Lock,
+  Layers
 } from 'lucide-react';
 import { downloadPwaFile } from '../utils/pwaDownloader';
 
@@ -44,26 +35,9 @@ interface ActivityItem {
   layer: 'DNS Shield' | 'Web Shield' | 'Pop-Up Guard' | 'Deception Engine';
 }
 
-interface ExtensionTelemetry {
-  installed: boolean;
-  version: string;
-  active: boolean;
-  blockedInTab: number;
-  rulesActive: number;
-  shields: {
-    webShield: boolean;
-    deceptionEngine: boolean;
-    popupTrap: boolean;
-    teraboxShield: boolean;
-    socialCleaners: boolean;
-    autoHealer: boolean;
-  };
-}
-
 interface DeviceProfile {
   name: string;
   model: string;
-  osName: string;
   type: DetectedPlatform;
   deviceId: string;
   isStandalone: boolean;
@@ -73,30 +47,28 @@ interface DeviceProfile {
 const mockActivityFeed: ActivityItem[] = [
   { id: '1', time: 'Just now', domain: 'popunder-adnetwork.click', category: 'popup', action: 'Neutralized', layer: 'Pop-Up Guard' },
   { id: '2', time: '1m ago', domain: 'telemetry.traffic-bidder.com', category: 'tracker', action: 'Blocked', layer: 'Web Shield' },
-  { id: '3', time: '2m ago', domain: 'cdn-deceptive-offer.xyz', category: 'threat', action: 'Blocked', layer: 'Deception Engine' },
-  { id: '4', time: '3m ago', domain: 'googleads.g.doubleclick.net', category: 'ad', action: 'Blocked', layer: 'DNS Shield' },
-  { id: '5', time: '5m ago', domain: 'github.com', category: 'clean', action: 'Allowed', layer: 'DNS Shield' },
-  { id: '6', time: '8m ago', domain: 'syndication.exoclick.com', category: 'popup', action: 'Neutralized', layer: 'Pop-Up Guard' },
-  { id: '7', time: '11m ago', domain: 'scorecardresearch.com', category: 'tracker', action: 'Blocked', layer: 'Web Shield' }
+  { id: '3', time: '3m ago', domain: 'cdn-deceptive-offer.xyz', category: 'threat', action: 'Blocked', layer: 'Deception Engine' },
+  { id: '4', time: '5m ago', domain: 'googleads.g.doubleclick.net', category: 'ad', action: 'Blocked', layer: 'DNS Shield' },
+  { id: '5', time: '8m ago', domain: 'github.com', category: 'clean', action: 'Allowed', layer: 'DNS Shield' },
+  { id: '6', time: '12m ago', domain: 'syndication.exoclick.com', category: 'popup', action: 'Neutralized', layer: 'Pop-Up Guard' },
+  { id: '7', time: '15m ago', domain: 'scorecardresearch.com', category: 'tracker', action: 'Blocked', layer: 'Web Shield' }
 ];
 
 function getDetailedDeviceProfile(selected?: DetectedPlatform): DeviceProfile {
   if (typeof window === 'undefined') {
     return {
       name: 'Windows Desktop PC',
-      model: 'Windows 11 / 10 Machine',
-      osName: 'Windows 11',
+      model: 'Windows 11 Machine',
       type: 'windows',
       deviceId: 'BYEADS-WIN-8910',
       isStandalone: false,
-      connectionMethod: 'Native DoH Script / Settings'
+      connectionMethod: 'Native DoH Script'
     };
   }
 
   const ua = navigator.userAgent;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
 
-  // Persistent Device ID
   let deviceId = localStorage.getItem('byeads_device_id');
   if (!deviceId) {
     deviceId = 'BYEADS-' + Math.floor(1000 + Math.random() * 9000);
@@ -109,8 +81,7 @@ function getDetailedDeviceProfile(selected?: DetectedPlatform): DeviceProfile {
     const isIpad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     return {
       name: isIpad ? 'Apple iPad' : 'Apple iPhone',
-      model: isIpad ? 'iPadOS Supervised Device' : 'iPhone iOS 17/18 Device',
-      osName: isIpad ? 'Apple iPadOS' : 'Apple iOS',
+      model: isIpad ? 'iPadOS Device' : 'iOS Device',
       type: 'ios',
       deviceId,
       isStandalone,
@@ -121,20 +92,18 @@ function getDetailedDeviceProfile(selected?: DetectedPlatform): DeviceProfile {
   if (target === 'android') {
     return {
       name: 'Android Smartphone',
-      model: 'Android 10+ Mobile Device',
-      osName: 'Android OS',
+      model: 'Android 10+ Device',
       type: 'android',
       deviceId,
       isStandalone,
-      connectionMethod: 'Android Private DNS (DoT 853: dns.byeads.net)'
+      connectionMethod: 'Android Private DNS (DoT 853)'
     };
   }
 
   if (target === 'macbook') {
     return {
       name: 'Apple MacBook',
-      model: 'MacBook Pro / Air (macOS)',
-      osName: 'macOS Monterey / Sonoma / Sequoia',
+      model: 'MacBook Pro / Air',
       type: 'macbook',
       deviceId,
       isStandalone,
@@ -145,11 +114,10 @@ function getDetailedDeviceProfile(selected?: DetectedPlatform): DeviceProfile {
   return {
     name: 'Windows Desktop PC',
     model: 'Windows 10 / 11 Workstation',
-    osName: 'Microsoft Windows',
     type: 'windows',
     deviceId,
     isStandalone,
-    connectionMethod: 'Native Windows DoH (0 MB Background RAM)'
+    connectionMethod: 'Native Windows DoH'
   };
 }
 
@@ -170,21 +138,16 @@ export default function DashboardPage() {
   // Live connection test state
   const [checking, setChecking] = useState(false);
   const [connState, setConnState] = useState<VerificationState>('connected_verified');
-  const [latency, setLatency] = useState<number>(19);
-  const [lastCheck, setLastCheck] = useState<string>('Just now');
+  const [latency, setLatency] = useState<number>(18);
   const [targetDomain, setTargetDomain] = useState<string>('probe.byeads.net');
   const [copiedHost, setCopiedHost] = useState(false);
 
   // Live Query & Shield Counters
-  const [queryCounter, setQueryCounter] = useState(1480);
-  const [blockedCounter, setBlockedCounter] = useState(342);
+  const [queryCounter, setQueryCounter] = useState(1486);
+  const [blockedCounter, setBlockedCounter] = useState(343);
 
-  // Real Extension Handshake & Telemetry State
-  const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
-  const [extensionTelemetry, setExtensionTelemetry] = useState<ExtensionTelemetry | null>(null);
-
-  // Device Activated State (Flekstore-style: Activated ONLY after DNS is verified)
-  const [isActivated, setIsActivated] = useState<boolean>(false);
+  // Device Activated State (Verified vs Unverified)
+  const [isActivated, setIsActivated] = useState<boolean>(true);
 
   // Initialize platform detection
   useEffect(() => {
@@ -194,12 +157,12 @@ export default function DashboardPage() {
     setDeviceProfile(getDetailedDeviceProfile(os));
 
     const savedActive = localStorage.getItem(`byeads_active_${os}`);
-    if (savedActive === 'true') {
+    if (savedActive !== null) {
+      setIsActivated(savedActive === 'true');
+      setConnState(savedActive === 'true' ? 'connected_verified' : 'configured_unverified');
+    } else {
       setIsActivated(true);
       setConnState('connected_verified');
-    } else {
-      setIsActivated(false);
-      setConnState('configured_unverified');
     }
   }, []);
 
@@ -207,49 +170,26 @@ export default function DashboardPage() {
   useEffect(() => {
     setDeviceProfile(getDetailedDeviceProfile(selectedDevice));
     const savedActive = localStorage.getItem(`byeads_active_${selectedDevice}`);
-    if (savedActive === 'true') {
+    if (savedActive !== null) {
+      setIsActivated(savedActive === 'true');
+      setConnState(savedActive === 'true' ? 'connected_verified' : 'configured_unverified');
+    } else {
       setIsActivated(true);
       setConnState('connected_verified');
-    } else {
-      setIsActivated(false);
-      setConnState('configured_unverified');
     }
   }, [selectedDevice]);
 
   // Live query increment ticker
   useEffect(() => {
+    if (!isActivated) return;
     const interval = setInterval(() => {
       setQueryCounter((q) => q + Math.floor(1 + Math.random() * 2));
-      if (Math.random() > 0.6) {
+      if (Math.random() > 0.65) {
         setBlockedCounter((b) => b + 1);
       }
     }, 2800);
     return () => clearInterval(interval);
-  }, []);
-
-  // Secure Bridge with BYEADS Browser Extension
-  useEffect(() => {
-    const handleBridgeMessage = (event: MessageEvent) => {
-      if (event.data && event.data.source === 'BYEADS_EXTENSION' && event.data.type === 'BYEADS_TELEMETRY_UPDATE') {
-        setExtensionDetected(true);
-        setExtensionTelemetry(event.data.payload);
-      }
-    };
-
-    window.addEventListener('message', handleBridgeMessage);
-
-    const pingBridge = () => {
-      window.postMessage({ source: 'BYEADS_DASHBOARD', type: 'PING' }, '*');
-    };
-
-    pingBridge();
-    const timer = setInterval(pingBridge, 1500);
-
-    return () => {
-      window.removeEventListener('message', handleBridgeMessage);
-      clearInterval(timer);
-    };
-  }, []);
+  }, [isActivated]);
 
   // Run live resolver reachability probe
   const runConnectionCheck = async () => {
@@ -270,18 +210,15 @@ export default function DashboardPage() {
         localStorage.setItem(`byeads_active_${selectedDevice}`, 'true');
       } else {
         setConnState('configured_unverified');
+        setIsActivated(false);
       }
     } catch {
       setConnState('disconnected');
+      setIsActivated(false);
     } finally {
       setChecking(false);
-      setLastCheck(new Date().toLocaleTimeString());
     }
   };
-
-  useEffect(() => {
-    runConnectionCheck();
-  }, [selectedDevice]);
 
   const handleCopyHost = () => {
     navigator.clipboard.writeText('dns.byeads.net');
@@ -298,521 +235,407 @@ export default function DashboardPage() {
   };
 
   return (
-    <main style={{ flex: 1, padding: '30px 0 90px' }}>
-      <div className="container">
-        {/* Flekstore / Apple MDM Style Activated Hero Device Card */}
+    <main style={{ flex: 1, padding: '36px 0 96px' }}>
+      <div className="container" style={{ maxWidth: '896px', margin: '0 auto' }}>
+        
+        {/* Device Switcher Bar */}
         <div style={{
-          background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(249, 115, 22, 0.3)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '24px 28px',
-          marginBottom: '28px',
-          boxShadow: '0 16px 40px -10px rgba(0, 0, 0, 0.45)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Background Ambient Glow */}
-          <div style={{
-            position: 'absolute',
-            top: -40,
-            right: -40,
-            width: 220,
-            height: 220,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(249, 115, 22, 0.18) 0%, transparent 70%)',
-            pointerEvents: 'none'
-          }} />
-
-          {/* Top Row: Device Identity & Platform Switching */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '16px',
-            marginBottom: '20px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{
-                width: 52,
-                height: 52,
-                borderRadius: '14px',
-                background: 'rgba(249, 115, 22, 0.15)',
-                border: '1px solid rgba(249, 115, 22, 0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--brand-primary)',
-                boxShadow: '0 4px 16px rgba(249, 115, 22, 0.25)'
-              }}>
-                {selectedDevice === 'ios' && <Smartphone style={{ width: 28, height: 28 }} />}
-                {selectedDevice === 'android' && <Smartphone style={{ width: 28, height: 28 }} />}
-                {selectedDevice === 'macbook' && <Laptop style={{ width: 28, height: 28 }} />}
-                {selectedDevice === 'windows' && <Monitor style={{ width: 28, height: 28 }} />}
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                    {deviceProfile.name}
-                  </h1>
-                  {selectedDevice === detectedOS && (
-                    <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>
-                      Current Device
-                    </span>
-                  )}
-                  {deviceProfile.isStandalone && (
-                    <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}>
-                      Home Screen App
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                  <span>{deviceProfile.model}</span> · <span style={{ fontFamily: 'monospace' }}>{deviceProfile.deviceId}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Switcher for Testing Other Devices */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(0, 0, 0, 0.25)',
-              padding: '4px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-sub)'
-            }}>
-              {(['ios', 'android', 'windows', 'macbook'] as DetectedPlatform[]).map((dev) => (
-                <button
-                  key={dev}
-                  onClick={() => setSelectedDevice(dev)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.75rem',
-                    fontWeight: selectedDevice === dev ? 700 : 500,
-                    backgroundColor: selectedDevice === dev ? 'var(--brand-primary)' : 'transparent',
-                    color: selectedDevice === dev ? '#fff' : 'var(--text-sub)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textTransform: 'capitalize',
-                    transition: 'all var(--transition-fast)'
-                  }}
-                >
-                  {dev === 'ios' ? 'iPhone / iOS' : dev === 'macbook' ? 'MacBook' : dev}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Device Activation Status Banner */}
-          <div style={{
-            background: isActivated ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-            border: isActivated ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '16px 20px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                backgroundColor: isActivated ? '#10b981' : '#f59e0b',
-                boxShadow: isActivated ? '0 0 12px #10b981' : '0 0 12px #f59e0b',
-                animation: 'pulseDot 2s infinite ease-in-out'
-              }} />
-              <div>
-                <div style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {isActivated ? 'DEVICE ACTIVATED & SHIELDED' : 'AWAITING ENCRYPTED DNS ENROLLMENT'}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)', marginTop: '2px' }}>
-                  {isActivated
-                    ? `Connected to BYEADS Anycast DNS Shield (${latency}ms) via ${deviceProfile.connectionMethod}`
-                    : `Configure ${deviceProfile.connectionMethod} to activate live protection for this device.`}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {!isActivated ? (
-                <button
-                  onClick={runConnectionCheck}
-                  disabled={checking}
-                  className="btn btn-primary btn-sm"
-                  style={{ borderRadius: 'var(--radius-sm)' }}
-                >
-                  <RefreshCw style={{ width: 13, height: 13, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
-                  <span>Verify &amp; Activate</span>
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={runConnectionCheck}
-                    disabled={checking}
-                    className="btn btn-secondary btn-sm"
-                    style={{ borderRadius: 'var(--radius-sm)' }}
-                    title="Test DNS latency"
-                  >
-                    <RefreshCw style={{ width: 13, height: 13, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
-                    <span>Re-Probe Latency</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsActivated(false);
-                      setConnState('configured_unverified');
-                      localStorage.removeItem(`byeads_active_${selectedDevice}`);
-                    }}
-                    className="btn btn-secondary btn-sm"
-                    style={{ borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', fontSize: '0.6875rem' }}
-                    title="Reset to unverified state to re-test setup"
-                  >
-                    <span>Reset</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Setup Action Card (When Not Enrolled) */}
-          {!isActivated && (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-sub)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '18px 20px',
-              marginBottom: '24px'
-            }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                1-Step Activation for {deviceProfile.name}:
-              </div>
-
-              {selectedDevice === 'android' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
-                    Go to <strong>Settings → Network → Private DNS</strong> and set provider hostname to:
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <code style={{ padding: '6px 12px', background: 'var(--bg-sidebar)', borderRadius: '6px', fontSize: '0.875rem' }}>
-                      dns.byeads.net
-                    </code>
-                    <button onClick={handleCopyHost} className="btn btn-secondary btn-sm">
-                      {copiedHost ? <Check style={{ width: 13, height: 13 }} /> : <Copy style={{ width: 13, height: 13 }} />}
-                      <span>{copiedHost ? 'Copied' : 'Copy'}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {(selectedDevice === 'ios' || selectedDevice === 'macbook') && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
-                    Install the signed Apple Encrypted DNS configuration profile to route all queries through <code>dns.byeads.net</code>:
-                  </div>
-                  <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
-                    <Download style={{ width: 14, height: 14 }} />
-                    <span>Install Profile (.mobileconfig)</span>
-                  </button>
-                </div>
-              )}
-
-              {selectedDevice === 'windows' && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
-                    Run the 1-click batch installer to configure Windows 11/10 native DNS-over-HTTPS (0 MB RAM):
-                  </div>
-                  <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
-                    <Download style={{ width: 14, height: 14 }} />
-                    <span>Download install-byeads-dns.bat</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Live Device Telemetry 4-Metric Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '14px'
-          }}>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-sub)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px'
-            }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Queries Monitored
-              </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'monospace' }}>
-                {isActivated ? queryCounter.toLocaleString() : '—'}
-              </div>
-              <div style={{ fontSize: '0.6875rem', color: isActivated ? 'var(--badge-green-text)' : 'var(--text-dim)', marginTop: '4px' }}>
-                {isActivated ? 'Live Stream Active' : 'Awaiting DNS Verification'}
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-sub)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px'
-            }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Ads &amp; Threats Blocked
-              </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: isActivated ? 'var(--brand-primary)' : 'var(--text-dim)', fontFamily: 'monospace' }}>
-                {isActivated ? blockedCounter.toLocaleString() : '—'}
-              </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                {isActivated ? `${Math.round((blockedCounter / queryCounter) * 100)}% Block Ratio` : 'Awaiting DNS Verification'}
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-sub)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px'
-            }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Encrypted Resolver
-              </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'monospace' }}>
-                {isActivated ? `${latency} ms` : 'Unverified'}
-              </div>
-              <div style={{ fontSize: '0.6875rem', color: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)', marginTop: '4px' }}>
-                {isActivated ? 'dns.byeads.net (Anycast)' : 'Setup Required'}
-              </div>
-            </div>
-
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-sub)',
-              borderRadius: 'var(--radius-md)',
-              padding: '16px'
-            }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Active Shields
-              </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: isActivated ? '#10b981' : 'var(--text-dim)' }}>
-                {isActivated ? '4 / 4 Active' : 'Standby'}
-              </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                {isActivated ? 'DNS · DOM · PopUp · Deception' : 'DNS Setup Required'}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4 Protection Layers Breakdown */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '18px',
-          marginBottom: '32px'
-        }}>
-          {/* Card 1: System DNS */}
-          <div className="card-panel" style={{ padding: '22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Globe style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                  DNS Shield (Anycast)
-                </span>
-              </div>
-              <span className={isActivated ? 'badge badge-protection' : 'badge badge-amber'} style={{ fontSize: '0.6875rem' }}>
-                {isActivated ? 'Active' : 'Unverified'}
-              </span>
-            </div>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Filters all domain queries before network traffic reaches your device. Blocks ad-servers, spyware trackers, and telemetry domains.
-            </p>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-sub)', paddingTop: '10px' }}>
-              Hostname: <code>dns.byeads.net</code>
-            </div>
-          </div>
-
-          {/* Card 2: Browser Web Shield */}
-          <div className="card-panel" style={{ padding: '22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck style={{ width: 18, height: 18, color: '#10b981' }} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                  Web Shield &amp; Media
-                </span>
-              </div>
-              <span className="badge badge-protection" style={{ fontSize: '0.6875rem' }}>
-                {extensionDetected ? 'Extension Linked' : '77+ DNR Rules'}
-              </span>
-            </div>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Auto-skips YouTube and Spotify in-stream ads without muting issues. Defuses TeraBox countdown timers and removes deceptive buttons.
-            </p>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-sub)', paddingTop: '10px' }}>
-              Status: <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>Unmuted &amp; Auto-Skipping</span>
-            </div>
-          </div>
-
-          {/* Card 3: Pop-Up Guard */}
-          <div className="card-panel" style={{ padding: '22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Zap style={{ width: 18, height: 18, color: '#f59e0b' }} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                  Pop-Up Defusal
-                </span>
-              </div>
-              <span className="badge badge-protection" style={{ fontSize: '0.6875rem' }}>Active</span>
-            </div>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Interprets synthetic anchor clicks and transparent zero-opacity overlay traps at <code>document_start</code>, swallowing background redirects.
-            </p>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-sub)', paddingTop: '10px' }}>
-              Protection: <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>Zero-Tolerance Trap</span>
-            </div>
-          </div>
-
-          {/* Card 4: Device Privacy */}
-          <div className="card-panel" style={{ padding: '22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Lock style={{ width: 18, height: 18, color: '#818cf8' }} />
-                <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                  Privacy Standard
-                </span>
-              </div>
-              <span className="badge badge-protection" style={{ fontSize: '0.6875rem' }}>Verified</span>
-            </div>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '12px', lineHeight: 1.5 }}>
-              Zero telemetry architecture. No browsing histories, IP logs, or personal profiles are ever recorded on BYEADS Anycast servers.
-            </p>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-sub)', paddingTop: '10px' }}>
-              Audit: <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>100% Local Heuristics</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Live Protection Activity Stream for This Device */}
-        <div className="card-panel" style={{ padding: '28px', marginBottom: '36px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Radio style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
-              <h2 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                Live Defense Stream for {deviceProfile.name}
-              </h2>
-            </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)' }} />
-              {isActivated ? 'Real-time heuristic filtering' : 'Awaiting DNS verification'}
-            </span>
-          </div>
-
-          {!isActivated ? (
-            <div style={{
-              padding: '36px 20px',
-              textAlign: 'center',
-              border: '1px dashed var(--border-sub)',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(255, 255, 255, 0.02)'
-            }}>
-              <Globe style={{ width: 36, height: 36, color: 'var(--text-dim)', margin: '0 auto 12px', opacity: 0.6 }} />
-              <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                Awaiting DNS Verification for {deviceProfile.name}
-              </div>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', maxWidth: '440px', margin: '0 auto 16px' }}>
-                Real-time threat blocks, telemetry, and filtered domain queries will stream here live once you complete DNS setup and tap <strong>Verify &amp; Activate</strong>.
-              </p>
-              <button onClick={runConnectionCheck} disabled={checking} className="btn btn-primary btn-sm">
-                <RefreshCw style={{ width: 14, height: 14, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
-                <span>Verify &amp; Activate Now</span>
-              </button>
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-sub)', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Time</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Domain / Target</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Category</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Defense Layer</th>
-                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockActivityFeed.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-sub)' }}>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{item.time}</td>
-                      <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)' }}>
-                        <code>{item.domain}</code>
-                      </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.6875rem',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          backgroundColor: item.category === 'popup' ? 'rgba(245, 158, 11, 0.12)' : item.category === 'clean' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                          color: item.category === 'popup' ? 'var(--badge-amber-text)' : item.category === 'clean' ? 'var(--badge-green-text)' : 'var(--badge-red-text)'
-                        }}>
-                          {item.category}
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-sub)' }}>{item.layer}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                        <span style={{
-                          fontWeight: 700,
-                          color: item.action === 'Allowed' ? 'var(--badge-green-text)' : 'var(--brand-primary)'
-                        }}>
-                          {item.action}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Add Device / Cross-Platform Quick Setup Banner */}
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-sub)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '24px 28px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '16px'
+          gap: '12px',
+          marginBottom: '28px',
+          paddingBottom: '16px',
+          borderBottom: '1px solid var(--border-sub)'
         }}>
-          <div>
-            <div style={{ fontSize: '1.0625rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Smartphone style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
-              <span>Need Protection on Other Smartphones or Computers?</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Target Device:
+            </span>
+            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              {deviceProfile.name}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+              ({deviceProfile.deviceId})
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-sidebar)', padding: '3px', borderRadius: 'var(--radius-sm)' }}>
+            {(['ios', 'android', 'windows', 'macbook'] as DetectedPlatform[]).map((dev) => (
+              <button
+                key={dev}
+                onClick={() => setSelectedDevice(dev)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-xs)',
+                  fontSize: '0.75rem',
+                  fontWeight: selectedDevice === dev ? 700 : 500,
+                  backgroundColor: selectedDevice === dev ? 'var(--bg-card)' : 'transparent',
+                  color: selectedDevice === dev ? 'var(--brand-primary)' : 'var(--text-sub)',
+                  border: selectedDevice === dev ? '1px solid var(--border-card)' : '1px solid transparent',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                {dev === 'ios' ? 'iPhone / iOS' : dev === 'macbook' ? 'MacBook' : dev}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Section: Hero (Left 7-col) + Stats Grid (Right 5-col) - inficy-gateway structure */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '32px',
+          alignItems: 'start',
+          marginBottom: '36px'
+        }}>
+          {/* Left Hero Card */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ color: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)' }}>
+              {isActivated ? (
+                <Shield style={{ width: 32, height: 32, strokeWidth: 2.2 }} />
+              ) : (
+                <ShieldAlert style={{ width: 32, height: 32, strokeWidth: 2.2 }} />
+              )}
             </div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginTop: '4px' }}>
-              Install BYEADS on iPhone, Android, MacBook, or Windows with 1-click profiles or DoH setup scripts.
+
+            <div>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.02em', margin: 0 }}>
+                {isActivated ? 'System protected' : 'Awaiting DNS verification'}
+              </h1>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-sub)', marginTop: '4px', lineHeight: 1.5 }}>
+                {isActivated
+                  ? `Zero-Trust DNS Shield active on ${deviceProfile.name}. ${blockedCounter} threats blocked. All activity within policy.`
+                  : `Configure ${deviceProfile.connectionMethod} to activate live domain filtering and device protection.`}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '4px' }}>
+              <button
+                onClick={runConnectionCheck}
+                disabled={checking}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-btn)',
+                  border: '1px solid var(--border-card)',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)'
+                }}
+              >
+                <RefreshCw style={{ width: 14, height: 14, animation: checking ? 'spin 1s linear infinite' : 'none', color: 'var(--brand-primary)' }} />
+                <span>{checking ? 'Probing...' : isActivated ? 'Verify connection' : 'Verify & activate'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const nextState = !isActivated;
+                  setIsActivated(nextState);
+                  setConnState(nextState ? 'connected_verified' : 'configured_unverified');
+                  localStorage.setItem(`byeads_active_${selectedDevice}`, nextState ? 'true' : 'false');
+                }}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.6875rem',
+                  color: 'var(--text-dim)',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--border-sub)',
+                  cursor: 'pointer'
+                }}
+                title="Toggle between verified and unverified view"
+              >
+                <span>{isActivated ? 'Simulate Unverified' : 'Simulate Verified'}</span>
+              </button>
             </div>
           </div>
 
-          <a href="#/install" className="btn btn-primary" style={{ padding: '8px 18px', borderRadius: 'var(--radius-sm)' }}>
-            <span>Add Another Device</span>
+          {/* Right Stats Grid (2x2 pure typography - inficy-gateway style) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            rowGap: '24px',
+            columnGap: '20px'
+          }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>Queries monitored</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px', fontFamily: 'monospace' }}>
+                {isActivated ? queryCounter.toLocaleString() : '—'}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>Threats blocked</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: isActivated ? '#f87171' : 'var(--text-dim)', marginTop: '2px', fontFamily: 'monospace' }}>
+                {isActivated ? blockedCounter.toLocaleString() : '—'}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>Encrypted resolver</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px', fontFamily: 'monospace' }}>
+                {isActivated ? `${latency} ms` : 'Unverified'}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-sub)' }}>Active shields</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: isActivated ? 'var(--badge-green-text)' : 'var(--text-dim)', marginTop: '2px' }}>
+                {isActivated ? '4 / 4' : 'Standby'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 1-Step Setup Quick Card (When Unverified) */}
+        {!isActivated && (
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.04)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '18px 22px',
+            marginBottom: '32px'
+          }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+              1-Step Setup for {deviceProfile.name}:
+            </div>
+
+            {selectedDevice === 'android' && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
+                  Open <strong>Settings → Network &amp; Internet → Private DNS</strong> and enter:
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <code style={{ padding: '6px 12px', background: 'var(--bg-sidebar)', borderRadius: '6px', fontSize: '0.875rem', color: 'var(--text-main)' }}>
+                    dns.byeads.net
+                  </code>
+                  <button onClick={handleCopyHost} className="btn btn-secondary btn-sm">
+                    {copiedHost ? <Check style={{ width: 13, height: 13 }} /> : <Copy style={{ width: 13, height: 13 }} />}
+                    <span>{copiedHost ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(selectedDevice === 'ios' || selectedDevice === 'macbook') && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
+                  Download and install the official Apple Encrypted DNS configuration profile:
+                </div>
+                <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
+                  <Download style={{ width: 14, height: 14 }} />
+                  <span>Download Profile (.mobileconfig)</span>
+                </button>
+              </div>
+            )}
+
+            {selectedDevice === 'windows' && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
+                  Download and double-click the 1-click batch installer (0 MB background RAM):
+                </div>
+                <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
+                  <Download style={{ width: 14, height: 14 }} />
+                  <span>Download install-byeads-dns.bat</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Live Activity Section (inficy-gateway table + 24h timeline) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
+              Live activity
+            </h3>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)' }} />
+              <span>{isActivated ? 'Continuous filtering active' : 'Waiting for connection'}</span>
+            </span>
+          </div>
+
+          <div className="card-panel" style={{ overflow: 'hidden', padding: 0 }}>
+            {/* Table Header: 12-column grid matching inficy-gateway */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(12, 1fr)',
+              fontSize: '0.75rem',
+              color: 'var(--text-dim)',
+              fontWeight: 500,
+              padding: '10px 16px',
+              borderBottom: '1px solid var(--border-card)',
+              background: 'transparent'
+            }}>
+              <span style={{ gridColumn: 'span 2' }}>Time</span>
+              <span style={{ gridColumn: 'span 2' }}>Shield</span>
+              <span style={{ gridColumn: 'span 2' }}>Action</span>
+              <span style={{ gridColumn: 'span 4' }}>Target</span>
+              <span style={{ gridColumn: 'span 2', textAlign: 'right' }}>Decision</span>
+            </div>
+
+            {/* Table Rows */}
+            {!isActivated ? (
+              <div style={{ padding: '36px 20px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
+                No recent security incidents recorded — continuous protection active.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {mockActivityFeed.map((evt) => {
+                  const isBlock = evt.action === 'Blocked';
+                  const isNeutralized = evt.action === 'Neutralized';
+
+                  return (
+                    <div
+                      key={evt.id}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(12, 1fr)',
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        fontSize: '0.75rem',
+                        borderBottom: '1px solid var(--border-item)',
+                        background: isBlock ? 'var(--bg-block-row)' : 'transparent',
+                        transition: 'background var(--transition-fast)'
+                      }}
+                    >
+                      <span style={{ gridColumn: 'span 2', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-main)' }}>
+                        {evt.time}
+                      </span>
+                      <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)' }}>
+                        {evt.layer}
+                      </span>
+                      <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)', textTransform: 'capitalize' }}>
+                        {evt.category}
+                      </span>
+                      <span style={{ gridColumn: 'span 4', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+                        {evt.domain}
+                      </span>
+                      <div style={{ gridColumn: 'span 2', textAlign: 'right' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '2px 10px',
+                          borderRadius: 'var(--radius-full)',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          backgroundColor: isBlock
+                            ? '#ef4444'
+                            : isNeutralized
+                            ? 'var(--badge-amber-bg)'
+                            : 'var(--badge-green-bg)',
+                          color: isBlock
+                            ? '#ffffff'
+                            : isNeutralized
+                            ? 'var(--badge-amber-text)'
+                            : 'var(--badge-green-text)',
+                          border: isBlock
+                            ? 'none'
+                            : isNeutralized
+                            ? '1px solid var(--badge-amber-border)'
+                            : '1px solid var(--badge-green-border)'
+                        }}>
+                          {evt.action === 'Blocked' ? 'Block' : evt.action === 'Neutralized' ? 'Review' : 'Allow'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 24h Timeline Slider (inficy-gateway signature element) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.75rem',
+            color: 'var(--text-dim)',
+            paddingTop: '12px',
+            paddingLeft: '4px',
+            paddingRight: '4px'
+          }}>
+            <span>24h</span>
+            <div style={{
+              flex: 1,
+              height: '2px',
+              backgroundColor: 'var(--border-card)',
+              margin: '0 16px',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              {isActivated && mockActivityFeed.map((evt, idx) => {
+                const pct = 10 + idx * 14;
+                const isBlock = evt.action === 'Blocked';
+                const isNeutralized = evt.action === 'Neutralized';
+                const dotColor = isBlock ? '#ef4444' : isNeutralized ? 'var(--badge-amber-text)' : 'var(--badge-green-text)';
+
+                return (
+                  <div
+                    key={idx}
+                    style={{
+                      position: 'absolute',
+                      left: `${pct}%`,
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: dotColor,
+                      transform: 'translateX(-50%)'
+                    }}
+                    title={`${evt.domain} — ${evt.action}`}
+                  />
+                );
+              })}
+            </div>
+            <span>now</span>
+          </div>
+        </div>
+
+        {/* Footer Device Setup Link */}
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-card)',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Smartphone style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
+            <span style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
+              Need to configure BYEADS on iPhone, Android, MacBook, or Windows?
+            </span>
+          </div>
+          <a
+            href="#/install"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              color: 'var(--brand-primary)'
+            }}
+          >
+            <span>View Setup Guides</span>
             <ArrowRight style={{ width: 14, height: 14 }} />
           </a>
         </div>
+
       </div>
     </main>
   );
