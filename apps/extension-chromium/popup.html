@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BYEADS Protection</title>
+  <style>
+    :root {
+      --bg-app: #121214;
+      --bg-card: #161618;
+      --border-card: #26262a;
+      --text-main: #ffffff;
+      --text-sub: #8e8e93;
+      --brand: #f97316;
+      --green: #22c55e;
+    }
+    body {
+      width: 280px;
+      margin: 0;
+      padding: 16px;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      user-select: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-card);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-title {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #0f2e1b;
+      color: var(--green);
+      border: 1px solid #1a4a2c;
+      border-radius: 9999px;
+      padding: 4px 10px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--green);
+    }
+    .stats-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--brand);
+    }
+    .stat-lbl {
+      font-size: 0.6875rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 0.8125rem;
+      color: var(--text-sub);
+    }
+    .toggle-btn {
+      width: 40px;
+      height: 22px;
+      background: #26262a;
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-btn.active {
+      background: var(--brand);
+    }
+    .toggle-knob {
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+    .toggle-btn.active .toggle-knob {
+      transform: translateX(18px);
+    }
+    .footer-links {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-card);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+    }
+    .footer-links a {
+      color: var(--text-sub);
+      text-decoration: none;
+    }
+    .footer-links a:hover {
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <div>
+        <div class="brand-sub">LoopHora</div>
+        <div class="brand-title">BYEADS</div>
+      </div>
+    </div>
+    <div class="status-badge" id="statusBadge">
+      <span class="dot"></span>
+      <span id="statusText">Active</span>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div>
+      <div class="stat-val" id="threatsCount">0</div>
+      <div class="stat-lbl">Deceptions</div>
+    </div>
+    <div>
+      <div class="stat-val" id="blockedCount">0</div>
+      <div class="stat-lbl">Shields Up</div>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <span>Web Shield</span>
+    <div class="toggle-btn active" id="shieldToggle"><div class="toggle-knob"></div></div>
+  </div>
+
+  <div class="toggle-row">
+    <span>Deception Engine</span>
+    <div class="toggle-btn active" id="deceptionToggle"><div class="toggle-knob"></div></div>
+  </div>
+
+  <div class="footer-links">
+    <a href="http://localhost:5173/#/docs" target="_blank">Specs</a>
+    <a href="http://localhost:5173/#/install" target="_blank">Install Hub</a>
+    <a href="https://github.com/AzeemS24/BYEADS" target="_blank">GitHub</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

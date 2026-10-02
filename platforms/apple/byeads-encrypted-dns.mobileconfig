@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>DNSSettings</key>
+            <dict>
+                <key>DNSProtocol</key>
+                <string>HTTPS</string>
+                <key>ServerAddresses</key>
+                <array>
+                    <string>1.1.1.2</string>
+                    <string>1.0.0.2</string>
+                    <string>2606:4700:4700::1112</string>
+                    <string>2606:4700:4700::1002</string>
+                </array>
+                <key>ServerURL</key>
+                <string>https://security.cloudflare-dns.com/dns-query</string>
+            </dict>
+            <key>PayloadDescription</key>
+            <string>Configures encrypted DNS-over-HTTPS (DoH) for BYEADS protection on Wi-Fi and Cellular connections.</string>
+            <key>PayloadDisplayName</key>
+            <string>BYEADS Encrypted DNS Profile</string>
+            <key>PayloadIdentifier</key>
+            <string>org.loophora.byeads.dns</string>
+            <key>PayloadType</key>
+            <string>com.apple.dnsSettings.managed</string>
+            <key>PayloadUUID</key>
+            <string>3B2B4DC2-1FA4-4FA2-88CE-5BBBE49B0E1F</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>ProhibitDisablement</key>
+            <false/>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>BYEADS Free &amp; Open Source Encrypted DNS Protection by LoopHora</string>
+    <key>PayloadDisplayName</key>
+    <string>BYEADS Protection Profile</string>
+    <key>PayloadIdentifier</key>
+    <string>org.loophora.byeads</string>
+    <key>PayloadOrganization</key>
+    <string>LoopHora Security</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>98D40D2A-98C1-4C55-B5E3-A1F9E36A7A60</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>

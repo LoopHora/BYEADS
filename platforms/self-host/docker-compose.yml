@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  byeads-dns:
+    image: coredns/coredns:latest
+    container_name: byeads-resolver
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "853:853/tcp"    # DNS over TLS (DoT)
+      - "443:443/tcp"    # DNS over HTTPS (DoH)
+    volumes:
+      - ./Corefile:/etc/coredns/Corefile:ro
+      - ./byeads-blocklist.txt:/etc/coredns/blocklist.txt:ro
+    command: -conf /etc/coredns/Corefile
+    healthcheck:
+      test: ["CMD", "coredns", "-version"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  byeads-cache:
+    image: redis:7-alpine
+    container_name: byeads-cache
+    restart: unless-stopped
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3

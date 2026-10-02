@@ -1,0 +1,25 @@
+.:53 {
+    # Logging & Metrics
+    log
+    errors
+
+    # Local Cache
+    cache 3600 {
+        success 50000
+        denial 10000
+    }
+
+    # Blocklist lookup using hosts file format
+    hosts /etc/coredns/blocklist.txt {
+        fallthrough
+    }
+
+    # Upstream encrypted forwarders (Cloudflare Security 1.1.1.2 & Quad9 9.9.9.9)
+    forward . tls://1.1.1.2 tls://9.9.9.9 {
+        tls_servername security.cloudflare-dns.com
+        health_check 5s
+    }
+
+    # Prometheus monitoring
+    prometheus :9153
+}

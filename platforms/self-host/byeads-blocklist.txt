@@ -1,0 +1,23 @@
+# BYEADS DNS Shield Standard Blocklist
+# Format: 0.0.0.0 <domain>
+
+0.0.0.0 doubleclick.net
+0.0.0.0 adservice.google.com
+0.0.0.0 pagead2.googlesyndication.com
+0.0.0.0 google-analytics.com
+0.0.0.0 popads.net
+0.0.0.0 propellerads.com
+0.0.0.0 adnxs.com
+0.0.0.0 criteo.com
+0.0.0.0 outbrain.com
+0.0.0.0 taboola.com
+0.0.0.0 scorecardresearch.com
+0.0.0.0 exoclick.com
+0.0.0.0 onclickads.net
+0.0.0.0 track.adroll.com
+0.0.0.0 ads.rubiconproject.com
+0.0.0.0 adtechus.com
+0.0.0.0 revenuehits.com
+0.0.0.0 adsterra.com
+0.0.0.0 popcash.net
+0.0.0.0 malicious-threat-sample.test
