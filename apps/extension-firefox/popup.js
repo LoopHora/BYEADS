@@ -1,14 +1,18 @@
-// ===== BYEADS MINIMAL POPUP CONTROLLER =====
+// ===== BYEADS ULTRA-CURVED GLASSMORPHIC CONTROLLER =====
 
 document.addEventListener('DOMContentLoaded', () => {
-  const heroSection = document.getElementById('heroSection');
-  const shieldToggleBtn = document.getElementById('shieldToggleBtn');
-  const shieldIcon = document.getElementById('shieldIcon');
-  const statusTitle = document.getElementById('statusTitle');
+  const mainGlassCard = document.getElementById('mainGlassCard');
+  const syncStatusText = document.getElementById('syncStatusText');
+  const siteCapsule = document.getElementById('siteCapsule');
   const siteDomain = document.getElementById('siteDomain');
 
+  const toggleShieldZone = document.getElementById('toggleShieldZone');
+  const peakOrb = document.getElementById('peakOrb');
+
+  const statKicker = document.getElementById('statKicker');
   const siteBlockedCount = document.getElementById('siteBlockedCount');
-  const totalBlockedCount = document.getElementById('totalBlockedCount');
+  const statSubline = document.getElementById('statSubline');
+  const totalBlockedText = document.getElementById('totalBlockedText');
 
   const zapBtn = document.getElementById('zapBtn');
   const pauseSiteBtn = document.getElementById('pauseSiteBtn');
@@ -16,15 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const healBtn = document.getElementById('healBtn');
   const healText = document.getElementById('healText');
 
-  const openDashboardIcon = document.getElementById('openDashboardIcon');
-  const openDashboardLink = document.getElementById('openDashboardLink');
+  const dashboardLink = document.getElementById('dashboardLink');
+  const openDashboardBottom = document.getElementById('openDashboardBottom');
 
   let currentHost = '';
   let activeTabId = null;
   let isEnabled = true;
   let isWhitelisted = false;
 
-  // 1. Detect Current Tab
+  // 1. Detect Current Tab & Get Site Domain
   if (chrome.tabs && chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs[0] && tabs[0].url) {
@@ -59,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
   }
 
-  // 2. Whitelist Check & Sync
+  // 2. Whitelist Check & State Sync
   function checkWhitelist() {
     chrome.storage.local.get(['byeads_whitelist'], (res) => {
       const whitelist = res.byeads_whitelist || [];
@@ -70,38 +74,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function syncUI() {
     if (!isEnabled) {
-      heroSection.className = 'hero-section disabled';
-      statusTitle.textContent = 'Protection Paused';
-      shieldIcon.innerHTML = `
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-        <line x1="8" y1="12" x2="16" y2="12"></line>
-      `;
+      mainGlassCard.className = 'glass-card disabled';
+      syncStatusText.textContent = 'Protection Paused';
+      statKicker.textContent = 'Shield is currently off';
+      statSubline.textContent = 'Tap the glowing orb to resume';
       pauseSiteText.textContent = 'Pause Site';
       pauseSiteBtn.classList.remove('active');
     } else if (isWhitelisted) {
-      heroSection.className = 'hero-section whitelisted';
-      statusTitle.textContent = 'Paused On Site';
-      shieldIcon.innerHTML = `
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-      `;
+      mainGlassCard.className = 'glass-card whitelisted';
+      syncStatusText.textContent = 'Paused On This Site';
+      statKicker.textContent = 'Site is whitelisted';
+      statSubline.textContent = 'Ads & trackers allowed here';
       pauseSiteText.textContent = 'Resume Site';
       pauseSiteBtn.classList.add('active');
     } else {
-      heroSection.className = 'hero-section';
-      statusTitle.textContent = 'Protected';
-      shieldIcon.innerHTML = `
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-        <path d="m9 12 2 2 4-4"></path>
-      `;
+      mainGlassCard.className = 'glass-card';
+      syncStatusText.textContent = 'Protected & Encrypted';
+      statKicker.textContent = 'Blocked on this page';
+      statSubline.textContent = '100% clean & ad-free browsing';
       pauseSiteText.textContent = 'Pause Site';
       pauseSiteBtn.classList.remove('active');
     }
   }
 
-  // 3. Central Shield Toggle (Global On/Off)
-  shieldToggleBtn.addEventListener('click', (e) => {
-    e.preventDefault();
+  // 3. Central Interactive Orb Toggle (Global On/Off)
+  function toggleProtection(e) {
+    if (e) e.preventDefault();
     isEnabled = !isEnabled;
     chrome.storage.local.set({ byeads_enabled: isEnabled }, () => {
       syncUI();
@@ -111,11 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
-  });
+  }
 
-  // 4. Pause Site Toggle (Whitelist)
-  pauseSiteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
+  toggleShieldZone.addEventListener('click', toggleProtection);
+  if (peakOrb) peakOrb.addEventListener('click', toggleProtection);
+
+  // 4. Toggle Site Whitelist
+  function toggleSiteWhitelist(e) {
+    if (e) e.preventDefault();
     if (!currentHost || currentHost === 'internal') return;
 
     chrome.storage.local.get(['byeads_whitelist'], (res) => {
@@ -140,7 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
-  });
+  }
+
+  pauseSiteBtn.addEventListener('click', toggleSiteWhitelist);
+  siteCapsule.addEventListener('click', toggleSiteWhitelist);
 
   // 5. Block Element (Zapper)
   zapBtn.addEventListener('click', (e) => {
@@ -178,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   (stats.threatsDetected || 0) +
                   (stats.blockedDownloads || 0);
 
-    totalBlockedCount.textContent = total.toLocaleString();
+    totalBlockedText.textContent = `Total: ${total.toLocaleString()} threats blocked`;
 
     if (siteBlockedCount.textContent === '0' && stats.adsBlocked > 0) {
       siteBlockedCount.textContent = Math.min(stats.adsBlocked, 12).toString();
@@ -196,6 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (openDashboardIcon) openDashboardIcon.addEventListener('click', goToDashboard);
-  if (openDashboardLink) openDashboardLink.addEventListener('click', goToDashboard);
+  if (dashboardLink) dashboardLink.addEventListener('click', goToDashboard);
+  if (openDashboardBottom) openDashboardBottom.addEventListener('click', goToDashboard);
 });
