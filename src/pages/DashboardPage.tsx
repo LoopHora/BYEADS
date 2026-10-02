@@ -19,10 +19,16 @@ import {
   EyeOff,
   Package,
   Globe,
-  Radio
+  Radio,
+  Monitor,
+  Smartphone,
+  Laptop,
+  Check,
+  Info
 } from 'lucide-react';
 
 type VerificationState = 'connected_verified' | 'configured_unverified' | 'disconnected';
+type DetectedPlatform = 'windows' | 'macbook' | 'android' | 'ios';
 
 interface ActivityItem {
   id: string;
@@ -31,6 +37,22 @@ interface ActivityItem {
   category: 'ad' | 'tracker' | 'popup' | 'threat' | 'clean';
   action: 'Blocked' | 'Neutralized' | 'Allowed';
   layer: 'DNS Shield' | 'Web Shield' | 'Pop-Up Guard' | 'Deception Engine';
+}
+
+interface ExtensionTelemetry {
+  installed: boolean;
+  version: string;
+  active: boolean;
+  blockedInTab: number;
+  rulesActive: number;
+  shields: {
+    webShield: boolean;
+    deceptionEngine: boolean;
+    popupTrap: boolean;
+    teraboxShield: boolean;
+    socialCleaners: boolean;
+    autoHealer: boolean;
+  };
 }
 
 const mockActivityFeed: ActivityItem[] = [
@@ -43,7 +65,20 @@ const mockActivityFeed: ActivityItem[] = [
   { id: '7', time: '11m ago', domain: 'scorecardresearch.com', category: 'tracker', action: 'Blocked', layer: 'Web Shield' }
 ];
 
+function detectClientPlatform(): DetectedPlatform {
+  if (typeof window === 'undefined') return 'windows';
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('android')) return 'android';
+  if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) return 'ios';
+  if (ua.includes('macintosh') || ua.includes('mac os')) return 'macbook';
+  return 'windows';
+}
+
 export default function DashboardPage() {
+  // Client OS detection
+  const [detectedOS, setDetectedOS] = useState<DetectedPlatform>('windows');
+  const [selectedDevice, setSelectedDevice] = useState<DetectedPlatform>('windows');
+
   // Live connection test state
   const [checking, setChecking] = useState(false);
   const [connState, setConnState] = useState<VerificationState>('connected_verified');
@@ -51,19 +86,41 @@ export default function DashboardPage() {
   const [lastCheck, setLastCheck] = useState<string>('Just now');
   const [resolverProvider, setResolverProvider] = useState<string>('BYEADS Anycast DNS Shield (dns.byeads.net)');
   const [targetDomain, setTargetDomain] = useState<string>('probe.byeads.net');
-  const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
 
-  // Check for real browser extension presence
+  // Real Extension Handshake & Telemetry State
+  const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
+  const [extensionTelemetry, setExtensionTelemetry] = useState<ExtensionTelemetry | null>(null);
+
+  // Initialize platform detection
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && (window as any).chrome?.runtime?.id) {
+    const os = detectClientPlatform();
+    setDetectedOS(os);
+    setSelectedDevice(os);
+  }, []);
+
+  // Secure Bridge with BYEADS Browser Extension
+  useEffect(() => {
+    const handleBridgeMessage = (event: MessageEvent) => {
+      if (event.data && event.data.source === 'BYEADS_EXTENSION' && event.data.type === 'BYEADS_TELEMETRY_UPDATE') {
         setExtensionDetected(true);
-      } else {
-        setExtensionDetected(false);
+        setExtensionTelemetry(event.data.payload);
       }
-    } catch {
-      setExtensionDetected(false);
-    }
+    };
+
+    window.addEventListener('message', handleBridgeMessage);
+
+    // Send Handshake Ping to Extension Content Script
+    const pingBridge = () => {
+      window.postMessage({ source: 'BYEADS_DASHBOARD', type: 'PING' }, '*');
+    };
+
+    pingBridge();
+    const timer = setInterval(pingBridge, 1500);
+
+    return () => {
+      window.removeEventListener('message', handleBridgeMessage);
+      clearInterval(timer);
+    };
   }, []);
 
   // Run live resolver reachability probe
@@ -100,15 +157,90 @@ export default function DashboardPage() {
     <main style={{ flex: 1, padding: '40px 0 80px' }}>
       <div className="container">
         {/* Header */}
-        <div className="section-header" style={{ marginBottom: '32px' }}>
+        <div className="section-header" style={{ marginBottom: '24px' }}>
           <div className="section-overline">
             <Activity style={{ width: 14, height: 14 }} />
             <span>Real-Time Telemetry &amp; System Health</span>
           </div>
           <h1 className="section-title">Protection Dashboard</h1>
           <p className="section-desc">
-            Live status of your encrypted DNS resolver, browser extension shields, and real-time threat defense.
+            Live status of your encrypted DNS resolver, browser extension shields, and real-time threat defense across your devices.
           </p>
+        </div>
+
+        {/* Device Detection & Platform Scope Selector */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid var(--border-sub)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '16px 20px',
+          marginBottom: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: 38,
+              height: 38,
+              borderRadius: '10px',
+              backgroundColor: 'rgba(249, 115, 22, 0.12)',
+              border: '1px solid rgba(249, 115, 22, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--brand-primary)'
+            }}>
+              {selectedDevice === 'windows' && <Monitor style={{ width: 20, height: 20 }} />}
+              {selectedDevice === 'macbook' && <Laptop style={{ width: 20, height: 20 }} />}
+              {selectedDevice === 'android' && <Smartphone style={{ width: 20, height: 20 }} />}
+              {selectedDevice === 'ios' && <Smartphone style={{ width: 20, height: 20 }} />}
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  {selectedDevice === 'windows' ? 'Windows 10 / 11 Desktop' :
+                   selectedDevice === 'macbook' ? 'MacBook / macOS Desktop' :
+                   selectedDevice === 'android' ? 'Android Smartphone' : 'iPhone / iPad iOS'}
+                </span>
+                {selectedDevice === detectedOS && (
+                  <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>
+                    Auto-Detected Device
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                {selectedDevice === 'windows' ? 'Supports Native DoH Script + Desktop Browser Extensions (Chrome / Edge / Firefox)' :
+                 selectedDevice === 'macbook' ? 'Supports Apple Encrypted DNS Profile (.mobileconfig) + Safari / Chrome WebExtension' :
+                 selectedDevice === 'android' ? 'Supports Android Private DNS (DoT 853) + Mobile Browser Extension + Foreground PWA' :
+                 'Supports Managed Encrypted DNS Profile + Content Blocker API'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {(['windows', 'macbook', 'android', 'ios'] as DetectedPlatform[]).map((dev) => (
+              <button
+                key={dev}
+                onClick={() => setSelectedDevice(dev)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.75rem',
+                  fontWeight: selectedDevice === dev ? 700 : 500,
+                  backgroundColor: selectedDevice === dev ? 'var(--brand-primary)' : 'rgba(255, 255, 255, 0.05)',
+                  color: selectedDevice === dev ? '#fff' : 'var(--text-sub)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+                }}
+              >
+                {dev === 'macbook' ? 'MacBook' : dev}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Top Summary Metrics */}
@@ -144,11 +276,11 @@ export default function DashboardPage() {
               <ShieldCheck style={{ width: 16, height: 16, color: '#10b981' }} />
             </div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-              {extensionDetected ? 'Active' : 'Installed'}
+              {extensionDetected ? (extensionTelemetry ? `${extensionTelemetry.blockedInTab} Blocked` : 'Connected') : 'Installed'}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--badge-green-text)' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }} />
-              <span>77+ DNR MV3 Rules</span>
+              <span>{extensionDetected ? 'Live Bridge Connected' : '77+ DNR MV3 Rules'}</span>
             </div>
           </div>
 
@@ -220,7 +352,9 @@ export default function DashboardPage() {
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px', flex: 1, lineHeight: 1.5 }}>
               {connState === 'connected_verified'
                 ? `Test query succeeded in ${latency}ms via RFC 8484 DoH query. BYEADS Anycast resolver blocks known ad, tracker, and malware domains.`
-                : 'Could not complete test DNS probe. Check your network connection or resolver reachability.'}
+                : connState === 'configured_unverified'
+                ? 'Probe query inconclusive. Check that your Private DNS or DoH provider is set to dns.byeads.net without an active VPN override.'
+                : 'Could not complete test DNS probe. Check your network connection.'}
             </p>
 
             <div style={{
@@ -257,13 +391,15 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <span className={extensionDetected ? 'badge badge-protection' : 'badge badge-protection'}>
-                {extensionDetected ? 'Detected In Tab' : 'Ready / Packaged'}
+              <span className="badge badge-protection">
+                {extensionDetected ? 'Bridge Connected (v1.0.0)' : 'Extension Ready'}
               </span>
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px', flex: 1, lineHeight: 1.5 }}>
-              Active MV3 content scripts and WebRequest defusers shield the DOM against in-stream YouTube/Spotify ads, synthetic redirects, and intrusive popups.
+              {extensionDetected
+                ? 'Handshake active with content scripts. Defusing in-stream YouTube/Spotify ads, TeraBox modals, and synthetic click redirection in real time.'
+                : 'Active MV3 content scripts and WebRequest defusers shield the DOM against in-stream YouTube/Spotify ads, synthetic redirects, and intrusive popups.'}
             </p>
 
             <div style={{
@@ -318,23 +454,47 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 4: System DNS Setup */}
+          {/* Card 4: Device Active Scope & Platform Lifecycle */}
           <div className="card-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
               <Server style={{ width: 18, height: 18, color: '#818cf8' }} />
               <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                System-Wide DNS
+                {selectedDevice === 'android' ? 'Android Scope & Lifecycle' :
+                 selectedDevice === 'windows' ? 'Windows DoH & Scope' :
+                 selectedDevice === 'macbook' ? 'MacBook DNS & Profile Scope' :
+                 'iOS Supervised Profile'}
               </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <span className="badge badge-protection">
-                Profile Ready
+                {selectedDevice === 'android' ? 'DoT 853 Configured' :
+                 selectedDevice === 'windows' ? 'Native DoH Ready' :
+                 selectedDevice === 'macbook' ? 'Profile Ready' : 'Managed DoH'}
               </span>
             </div>
 
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px', flex: 1, lineHeight: 1.5 }}>
-              Configure encrypted DNS at the operating system level (Windows 11 DoH, Android Private DNS, Apple Mobileconfig) to protect every native app.
+              {selectedDevice === 'android' && (
+                <>
+                  <strong>Private DNS:</strong> Blocks ad and tracker domains across all apps system-wide. When the BYEADS PWA is open, it actively tests your connection. When suspended, Android OS background power optimization pauses PWA polling, while DNS filtering continues uninterrupted at the network level.
+                </>
+              )}
+              {selectedDevice === 'windows' && (
+                <>
+                  <strong>Windows 11 Native DoH:</strong> Registers encrypted DNS resolvers for physical Wi-Fi/Ethernet adapters, protecting every Windows desktop program. For in-page YouTube, Spotify, and TeraBox ad blocking, the companion browser extension runs concurrently.
+                </>
+              )}
+              {selectedDevice === 'macbook' && (
+                <>
+                  <strong>macOS System Integration:</strong> Uses Apple-signed <code>.mobileconfig</code> to route system-wide DNS to <code>dns.byeads.net</code>. The Safari WebExtension or Chrome extension handles DOM element defusal and deception warnings.
+                </>
+              )}
+              {selectedDevice === 'ios' && (
+                <>
+                  <strong>Apple Managed DNS:</strong> Provides full Wi-Fi and Cellular DNS encryption for iOS 14+. Operates at network resolution level without battery drain or background daemon restrictions.
+                </>
+              )}
             </p>
 
             <div style={{
@@ -344,7 +504,7 @@ export default function DashboardPage() {
               color: 'var(--text-dim)'
             }}>
               <a href="#/install" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--brand-primary)', fontWeight: 600 }}>
-                <span>View Platform DNS Guides</span>
+                <span>Configure {selectedDevice === 'android' ? 'Android DNS' : selectedDevice === 'macbook' ? 'macOS Profile' : 'Device Setup'}</span>
                 <ArrowRight style={{ width: 12, height: 12 }} />
               </a>
             </div>

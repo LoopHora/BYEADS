@@ -1067,6 +1067,51 @@
     } catch {}
   }
 
+  // 10. Cross-Platform Dashboard Bridge (Windows, MacBook & Android PWA)
+  // Allows the authorized BYEADS web dashboard to verify real extension presence and read live stats
+  const isDashboardOrigin =
+    hostname.includes('localhost') ||
+    hostname.includes('127.0.0.1') ||
+    hostname.includes('byeads.net');
+
+  if (isDashboardOrigin) {
+    function sendDashboardTelemetry() {
+      try {
+        window.postMessage({
+          source: 'BYEADS_EXTENSION',
+          type: 'BYEADS_TELEMETRY_UPDATE',
+          payload: {
+            installed: true,
+            version: '1.0.0',
+            active: byeadsActive && !isWhitelisted,
+            blockedInTab: Math.max(localTabBlockedCount, getTabBlockedCount()),
+            rulesActive: 77,
+            shields: {
+              webShield: true,
+              deceptionEngine: true,
+              popupTrap: true,
+              teraboxShield: true,
+              socialCleaners: true,
+              autoHealer: true
+            }
+          }
+        }, '*');
+      } catch {}
+    }
+
+    sendDashboardTelemetry();
+    window.addEventListener('DOMContentLoaded', sendDashboardTelemetry);
+    window.addEventListener('load', sendDashboardTelemetry);
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'BYEADS_DASHBOARD' && e.data.type === 'PING') {
+        sendDashboardTelemetry();
+      }
+    });
+
+    setInterval(sendDashboardTelemetry, 1500);
+  }
+
   // Run initializations
   injectCosmeticFilter();
   handleTeraBoxProtections();

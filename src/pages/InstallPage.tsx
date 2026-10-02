@@ -479,6 +479,61 @@ export default function InstallPage() {
                     The encrypted DNS profile provides system-wide domain filtering against known ad, tracker, and malware domains across all iOS apps. Because encrypted DNS operates at the network resolution level, it cannot inspect encrypted HTTPS payloads or alter in-stream video playback (such as YouTube pre-rolls or sponsored segments).
                   </p>
                 </div>
+
+                {/* Safari WebExtension Package for MacBook / macOS */}
+                <div style={{
+                  marginTop: '20px',
+                  background: 'rgba(255, 255, 255, 0.035)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '22px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '16px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <img
+                      src="/logo.png"
+                      alt="BYEADS Logo"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        objectFit: 'contain',
+                        borderRadius: '10px',
+                        filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
+                        flexShrink: 0
+                      }}
+                    />
+                    <div>
+                      <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>Safari WebExtension Package (macOS)</span>
+                        <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
+                      </div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                        In-page DOM Shield, YouTube ad defuser, and Deception Engine for Safari 15.4+ on macOS
+                      </div>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/byeads-extension-safari.zip"
+                    download="byeads-extension-safari.zip"
+                    className="btn btn-primary"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)'
+                    }}
+                  >
+                    <Download style={{ width: 16, height: 16 }} />
+                    <span>Download Safari .ZIP</span>
+                  </a>
+                </div>
               </div>
             </div>
           )}
