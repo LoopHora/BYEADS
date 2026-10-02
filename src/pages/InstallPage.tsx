@@ -140,27 +140,42 @@ export default function InstallPage() {
                 </div>
               </div>
 
-              {/* Direct Download Banner */}
+              {/* Direct Download Banner (Apple-style Glassmorphic) */}
               <div style={{
-                background: 'var(--bg-sidebar)',
-                border: '1px solid var(--border-sub)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-                marginBottom: '28px',
+                background: 'rgba(255, 255, 255, 0.035)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '16px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <FolderArchive style={{ width: 32, height: 32, color: 'var(--brand-primary)', flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <img
+                    src="/logo.png"
+                    alt="BYEADS Logo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      objectFit: 'contain',
+                      borderRadius: '10px',
+                      filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
+                      flexShrink: 0
+                    }}
+                  />
                   <div>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Download BYEADS Extension Archive
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>Download BYEADS Chromium Archive</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
-                      Version 1.0.0 · Pre-packaged zip ready to unpack and load
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                      Official Chromium Manifest V3 Package · Compatible with Chrome, Brave &amp; Edge
                     </div>
                   </div>
                 </div>
@@ -169,6 +184,11 @@ export default function InstallPage() {
                   href="/byeads-extension-chromium.zip"
                   download="byeads-extension-chromium.zip"
                   className="btn btn-primary"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)'
+                  }}
                 >
                   <Download style={{ width: 16, height: 16 }} />
                   <span>Download .ZIP</span>
@@ -365,25 +385,43 @@ export default function InstallPage() {
                 </div>
               </div>
 
-              {/* Direct Download Profile */}
+              {/* Direct Download Profile (Apple-style Glassmorphic) */}
               <div style={{
-                background: 'var(--bg-sidebar)',
-                border: '1px solid var(--border-sub)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-                marginBottom: '28px',
+                background: 'rgba(255, 255, 255, 0.035)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '16px'
               }}>
-                <div>
-                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                    byeads-encrypted-dns.mobileconfig
-                  </div>
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    Official Apple Managed Encrypted DNS Profile (iOS 14+ / macOS 11+) · System-Wide Ad &amp; Tracker Blocking via DoH
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <img
+                    src="/logo.png"
+                    alt="BYEADS Logo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      objectFit: 'contain',
+                      borderRadius: '10px',
+                      filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
+                      flexShrink: 0
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>byeads-encrypted-dns.mobileconfig</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>Apple Signed</span>
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                      Official Apple Managed Encrypted DNS Profile (iOS 14+ / macOS 11+) · System-Wide Ad &amp; Tracker Blocking via DoH
+                    </div>
                   </div>
                 </div>
 
@@ -391,6 +429,11 @@ export default function InstallPage() {
                   href="/byeads-encrypted-dns.mobileconfig"
                   download="byeads-encrypted-dns.mobileconfig"
                   className="btn btn-primary"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)'
+                  }}
                 >
                   <Download style={{ width: 16, height: 16 }} />
                   <span>Download Profile</span>
@@ -566,27 +609,42 @@ export default function InstallPage() {
                 </div>
               </div>
 
-              {/* Direct Download Banner */}
+              {/* Direct Download Banner (Apple-style Glassmorphic) */}
               <div style={{
-                background: 'var(--bg-sidebar)',
-                border: '1px solid var(--border-sub)',
-                borderRadius: 'var(--radius-md)',
-                padding: '20px',
-                marginBottom: '28px',
+                background: 'rgba(255, 255, 255, 0.035)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '16px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <FolderArchive style={{ width: 32, height: 32, color: 'var(--brand-primary)', flexShrink: 0 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <img
+                    src="/logo.png"
+                    alt="BYEADS Logo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      objectFit: 'contain',
+                      borderRadius: '10px',
+                      filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
+                      flexShrink: 0
+                    }}
+                  />
                   <div>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Download Firefox Extension Package
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>Download Firefox Extension Package</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
-                      Version 1.0.0 · Pre-packaged zip archive for Firefox
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                      Official WebExtension Package · Compatible with Mozilla Firefox
                     </div>
                   </div>
                 </div>
@@ -595,6 +653,11 @@ export default function InstallPage() {
                   href="/byeads-extension-firefox.zip"
                   download="byeads-extension-firefox.zip"
                   className="btn btn-primary"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)'
+                  }}
                 >
                   <Download style={{ width: 16, height: 16 }} />
                   <span>Download .ZIP</span>
