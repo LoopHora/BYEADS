@@ -11,12 +11,12 @@ All platform artifacts and installers are hosted directly on GitHub and can be d
 
 | Platform | Component | Download Link | Type |
 | :--- | :--- | :--- | :--- |
-| **Windows 11 / 10** | 1-Click Native DoH Setup | [**Download `install-byeads-dns.bat`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/install-byeads-dns.bat) | Batch Script (0 MB RAM) |
-| **Windows PowerShell** | Native DoH Engine | [**View / Download `setup-windows-doh.ps1`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/setup-windows-doh.ps1) | PowerShell 5.1 & 7+ |
-| **Apple (iOS / iPadOS / macOS)** | Encrypted DNS Profile | [**Download `byeads-encrypted-dns.mobileconfig`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-encrypted-dns.mobileconfig) | Apple Managed Profile |
+| **Apple iOS & macOS (Safari)** | wBlock Compatible Filter List | [**View / Subscribe `byeads-wblock-filters.txt`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt) | Safari Declarative Filters (ABP) |
 | **Chrome / Edge / Brave / Opera** | Chromium MV3 Extension | [**Download `byeads-extension-chromium.zip`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-extension-chromium.zip) | Manifest V3 Package |
 | **Mozilla Firefox** | Firefox WebExtension | [**Download `byeads-extension-firefox.zip`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-extension-firefox.zip) | WebExtension Package |
-| **Apple Safari (macOS)** | Safari WebExtension | [**Download `byeads-extension-safari.zip`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-extension-safari.zip) | Safari MV3 Package |
+| **Windows 11 / 10** | 1-Click Native DoH Setup | [**Download `install-byeads-dns.bat`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/install-byeads-dns.bat) | Batch Script (0 MB RAM) |
+| **Windows PowerShell** | Native DoH Engine | [**View / Download `setup-windows-doh.ps1`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/setup-windows-doh.ps1) | PowerShell 5.1 & 7+ |
+| **Apple (Optional DNS)** | Encrypted DNS Profile | [**Download `byeads-encrypted-dns.mobileconfig`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-encrypted-dns.mobileconfig) | Optional Apple Profile |
 | **Android (9+)** | Android Private DNS | Hostname: `dns.byeads.net` | RFC 7858 DoT (Port 853) |
 
 ---
@@ -56,11 +56,15 @@ No heavy background executables (`.exe`) wasting RAM:
    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
    ```
 
-### 2. Apple iOS, iPadOS & macOS
-1. Download [**`byeads-encrypted-dns.mobileconfig`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-encrypted-dns.mobileconfig) in Safari.
-2. When prompted, tap **Allow**.
-3. Open **Settings → Profile Downloaded** (or **General → VPN & Device Management**).
-4. Tap **Install** and enter your passcode.
+### 2. Apple iOS, iPadOS & macOS (wBlock Hybrid Setup)
+BYEADS uses a zero-cost open-source hybrid approach for Apple devices:
+1. Install **wBlock** (free & open-source GPL-3.0) from the [App Store](https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432) or [GitHub](https://github.com/0x00dev/wBlock).
+2. Enable wBlock in **Settings → Safari → Extensions** (macOS: **Safari → Settings → Extensions**).
+3. In wBlock, go to **Filter Lists → Add Custom List** and paste:
+   ```
+   https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt
+   ```
+4. *(Optional)* Download [**`byeads-encrypted-dns.mobileconfig`**](https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-encrypted-dns.mobileconfig) for system-wide domain resolution. Note that DNS alone does not block in-stream video ads.
 
 ### 3. Android 9+ (Private DNS)
 1. Open **Settings → Network & internet → Private DNS**.
@@ -97,7 +101,7 @@ The BYEADS Dashboard (`/#/dashboard`) features an ultra-clean, focused security 
 # Install dependencies
 npm install
 
-# Run automated test suite (40 unit & integration tests)
+# Run automated test suite (44 unit & integration tests)
 npm test
 
 # Launch local development server

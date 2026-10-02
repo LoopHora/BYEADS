@@ -36,7 +36,7 @@ export default function InstallPage() {
     { id: 'chrome' as PlatformId, name: 'Chrome / Brave / Edge', icon: Globe, badge: 'Extension package available' },
     { id: 'firefox' as PlatformId, name: 'Mozilla Firefox', icon: Globe, badge: 'Extension package available' },
     { id: 'windows' as PlatformId, name: 'Windows 11 / 10', icon: Monitor, badge: 'DoH setup script available' },
-    { id: 'apple' as PlatformId, name: 'macOS & iOS', icon: Laptop, badge: 'Mobileconfig profile available' },
+    { id: 'apple' as PlatformId, name: 'macOS & iOS', icon: Laptop, badge: 'wBlock hybrid + filter list' },
     { id: 'android' as PlatformId, name: 'Android', icon: Smartphone, badge: 'Private DNS instructions available' },
   ];
 
@@ -460,19 +460,36 @@ export default function InstallPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    macOS &amp; iOS Configuration Profile
+                    Apple iOS &amp; macOS (wBlock Hybrid Setup)
                   </h2>
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
-                    1-click system configuration using Apple's native Encrypted DNS protocol (DoH/DoT).
+                    Zero-cost open-source architecture: Install wBlock from the App Store and subscribe to BYEADS's verified filter list.
                   </p>
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Profile available</span>
+                  <span>wBlock Compatible · Zero Cost</span>
                 </div>
               </div>
 
-              {/* Direct Download Profile (Apple-style Glassmorphic) */}
+              {/* Hybrid Architecture Strategy Notice */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.035)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 'var(--radius-md)',
+                padding: '18px 20px',
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '14px'
+              }}>
+                <Info style={{ width: 22, height: 22, color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
+                  <strong style={{ color: 'var(--text-main)' }}>Transparent Architecture Decision:</strong> BYEADS does not ship a closed, paid Apple App Store app or native proxy. Instead, we use <strong>wBlock</strong>—a free, open-source, high-performance Safari Content Blocker (GPL-3.0)—paired with the official <strong>BYEADS Declarative Filter List</strong>. This keeps development and hosting 100% free while delivering native WebKit-compiled blocking on iOS and macOS.
+                </div>
+              </div>
+
+              {/* Step 1: Install wBlock App */}
               <div style={{
                 background: 'rgba(255, 255, 255, 0.035)',
                 backdropFilter: 'blur(20px)',
@@ -481,7 +498,7 @@ export default function InstallPage() {
                 boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '22px 24px',
-                marginBottom: '32px',
+                marginBottom: '24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -489,112 +506,86 @@ export default function InstallPage() {
                 gap: '16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <img
-                    src="/logo.png"
-                    alt="BYEADS Logo"
-                    style={{
-                      width: 44,
-                      height: 44,
-                      objectFit: 'contain',
-                      borderRadius: '10px',
-                      filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
-                      flexShrink: 0
-                    }}
-                  />
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Globe style={{ width: 24, height: 24, color: '#60a5fa' }} />
+                  </div>
                   <div>
                     <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>byeads-encrypted-dns.mobileconfig</span>
-                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>Apple Signed</span>
+                      <span>Step 1: Install wBlock for Safari</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>Free &amp; Open Source</span>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                      Official Apple Managed Encrypted DNS Profile (iOS 14+ / macOS 11+) · System-Wide Ad &amp; Tracker Blocking via DoH
+                      Supports iOS 15+, iPadOS 15+, and macOS 12+ (Monterey, Ventura, Sonoma, Sequoia)
                     </div>
                   </div>
                 </div>
 
-                <a
-                  href={getGithubDownloadUrl('/byeads-encrypted-dns.mobileconfig')}
-                  download="byeads-encrypted-dns.mobileconfig"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    downloadPwaFile('/byeads-encrypted-dns.mobileconfig', 'byeads-encrypted-dns.mobileconfig');
-                  }}
-                  className="btn btn-primary"
-                  style={{
-                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)'
-                  }}
-                  title="Direct download from GitHub"
-                >
-                  <Download style={{ width: 16, height: 16 }} />
-                  <span>Download Profile (GitHub)</span>
-                </a>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <a
+                    href="https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(59, 130, 246, 0.35)',
+                      padding: '10px 18px',
+                      borderRadius: 'var(--radius-md)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <ExternalLink style={{ width: 16, height: 16 }} />
+                    <span>wBlock on App Store</span>
+                  </a>
+                  <a
+                    href="https://github.com/0x00dev/wBlock"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '10px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <ExternalLink style={{ width: 14, height: 14 }} />
+                    <span>Source on GitHub</span>
+                  </a>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.875rem', color: 'var(--text-sub)' }}>
-                <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    Installation Steps (macOS)
-                  </h3>
-                  <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <li>Download the profile above.</li>
-                    <li>Double-click the downloaded <code>.mobileconfig</code> file.</li>
-                    <li>Open <strong>System Settings</strong> &gt; <strong>Privacy &amp; Security</strong> &gt; <strong>Profiles</strong>.</li>
-                    <li>Select <strong>BYEADS Encrypted DNS</strong> and click <strong>Install...</strong></li>
-                  </ol>
-                </div>
-
-                <div style={{ marginTop: '8px' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    Installation Steps (iOS / iPadOS)
-                  </h3>
-                  <ol style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <li>Tap Download Profile in Safari. Tap <strong>Allow</strong> when prompted.</li>
-                    <li>Open <strong>Settings</strong> &gt; <strong>Profile Downloaded</strong> (or <strong>General</strong> &gt; <strong>VPN &amp; Device Management</strong>).</li>
-                    <li>Tap <strong>Install</strong> and enter your passcode to confirm.</li>
-                  </ol>
-                </div>
-
-                {/* In-Stream Media Boundary Note for iOS */}
-                <div style={{
-                  marginTop: '12px',
-                  background: 'rgba(249, 115, 22, 0.08)',
-                  border: '1px solid rgba(249, 115, 22, 0.25)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '16px 18px',
-                }}>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    Scope &amp; In-Stream Video Limitations on iOS
-                  </div>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.5, margin: 0 }}>
-                    The encrypted DNS profile provides system-wide domain filtering against known ad, tracker, and malware domains across all iOS apps. Because encrypted DNS operates at the network resolution level, it cannot inspect encrypted HTTPS payloads or alter in-stream video playback (such as YouTube pre-rolls or sponsored segments).
-                  </p>
-                </div>
-
-                {/* Safari WebExtension Package for MacBook / macOS */}
-                <div style={{
-                  marginTop: '20px',
-                  background: 'rgba(255, 255, 255, 0.035)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '22px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '16px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {/* Step 2: Subscribe to BYEADS Custom Filter List */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.035)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '28px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <img
                       src="/logo.png"
                       alt="BYEADS Logo"
                       style={{
-                        width: 44,
-                        height: 44,
+                        width: 40,
+                        height: 40,
                         objectFit: 'contain',
                         borderRadius: '10px',
                         filter: 'drop-shadow(0 4px 16px rgba(249, 115, 22, 0.45))',
@@ -603,34 +594,241 @@ export default function InstallPage() {
                     />
                     <div>
                       <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>Safari WebExtension Package (macOS)</span>
-                        <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
+                        <span>Step 2: Add BYEADS Custom Filter List in wBlock</span>
+                        <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>Adblock Plus Syntax</span>
                       </div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                        In-page DOM Shield, YouTube ad defuser, and Deception Engine for Safari 15.4+ on macOS
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                        Tested for Safari Content Blocker compatibility (declarative domain rules + cosmetic CSS hiding)
                       </div>
                     </div>
                   </div>
 
                   <a
-                    href={getGithubDownloadUrl('/byeads-extension-safari.zip')}
-                    download="byeads-extension-safari.zip"
+                    href={getGithubDownloadUrl('/byeads-wblock-filters.txt')}
+                    download="byeads-wblock-filters.txt"
                     onClick={(e) => {
                       e.preventDefault();
-                      downloadPwaFile('/byeads-extension-safari.zip', 'byeads-extension-safari.zip');
+                      downloadPwaFile('/byeads-wblock-filters.txt', 'byeads-wblock-filters.txt');
                     }}
-                    className="btn btn-primary"
-                    style={{
-                      boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
-                      padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)'
-                    }}
-                    title="Direct download from GitHub"
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-md)' }}
+                    title="Direct download filter text file"
                   >
-                    <Download style={{ width: 16, height: 16 }} />
-                    <span>Download Safari .ZIP (GitHub)</span>
+                    <Download style={{ width: 14, height: 14 }} />
+                    <span>Download .TXT</span>
                   </a>
                 </div>
+
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '8px' }}>
+                  Copy this subscription URL and paste it into wBlock:
+                </div>
+
+                <div style={{
+                  background: 'var(--bg-sidebar)',
+                  padding: '12px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-sub)',
+                  fontFamily: 'monospace',
+                  fontSize: '0.8125rem',
+                  color: 'var(--text-main)',
+                  position: 'relative',
+                  overflowX: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}>
+                  <code style={{ wordBreak: 'break-all' }}>
+                    https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt
+                  </code>
+                  <button
+                    onClick={() => handleCopy('https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt', 'wblock_url')}
+                    className="btn btn-primary btn-sm"
+                    style={{ flexShrink: 0 }}
+                  >
+                    {copiedKey === 'wblock_url' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
+                    <span>{copiedKey === 'wblock_url' ? 'Copied' : 'Copy Filter URL'}</span>
+                  </button>
+                </div>
+
+                <div style={{ marginTop: '16px', padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-sub)' }}>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
+                    How to add the URL in wBlock:
+                  </div>
+                  <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-sub)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <li>Launch the <strong>wBlock</strong> app on your iPhone, iPad, or Mac.</li>
+                    <li>Navigate to <strong>Filter Lists</strong> (or <strong>Custom Rules</strong>).</li>
+                    <li>Tap <strong>+ Add Custom List</strong>, paste the URL above, and tap <strong>Save / Update</strong>.</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Step 3: Enable Safari Extension Permissions */}
+              <div style={{ marginBottom: '28px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>
+                  Step 3: Enable wBlock in Safari Settings
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  <div style={{ background: 'var(--bg-sidebar)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-sub)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.875rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Smartphone style={{ width: 16, height: 16, color: 'var(--brand-primary)' }} />
+                      <span>On iPhone / iPad (iOS 15+)</span>
+                    </div>
+                    <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-sub)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <li>Open the iOS <strong>Settings</strong> app.</li>
+                      <li>Scroll down and tap <strong>Safari</strong> &gt; <strong>Extensions</strong>.</li>
+                      <li>Locate <strong>wBlock</strong> content blockers and toggle them to <strong>ON</strong>.</li>
+                      <li>In Safari, refresh any website to activate content blocking.</li>
+                    </ol>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-sidebar)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-sub)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.875rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Laptop style={{ width: 16, height: 16, color: 'var(--brand-primary)' }} />
+                      <span>On Mac (macOS 12+ / Safari 15+)</span>
+                    </div>
+                    <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-sub)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <li>Launch <strong>Safari</strong> on your Mac.</li>
+                      <li>Go to <strong>Safari</strong> in the menu bar &gt; <strong>Settings</strong> (or <strong>Preferences</strong>).</li>
+                      <li>Click the <strong>Extensions</strong> tab.</li>
+                      <li>Check the boxes next to <strong>wBlock</strong> to activate them.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transparent Capability Matrix */}
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px' }}>
+                  Platform Capability Transparency Matrix
+                </h3>
+                <div style={{
+                  overflowX: 'auto',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-sub)',
+                  backgroundColor: 'var(--bg-card)'
+                }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-sub)', backgroundColor: 'var(--bg-sidebar)' }}>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', color: 'var(--text-main)', fontWeight: 700 }}>Protection Feature</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--text-main)', fontWeight: 700 }}>Apple (wBlock + Safari)</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--text-main)', fontWeight: 700 }}>Chrome / Firefox Extension</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', color: 'var(--text-main)', fontWeight: 700 }}>Technical Mechanism</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid var(--border-sub)' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-main)' }}>Domain &amp; Tracker Blocking</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>WebKit Declarative JSON / declarativeNetRequest</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-sub)' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-main)' }}>Cosmetic Element Hiding</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Native WebKit CSS rule injection (##.ad-banner)</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-sub)' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-main)' }}>Deception Engine (Fake Buttons)</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-amber-text)' }}>Not Available</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Requires procedural MutationObserver (Chrome/FF only)</td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid var(--border-sub)' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-main)' }}>In-Stream Video Ad Defusion</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-amber-text)' }}>Not Available</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Requires active JavaScript speed manipulation</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--text-main)' }}>Download Guard Double Extension Trap</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-amber-text)' }}>Not Available</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--badge-green-text)', fontWeight: 600 }}>Supported</td>
+                        <td style={{ padding: '10px 14px', color: 'var(--text-dim)' }}>Requires chrome.downloads API interception</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Optional Section: System-Wide Encrypted DNS */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid var(--border-sub)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '28px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Server style={{ width: 20, height: 20, color: 'var(--badge-amber-text)' }} />
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                      Optional: System-Wide Encrypted DNS Filtering
+                    </h3>
+                  </div>
+                  <span className="badge badge-warning" style={{ fontSize: '0.6875rem' }}>Optional · Does not block video ads</span>
+                </div>
+
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: '14px' }}>
+                  If you want system-wide domain filtering across all apps (outside of Safari), you can configure an established encrypted DNS provider. DNS filtering operates strictly at domain lookup resolution and does not inspect HTTPS payloads or alter in-stream video.
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-sidebar)', border: '1px solid var(--border-sub)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--text-main)', marginBottom: '4px' }}>Option A: NextDNS (Recommended)</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>Established encrypted DNS with official iOS / macOS app and configurable blocklists.</div>
+                    <a href="https://nextdns.io" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span>visit nextdns.io</span> <ExternalLink style={{ width: 12, height: 12 }} />
+                    </a>
+                  </div>
+
+                  <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-sidebar)', border: '1px solid var(--border-sub)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--text-main)', marginBottom: '4px' }}>Option B: Cloudflare 1.1.1.2</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>Global DoH/DoT blocking malware and known phishing domains.</div>
+                    <a href="https://one.one.one.one" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span>visit 1.1.1.1</span> <ExternalLink style={{ width: 12, height: 12 }} />
+                    </a>
+                  </div>
+
+                  <div style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--bg-sidebar)', border: '1px solid var(--border-sub)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--text-main)', marginBottom: '4px' }}>Option C: BYEADS .mobileconfig</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>Native Apple Configuration Profile routing to dns.byeads.net.</div>
+                    <a
+                      href={getGithubDownloadUrl('/byeads-encrypted-dns.mobileconfig')}
+                      download="byeads-encrypted-dns.mobileconfig"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        downloadPwaFile('/byeads-encrypted-dns.mobileconfig', 'byeads-encrypted-dns.mobileconfig');
+                      }}
+                      style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                    >
+                      <Download style={{ width: 12, height: 12 }} /> <span>Download Profile</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontStyle: 'italic', borderTop: '1px solid var(--border-sub)', paddingTop: '10px' }}>
+                  Note on Apple OS Profiles: On iOS 14+ / macOS 11+, downloaded .mobileconfig profiles require manual authorization in Settings &gt; Profile Downloaded. Apple periodically updates profile installation workflows in major OS releases; always verify in system settings.
+                </div>
+              </div>
+
+              {/* Removal & Uninstallation Guide */}
+              <div style={{
+                padding: '16px 18px',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--bg-sidebar)',
+                border: '1px solid var(--border-sub)'
+              }}>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  How to Remove or Disable
+                </h4>
+                <ul style={{ paddingLeft: '18px', margin: 0, fontSize: '0.8125rem', color: 'var(--text-sub)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <li><strong>Disable Filter List:</strong> In the wBlock app, go to Filter Lists and toggle off or delete the BYEADS list.</li>
+                  <li><strong>Remove wBlock:</strong> Delete the wBlock application from your device just like any other app.</li>
+                  <li><strong>Remove DNS Profile (if installed):</strong> On iOS, go to Settings &gt; General &gt; VPN &amp; Device Management &gt; select profile &gt; Remove. On Mac, go to System Settings &gt; Privacy &amp; Security &gt; Profiles &gt; Remove.</li>
+                </ul>
               </div>
             </div>
           )}

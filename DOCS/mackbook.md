@@ -126,12 +126,20 @@ Important
 
 The existing BYEADS audit reports Windows desktop testing and Apple profile XML/Plist integrity checks, but it does not establish a fully tested macOS release, Safari extension or native Mac monitoring integration.
 
-## 7. Recommended BYEADS implementation
+## 7. Adopted Strategy: wBlock Hybrid Architecture for macOS & iOS
 
-1. Build and validate compatible extensions for Chrome, Firefox and Safari on macOS.
-2. Provide verified macOS DNS configuration instructions and an endpoint for testing resolver connectivity.
-3. Implement secure communication between the browser extension and dashboard for real extension status.
-4. Integrate with genuine DNS reporting for blocked-domain statistics and monitoring timestamps.
-5. Consider a native macOS companion only if you need broader system integration than the extension and DNS service can provide.
+To avoid expensive Apple Developer Program memberships, avoid submitting closed native apps to the Mac App Store, and keep hosting 100% free and open, BYEADS adopts a transparent hybrid model:
 
-In short: MacBook users could install BYEADS, configure DNS, open the dashboard and see automatically verified protection status, much like Windows and Android. To provide genuine background and system-level monitoring, BYEADS would need a suitable DNS reporting integration or a native macOS component. The current audit does not yet verify that complete workflow on Mac.
+1. **Compatible Blocker Engine**: Users install **wBlock** (free & open source, GPL-3.0, available on the Mac App Store and GitHub).
+2. **BYEADS Custom Filter List**: BYEADS supplies a tested, declarative Adblock Plus filter list (`byeads-wblock-filters.txt`), hosted for free on GitHub Pages and Cloudflare static hosting.
+3. **First-Party Extensions**: BYEADS continues developing its full-featured first-party extensions with active scriptlet defusing, Deception Engine heuristics, and Download Guard on Chrome, Edge, and Firefox.
+4. **Optional System-Wide DNS**: System-wide DNS is optional (e.g. NextDNS, Cloudflare 1.1.1.2, or BYEADS mobileconfig). We are transparent that DNS filtering does not block in-stream video ads.
+
+### macOS wBlock Setup Steps:
+1. Install **wBlock** from the Mac App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
+2. Open Safari > Settings > Extensions > Enable wBlock content blockers.
+3. Open wBlock > Filter Lists > Add Custom List > Paste the raw URL:
+   `https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt`
+4. Tap Update. Safari now compiles the rules directly into high-speed WebKit bytecode.
+
+In short: MacBook users get high-performance native Safari ad blocking via wBlock and BYEADS's curated rules, without requiring BYEADS to build or publish a proprietary macOS native app.

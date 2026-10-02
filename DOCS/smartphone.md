@@ -204,7 +204,15 @@ The audit's listed environment is Windows-based and does not document real iPhon
 - Whether DNS and Safari filtering cause false positives or website compatibility problems.
 - Whether privacy claims are supported by source review and observed network behavior.
 
-In short: On iPhone, BYEADS can offer DNS-based domain filtering if a compatible configuration is provided, and Safari content blocking if a compatible iOS extension exists. The PWA is for dashboard access, not automatic ad blocking. Until real iPhone tests and the required iOS packages are verified, these should be described as potential supported methods rather than confirmed BYEADS features.
+In short: On iPhone, BYEADS uses the **wBlock Hybrid Architecture**: users install **wBlock** from the App Store and subscribe to the official BYEADS declarative filter list (`byeads-wblock-filters.txt`), avoiding Apple Developer account fees and keeping the software 100% free and open. Optional encrypted DNS can be configured for system-wide domain filtering, but is transparently acknowledged to not block in-stream video ads. The PWA provides dashboard monitoring access.
+
+### iOS wBlock Setup Steps:
+1. Install **wBlock** from the iOS App Store: `https://apps.apple.com/app/wblock-fast-adblock-for-safari/id6477748432`.
+2. Open iPhone **Settings** > **Safari** > **Extensions** > toggle **wBlock** content blockers ON.
+3. Open the **wBlock** app > tap **Filter Lists** > **+ Add Custom List** > paste:
+   `https://raw.githubusercontent.com/AzeemS24/BYEADS/main/public/byeads-wblock-filters.txt`
+4. Tap **Save & Update**. Safari immediately applies high-speed WebKit compiled domain and cosmetic element blocking.
+
 Okay, now I understand what you're describing. You want BYEADS to automatically recognize when a user has configured its DNS and added the BYEADS PWA to their iPhone home screen, then activate the dashboard with live protection status and monitoring, rather than showing a static dashboard with manual setup instructions.
 
 The idea is to make BYEADS feel like a native security app, where the dashboard reflects the device's actual protection state.

@@ -1,0 +1,122 @@
+[Adblock Plus 2.0]
+! Title: BYEADS Custom Filter List (wBlock Compatible)
+! Description: Official BYEADS ruleset for wBlock on iOS, iPadOS, and macOS Safari.
+! Version: 1.0.0
+! Homepage: https://github.com/AzeemS24/BYEADS
+! License: MIT
+! Last Modified: 2026-10-02
+! Expires: 4 days
+! -----------------------------------------------------------------------------
+! COMPATIBILITY NOTICE:
+! This filter list uses standard Adblock Plus / Safari Content Blocker syntax.
+! Supported in wBlock:
+!  - Domain-level network request blocking (||domain.com^)
+!  - Path and URL pattern matching (||domain.com/path*)
+!  - CSS element hiding (cosmetic filtering: ##.selector)
+!
+! Unsupported in wBlock (Due to Safari Content Blocking declarative architecture):
+!  - Scriptlet defusion and procedural timer acceleration (e.g. fast-forwarding video ads)
+!  - Dynamic fake button click-jacking detection (DOM heuristics)
+!  - Real-time file download double-extension interception (.pdf.exe)
+! These advanced features run natively in BYEADS's first-party Chrome and Firefox extensions.
+! -----------------------------------------------------------------------------
+
+! === SECTION 1: AD NETWORKS & POPUP INVENTORY ===
+||doubleclick.net^
+||googlesyndication.com^
+||adservice.google.com^
+||googleadservices.com^
+||adnxs.com^
+||criteo.com^
+||taboola.com^
+||outbrain.com^
+||amazon-adsystem.com^
+||adsterra.com^
+||adcash.com^
+||popcash.net^
+||popads.net^
+||propellerads.com^
+||onclickads.net^
+||revcontent.com^
+||mgid.com^
+||ezoic.com^
+||media.net^
+||buysellads.com^
+||carbonads.net^
+||moatads.com^
+||openx.net^
+||rubiconproject.com^
+||pubmatic.com^
+||casalemedia.com^
+||smartadserver.com^
+||monetag.com^
+||hilltopads.com^
+||hilltopads.net^
+||exoclick.com^
+||exdynsrv.com^
+||exosrv.com^
+||realsrv.com^
+||rtmark.net^
+||clickadu.com^
+||yllix.com^
+||bidvertiser.com^
+||admaven.com^
+||ad-maven.com^
+||deloton.com^
+||zeroredirect.com^
+||alwingulla.com^
+||onclickperformance.com^
+||popunder.net^
+||popmyads.com^
+||doublepimp.com^
+||traffichaus.com^
+||trafficstars.com^
+||plugrush.com^
+||trafficjunky.com^
+||trafficjunky.net^
+||juicyads.com^
+||tsyndicate.com^
+||directrev.com^
+||adnetworkperformance.com^
+||infolinks.com^
+||adroll.com^
+
+! === SECTION 2: TELEMETRY & BEHAVIORAL TRACKERS ===
+||google-analytics.com^
+||hotjar.com^
+||clarity.ms^
+||scorecardresearch.com^
+||quantserve.com^
+||pushwelcome.com^
+||pushassist.com^
+||pushwoosh.com^
+
+! === SECTION 3: DECEPTIVE REDIRECTS & GAMBLING TRAPS ===
+||clck.ru^
+||terraclicks.com^
+||propellerclick.com^
+||bet365.com^
+||1xbet.com^
+||spinanga.com^
+||vulkanvegas.com^
+
+! === SECTION 4: YOUTUBE AD TELEMETRY (URL-LEVEL) ===
+||youtube.com/api/stats/ads*
+||youtube.com/pagead/*
+||youtube.com/ptracking*
+||music.youtube.com/api/stats/ads*
+
+! === SECTION 5: COSMETIC FILTERING (ELEMENT HIDING) ===
+##.adsbygoogle
+##ins.adsbygoogle
+##[id^="google_ads_iframe"]
+##.taboola-placeholder
+##.outbrain-placeholder
+##[class*="popup-overlay"]
+##[class*="ad-banner"]
+##[id*="ad-container"]
+##[data-ad-slot]
+##.fake-download-btn
+##a[href*="terraclicks.com"]
+##a[href*="propellerclick.com"]
+##div[class*="advertisement"]

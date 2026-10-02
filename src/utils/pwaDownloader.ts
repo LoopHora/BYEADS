@@ -37,6 +37,9 @@ export function getGithubDownloadUrl(pathOrFilename: string): string {
   if (clean.includes('safari')) {
     return `${GITHUB_RAW_BASE}/public/byeads-extension-safari.zip`;
   }
+  if (clean.includes('wblock') || clean.includes('filter')) {
+    return `${GITHUB_RAW_BASE}/public/byeads-wblock-filters.txt`;
+  }
   return `${GITHUB_RAW_BASE}/public/${clean}`;
 }
 
