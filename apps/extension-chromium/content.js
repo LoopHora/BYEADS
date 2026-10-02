@@ -286,17 +286,26 @@
 
     // --- B. Spotify Web Player (open.spotify.com) ---
     if (hostname.includes('spotify.com')) {
-      const isSpotifyAd =
-        document.title.toLowerCase().includes('advertisement') ||
-        !!document.querySelector(
-          '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], a[href*="adeventtracker"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
-        ) ||
-        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement' ||
-        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-subtitles"]')?.textContent?.toLowerCase().includes('advertisement');
+      // 1. A real song ALWAYS has a link to /track/ or /album/ in the now-playing bar
+      const hasRealTrackLink = !!document.querySelector(
+        '[data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/album/"]'
+      );
+
+      // 2. Identify advertisements ONLY when there is NO real track link present
+      let isSpotifyAd = false;
+      if (!hasRealTrackLink) {
+        isSpotifyAd =
+          document.title.toLowerCase().startsWith('advertisement') ||
+          !!document.querySelector(
+            '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
+          ) ||
+          document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement';
+      }
 
       const audios = document.querySelectorAll('audio');
 
       if (isSpotifyAd) {
+        // Mute audio during advertisement
         audios.forEach((audio) => {
           if (!audio.muted) {
             audio.muted = true;
@@ -304,27 +313,13 @@
           }
           audio.volume = 0;
           try {
-            if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-              audio.currentTime = audio.duration;
-            } else {
-              audio.currentTime = 9999;
-            }
             audio.playbackRate = 16.0;
-            audio.dispatchEvent(new Event('ended'));
-            audio.dispatchEvent(new Event('timeupdate'));
+            // Advance to the end of the ad track so it completes quickly without skipping real tracks
+            if (audio.duration && !isNaN(audio.duration) && audio.currentTime < audio.duration - 0.2) {
+              audio.currentTime = audio.duration - 0.1;
+            }
           } catch {}
         });
-
-        // Try skipping the ad track via Next / Skip controls
-        const skipBtn =
-          document.querySelector('[data-testid="control-button-skip-forward"]') ||
-          document.querySelector('button[aria-label="Next"]') ||
-          document.querySelector('button[aria-label="Skip forward"]');
-        if (skipBtn && !skipBtn.disabled) {
-          try {
-            skipBtn.click();
-          } catch {}
-        }
 
         // Purge visual billboard and modal overlays
         document.querySelectorAll(
@@ -334,7 +329,7 @@
         });
 
         const now = Date.now();
-        if (now - lastSpotifyMuteTime > 1500) {
+        if (now - lastSpotifyMuteTime > 2500) {
           lastSpotifyMuteTime = now;
           localTabBlockedCount++;
           try {
@@ -347,9 +342,9 @@
           } catch {}
         }
       } else {
-        // Normal music playing: unmute and restore normal playback rate
+        // Real music playing: unmute and restore normal playback rate (NEVER skip user songs)
         audios.forEach((audio) => {
-          if (wasMutedByAd) {
+          if (wasMutedByAd || audio.muted) {
             audio.muted = false;
             audio.volume = 1.0;
           }

@@ -61,13 +61,7 @@ const BLOCKED_DOMAINS = [
   "*://*.youtube.com/pagead/*",
   "*://*.youtube.com/ptracking*",
   "*://*.music.youtube.com/api/stats/ads*",
-  "*://*.googleads.g.doubleclick.net/pagead/*",
-  "*://spclient.wg.spotify.com/ads/*",
-  "*://spclient.wg.spotify.com/ad-logic/*",
-  "*://heads-fa.spotify.com/*",
-  "*://adeventtracker.spotify.com/*",
-  "*://audio-ak-spotify-com.akamaized.net/*",
-  "*://upgrade.spotify.com/*"
+  "*://*.googleads.g.doubleclick.net/pagead/*"
 ];
 
 let stats = {

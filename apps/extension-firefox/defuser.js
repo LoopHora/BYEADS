@@ -51,11 +51,12 @@
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      // Block & Mock Spotify ad logic and ad playlists with empty response so it immediately skips
+      // Block ad telemetry endpoints
       if (
-        url.includes('spclient.wg.spotify.com/ad-logic/') ||
-        url.includes('spclient.wg.spotify.com/ads/') ||
-        url.includes('heads-fa.spotify.com') ||
+        url.includes('/api/stats/ads') ||
+        url.includes('/pagead/') ||
+        url.includes('/ptracking') ||
+        url.includes('/get_midroll_info') ||
         url.includes('adeventtracker.spotify.com')
       ) {
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
@@ -96,8 +97,6 @@
         const u = this._byeads_url;
         if (
           u.includes('/api/stats/ads') ||
-          u.includes('spclient.wg.spotify.com/ad-logic/') ||
-          u.includes('spclient.wg.spotify.com/ads/') ||
           u.includes('adeventtracker.spotify.com')
         ) {
           Object.defineProperty(this, 'status', { value: 200, writable: false });
@@ -116,38 +115,7 @@
     };
   } catch {}
 
-  // Hook HTMLMediaElement.prototype.play for seamless Spotify & Web Player ad skipping
-  try {
-    const origMediaPlay = HTMLMediaElement.prototype.play;
-    HTMLMediaElement.prototype.play = function (...args) {
-      try {
-        if (window.location.hostname.includes('spotify.com')) {
-          const isAd =
-            document.title.toLowerCase().includes('advertisement') ||
-            document.querySelector(
-              '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], a[href*="adeventtracker"]'
-            );
 
-          if (isAd) {
-            this.muted = true;
-            this.volume = 0;
-            if (this.duration && !isNaN(this.duration)) {
-              this.currentTime = this.duration;
-            }
-            this.dispatchEvent(new Event('ended'));
-            const skipBtn =
-              document.querySelector('[data-testid="control-button-skip-forward"]') ||
-              document.querySelector('button[aria-label="Next"]');
-            if (skipBtn && !skipBtn.disabled) {
-              skipBtn.click();
-            }
-            window.postMessage({ type: 'BYEADS_SPOTIFY_AD_DEFUSED' }, '*');
-          }
-        }
-      } catch {}
-      return origMediaPlay.apply(this, args);
-    };
-  } catch {}
 
   // 2. Anti-Adblock Defuser & Bait Object Emulation
   try {
