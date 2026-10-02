@@ -15,7 +15,8 @@ import {
   FolderArchive,
   Info,
   Layers,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 
 type PlatformId = 'chrome' | 'firefox' | 'windows' | 'apple' | 'android';
@@ -31,11 +32,11 @@ export default function InstallPage() {
   };
 
   const platforms = [
-    { id: 'chrome' as PlatformId, name: 'Chrome / Brave / Edge', icon: Globe, badge: 'Implemented & Tested' },
-    { id: 'firefox' as PlatformId, name: 'Mozilla Firefox', icon: Globe, badge: 'Implemented & Tested' },
-    { id: 'windows' as PlatformId, name: 'Windows 11 / 10', icon: Monitor, badge: 'Implemented & Tested' },
-    { id: 'apple' as PlatformId, name: 'macOS & iOS', icon: Laptop, badge: 'Implemented & Tested' },
-    { id: 'android' as PlatformId, name: 'Android', icon: Smartphone, badge: 'Implemented & Tested' },
+    { id: 'chrome' as PlatformId, name: 'Chrome / Brave / Edge', icon: Globe, badge: 'Extension package available' },
+    { id: 'firefox' as PlatformId, name: 'Mozilla Firefox', icon: Globe, badge: 'Extension package available' },
+    { id: 'windows' as PlatformId, name: 'Windows 11 / 10', icon: Monitor, badge: 'DoH setup script available' },
+    { id: 'apple' as PlatformId, name: 'macOS & iOS', icon: Laptop, badge: 'Mobileconfig profile available' },
+    { id: 'android' as PlatformId, name: 'Android', icon: Smartphone, badge: 'Private DNS instructions available' },
   ];
 
   return (
@@ -47,9 +48,9 @@ export default function InstallPage() {
             <Download style={{ width: 14, height: 14 }} />
             <span>Install &amp; Setup Center</span>
           </div>
-          <h1 className="section-title">Installation &amp; Setup Center</h1>
+          <h1 className="section-title">Install BYEADS</h1>
           <p className="section-desc">
-            Install BYEADS on your supported device using the relevant setup guide and available extension package.
+            Choose your device or browser to see the available setup instructions. BYEADS uses two distinct protection layers: encrypted DNS for domain-level filtering and browser extensions for supported in-page and browser-level checks. The layers have different capabilities and must be configured separately.
           </p>
         </div>
 
@@ -64,9 +65,9 @@ export default function InstallPage() {
           alignItems: 'flex-start',
           gap: '14px'
         }}>
-          <Info style={{ width: 22, height: 22, color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
+          <AlertCircle style={{ width: 22, height: 22, color: 'var(--badge-amber-text)', flexShrink: 0, marginTop: '2px' }} />
           <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles (Windows DoH, Apple .mobileconfig, Android DoT) configure encrypted queries routed to <strong>Cloudflare Security (1.1.1.2)</strong>, blocking known ad and malware domains network-wide. Browser extensions provide in-page protection (DOM fake button detection, redirect chain analysis, and double-extension download interception). For full protection, apply both your device's DNS settings and the browser extension.
+            <strong style={{ color: 'var(--text-main)' }}>Important:</strong> System-level DNS setup uses <strong>Cloudflare Security DNS (1.1.1.2)</strong>. DNS filtering is domain-based and does not provide complete ad removal, in-page inspection, or antivirus protection. Browser extensions add browser-specific inspection and filtering capabilities.
           </div>
         </div>
 
@@ -135,7 +136,7 @@ export default function InstallPage() {
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Implemented &amp; Tested</span>
+                  <span>Extension locally tested</span>
                 </div>
               </div>
 
@@ -264,7 +265,7 @@ export default function InstallPage() {
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Implemented &amp; Tested</span>
+                  <span>Script available</span>
                 </div>
               </div>
 
@@ -360,7 +361,7 @@ export default function InstallPage() {
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Implemented &amp; Tested</span>
+                  <span>Profile available</span>
                 </div>
               </div>
 
@@ -437,7 +438,7 @@ export default function InstallPage() {
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Implemented &amp; Tested</span>
+                  <span>Instructions available</span>
                 </div>
               </div>
 
@@ -497,7 +498,7 @@ export default function InstallPage() {
                 </div>
                 <div className="badge badge-protection">
                   <ShieldCheck style={{ width: 14, height: 14 }} />
-                  <span>Implemented &amp; Tested</span>
+                  <span>Extension locally tested</span>
                 </div>
               </div>
 
@@ -611,6 +612,26 @@ export default function InstallPage() {
               </div>
             </div>
           )}
+
+          {/* Verify your setup */}
+          <div style={{
+            marginTop: '32px',
+            paddingTop: '24px',
+            borderTop: '1px solid var(--border-sub)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '14px'
+          }}>
+            <CheckCircle2 style={{ width: 22, height: 22, color: 'var(--badge-green-text)', flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                Verify your setup
+              </h3>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, margin: 0 }}>
+                After configuration, return to the <a href="#/dashboard" style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>Protection Dashboard</a> to check DNS connectivity and extension detection separately. Available checks depend on your platform and browser.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </main>

@@ -130,56 +130,68 @@ export default function DashboardPage() {
     <main style={{ flex: 1, padding: '40px 0 80px' }}>
       <div className="container">
         {/* Header */}
-        <div className="section-header" style={{ marginBottom: '32px' }}>
+        <div className="section-header" style={{ marginBottom: '28px' }}>
           <div className="section-overline">
             <Activity style={{ width: 14, height: 14 }} />
             <span>Diagnostics &amp; Verification Center</span>
           </div>
-          <h1 className="section-title">BYEADS Protection Dashboard</h1>
+          <h1 className="section-title">Protection Dashboard</h1>
           <p className="section-desc">
-            Verified connection state diagnostics, active rule bundle verification, and interactive heuristic test benches.
+            See which BYEADS components are available, what has been checked, and what still needs setup.
           </p>
         </div>
 
-        {/* Verification Status Legend / Banner */}
+        {/* Know what each status means */}
         <div style={{
           backgroundColor: 'var(--bg-card)',
           border: '1px solid var(--border-sub)',
           borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
-          marginBottom: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px'
+          padding: '20px 24px',
+          marginBottom: '32px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Info style={{ width: 18, height: 18, color: 'var(--brand-primary)', flexShrink: 0 }} />
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
-              <strong style={{ color: 'var(--text-main)' }}>Verification Transparency:</strong> The states below are driven by active client probes. Browser tests confirm resolver reachability from this web application; system-wide OS coverage depends on your platform's DoH / Private DNS configuration.
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Info style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
+            <h2 style={{ fontSize: '0.9375rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Know what each status means
+            </h2>
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <span className="badge badge-protection" style={{ fontSize: '0.6875rem' }}>Connected &amp; Verified</span>
-            <span className="badge badge-amber" style={{ fontSize: '0.6875rem' }}>Configured, Not Verified</span>
-            <span className="badge badge-red" style={{ fontSize: '0.6875rem' }}>Disconnected</span>
-            <span className="badge badge-neutral" style={{ fontSize: '0.6875rem' }}>Simulation (Lab)</span>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '12px',
+            fontSize: '0.8125rem',
+            color: 'var(--text-sub)'
+          }}>
+            <div>
+              <strong style={{ color: 'var(--badge-green-text)' }}>• Verified:</strong> A specific check completed successfully.
+            </div>
+            <div>
+              <strong style={{ color: 'var(--brand-primary)' }}>• Detected:</strong> A component was found, but its full operation may not have been verified.
+            </div>
+            <div>
+              <strong style={{ color: 'var(--badge-amber-text)' }}>• Needs setup:</strong> A required component is not currently available.
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-dim)' }}>• Simulation:</strong> A sample scenario was evaluated by test logic.
+            </div>
+            <div>
+              <strong style={{ color: 'var(--text-dim)' }}>• Not verified:</strong> The dashboard has not confirmed the relevant system state.
+            </div>
           </div>
         </div>
 
-        {/* Live Status Cards Grid */}
+        {/* Protection Status: 4 Separate Layers */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '20px',
-          marginBottom: '32px'
+          marginBottom: '36px'
         }}>
-          {/* Card 1: Connection Probe */}
-          <div className="card-panel" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                DNS Shield Probe (DoH)
+          {/* Card 1: DNS Connection */}
+          <div className="card-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                DNS Connection
               </span>
               <button
                 onClick={runConnectionCheck}
@@ -191,177 +203,150 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {connState === 'connected_verified' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--badge-green-text)',
-                    boxShadow: '0 0 10px var(--badge-green-text)'
-                  }} />
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Connected &amp; Verified
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-                  Real DoH query succeeded in {latency}ms via RFC 8484 endpoint. Resolver answered target test query.
-                </p>
-              </>
-            )}
-
-            {connState === 'configured_unverified' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--badge-amber-text)',
-                    boxShadow: '0 0 10px var(--badge-amber-text)'
-                  }} />
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Configured, Not Verified
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-                  Probe reached endpoint but query returned non-200. Verification pending network route confirmation.
-                </p>
-              </>
-            )}
-
-            {connState === 'disconnected' && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--badge-red-text)',
-                    boxShadow: '0 0 10px var(--badge-red-text)'
-                  }} />
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                    Disconnected
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-                  Connection probe failed. Check internet access or verify upstream resolver reachability.
-                </p>
-              </>
-            )}
-
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-              paddingTop: '12px',
-              borderTop: '1px solid var(--border-sub)',
-              fontSize: '0.75rem',
-              color: 'var(--text-dim)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Provider:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{resolverProvider}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Target Query:</span>
-                <span><code>{targetDomain}</code> (A)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Probe Latency:</span>
-                <span><strong>{latency} ms</strong></span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Last Verified:</span>
-                <span>{lastCheck}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Core Policy & Threat Engines */}
-          <div className="card-panel" style={{ padding: '24px' }}>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Core Policy &amp; Engine Suite
-            </div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '4px' }}>
-              6
-            </div>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '12px' }}>
-              Tested Detection Modules
-            </div>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-              Client-side heuristic policy engines: DNS filtering, DOM deception analysis, download guard tolerance, redirect loop detection, and risk scoring.
-            </p>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '6px',
-              paddingTop: '12px',
-              borderTop: '1px solid var(--border-sub)',
-              fontSize: '0.75rem',
-              color: 'var(--text-dim)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Architecture:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Client Heuristic Core</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Automated Tests:</span>
-                <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>37/37 Specifications Passing</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Declarative Rules:</span>
-                <span>14 Built-In DNR Rules (MV3)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Upstream Resolver:</span>
-                <span>Cloudflare Security (1.1.1.2)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Extension Enforcement Status */}
-          <div className="card-panel" style={{ padding: '24px' }}>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Extension Live Analysis
-            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              {extensionDetected ? (
-                <>
-                  <CheckCircle2 style={{ width: 18, height: 18, color: 'var(--badge-green-text)' }} />
-                  <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                    Extension Connected
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Layers style={{ width: 18, height: 18, color: 'var(--text-dim)' }} />
-                  <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                    Web App Mode
-                  </span>
-                </>
-              )}
+              <span className={connState === 'connected_verified' ? 'badge badge-protection' : connState === 'configured_unverified' ? 'badge badge-amber' : 'badge badge-red'}>
+                {connState === 'connected_verified' ? 'Verified' : connState === 'configured_unverified' ? 'Configured, Not Verified' : 'Needs setup'}
+              </span>
             </div>
 
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-              {extensionDetected
-                ? 'Browser extension is active. Content scripts intercept DOM deception and background service worker inspects downloads.'
-                : 'Extension not detected in this browser session. The dashboard operates as a monitoring and diagnostic interface. Load the unpacked extension for in-page protection.'}
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '14px', flex: 1, lineHeight: 1.5 }}>
+              {connState === 'connected_verified'
+                ? `Test query succeeded in ${latency}ms via RFC 8484 DoH probe. Note: This does not verify all system DNS traffic.`
+                : 'Could not complete test DNS probe. Check your network connection or resolver reachability.'}
             </p>
 
             <div style={{
-              paddingTop: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--border-sub)',
+              fontSize: '0.75rem',
+              color: 'var(--text-dim)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Endpoint:</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Cloudflare Security (1.1.1.2)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Query Domain:</span>
+                <span><code>{targetDomain}</code></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Browser Extension */}
+          <div className="card-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '14px' }}>
+              Browser Extension
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className={extensionDetected ? 'badge badge-protection' : 'badge badge-amber'}>
+                {extensionDetected ? 'Detected' : 'Needs setup'}
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '14px', flex: 1, lineHeight: 1.5 }}>
+              {extensionDetected
+                ? 'Supported BYEADS extension detected in this browser session. In-page inspection scripts active.'
+                : 'Extension not detected in this browser session. The dashboard operates as a monitoring and diagnostic interface.'}
+            </p>
+
+            <div style={{
+              paddingTop: '10px',
               borderTop: '1px solid var(--border-sub)',
               fontSize: '0.75rem',
               color: 'var(--text-dim)'
             }}>
               <a href="#/install" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--brand-primary)', fontWeight: 600 }}>
-                <span>Install Chromium / Firefox Extension</span>
+                <span>Setup Chromium / Firefox Extension</span>
                 <ArrowRight style={{ width: 12, height: 12 }} />
               </a>
             </div>
           </div>
+
+          {/* Card 3: Web Protection */}
+          <div className="card-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '14px' }}>
+              Web Protection
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className={extensionDetected ? 'badge badge-protection' : 'badge badge-amber'}>
+                {extensionDetected ? 'Available' : 'Needs setup'}
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '14px', flex: 1, lineHeight: 1.5 }}>
+              {extensionDetected
+                ? 'Shows which extension features are available (14 declarativeNetRequest rules registered). Note: Detection does not by itself prove that every rule is functioning correctly.'
+                : 'Declarative net request and content scripts require installing the extension for this browser.'}
+            </p>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              paddingTop: '10px',
+              borderTop: '1px solid var(--border-sub)',
+              fontSize: '0.75rem',
+              color: 'var(--text-dim)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Rules:</span>
+                <span>14 Built-In MV3 DNR Rules</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Unit Tests:</span>
+                <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>37/37 Passing</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: System DNS Configuration */}
+          <div className="card-panel" style={{ padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '14px' }}>
+              System DNS Configuration
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className="badge badge-neutral">
+                Not verified
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '14px', flex: 1, lineHeight: 1.5 }}>
+              System-level DNS configuration (Windows DoH, Apple profile, or Android Private DNS) cannot be confirmed directly by browser scripts without platform-level checks.
+            </p>
+
+            <div style={{
+              paddingTop: '10px',
+              borderTop: '1px solid var(--border-sub)',
+              fontSize: '0.75rem',
+              color: 'var(--text-dim)'
+            }}>
+              <a href="#/install" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--brand-primary)', fontWeight: 600 }}>
+                <span>View Platform DNS Guides</span>
+                <ArrowRight style={{ width: 12, height: 12 }} />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Test Bench Section */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <Zap style={{ width: 20, height: 20, color: 'var(--brand-primary)' }} />
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Test Bench
+            </h2>
+          </div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)', maxWidth: '780px', lineHeight: 1.5 }}>
+            Try sample inputs to understand how BYEADS's detection logic evaluates possible deception, redirects,
+            and download metadata. <strong>Test Bench results are simulations using BYEADS logic.</strong> They are not live
+            scans of the websites you visit or files you download.
+          </p>
         </div>
 
         {/* Interactive Simulators Section */}
@@ -387,9 +372,9 @@ export default function DashboardPage() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <Zap style={{ width: 18, height: 18, color: 'var(--brand-primary)' }} />
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
                 Deception Engine Heuristic Model
-              </h2>
+              </h3>
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '20px' }}>
               Tests heuristic analysis from <code>packages/core/src/deception-engine.ts</code>. Evaluates button text, source page origin, and destination URL.

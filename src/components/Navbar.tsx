@@ -210,7 +210,7 @@ export default function Navbar() {
         <div className="mobile-nav-footer">
           <div className="badge badge-protection" style={{ width: '100%', justifyContent: 'center' }}>
             <ShieldCheck style={{ width: 14, height: 14 }} />
-            <span>Local Engine · Zero Telemetry</span>
+            <span>Local Heuristics · Transparent Protection</span>
           </div>
           <button
             onClick={cycleTheme}

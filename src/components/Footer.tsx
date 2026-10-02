@@ -28,12 +28,12 @@ export default function Footer() {
                 }}
               />
               <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                BYEADS
+                BYEADS by LoopHora
               </span>
             </div>
             <p className="footer-brand-desc">
-              Free, open-source protection suite against intrusive ads, trackers, malware,
-              phishing, and deceptive downloads across every device.
+              Free and open-source web protection tools designed to give users more control over unwanted
+              requests, deceptive links, and suspicious downloads.
             </p>
           </div>
 
@@ -41,27 +41,26 @@ export default function Footer() {
             <div>
               <div className="footer-col-title">Product</div>
               <div className="footer-col-links">
-                <Link to="/#shields" className="footer-col-link">Protection Shields</Link>
-                <Link to="/docs/05" className="footer-col-link">DNS Shield</Link>
-                <Link to="/docs/06" className="footer-col-link">Web Shield</Link>
-                <Link to="/docs/07" className="footer-col-link">Download Guard</Link>
-                <Link to="/docs/04" className="footer-col-link">Deception Engine</Link>
+                <Link to="/" className="footer-col-link">Home</Link>
+                <Link to="/dashboard" className="footer-col-link">Dashboard</Link>
+                <Link to="/install" className="footer-col-link">Install</Link>
+                <Link to="/#shields" className="footer-col-link">Protection Modules</Link>
               </div>
             </div>
 
             <div>
               <div className="footer-col-title">Documentation</div>
               <div className="footer-col-links">
-                <Link to="/docs" className="footer-col-link">All 30 Specs</Link>
-                <Link to="/docs/01" className="footer-col-link">Product Spec</Link>
+                <Link to="/docs/23" className="footer-col-link">Getting Started</Link>
                 <Link to="/docs/02" className="footer-col-link">System Architecture</Link>
-                <Link to="/docs/12" className="footer-col-link">Tech Stack</Link>
-                <Link to="/docs/23" className="footer-col-link">Installation Guide</Link>
+                <Link to="/docs/13" className="footer-col-link">Privacy</Link>
+                <Link to="/docs/03" className="footer-col-link">Security Requirements</Link>
+                <Link to="/docs" className="footer-col-link">All Specifications</Link>
               </div>
             </div>
 
             <div>
-              <div className="footer-col-title">Community & Open Source</div>
+              <div className="footer-col-title">Community</div>
               <div className="footer-col-links">
                 <a
                   href="https://github.com/AzeemS24/BYEADS"
@@ -69,12 +68,11 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="footer-col-link"
                 >
-                  GitHub Repository
+                  GitHub
                 </a>
                 <Link to="/docs/20" className="footer-col-link">Contributing</Link>
-                <Link to="/docs/25" className="footer-col-link">License (MPL-2.0)</Link>
+                <Link to="/docs/25" className="footer-col-link">License</Link>
                 <Link to="/docs/16" className="footer-col-link">Security Disclosures</Link>
-                <Link to="/docs/24" className="footer-col-link">Self-Hosting</Link>
               </div>
             </div>
           </div>
@@ -82,13 +80,13 @@ export default function Footer() {
 
         <div className="footer-bottom">
           <div>
-            <span>© {new Date().getFullYear()} BYEADS by LoopHora. Free & Open Source under Mozilla Public License 2.0.</span>
+            <span>© 2026 BYEADS by LoopHora. MPL-2.0 licensing and public source availability are subject to the project's release status.</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div className="badge badge-protection" style={{ fontSize: '0.75rem' }}>
               <ShieldCheck style={{ width: 14, height: 14 }} />
-              <span>Zero User Profiling · Local Heuristics · Encrypted DNS</span>
+              <span>Local Heuristics · Encrypted DNS · Transparent Protection</span>
             </div>
 
             <button

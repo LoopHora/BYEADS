@@ -1048,14 +1048,12 @@ const docs: DocEntry[] = [
 
 /* ===== Category groupings ===== */
 const categories = [
-  { name: 'Overview', ids: ['01', '02', '30'] },
-  { name: 'Getting Started', ids: ['23', '24'] },
-  { name: 'Protection Shields', ids: ['04', '05', '06', '07', '08'] },
-  { name: 'Intelligence', ids: ['09', '10'] },
+  { name: 'Getting Started', ids: ['01', '23', '24', '30'] },
+  { name: 'Protection', ids: ['04', '05', '06', '07', '08', '09', '10'] },
+  { name: 'Privacy', ids: ['13', '19'] },
   { name: 'Security', ids: ['03', '15', '16', '22', '29'] },
-  { name: 'Infrastructure', ids: ['11', '12', '13', '14'] },
-  { name: 'Development', ids: ['17', '18', '19', '27', '28'] },
-  { name: 'Community', ids: ['20', '21', '25', '26'] },
+  { name: 'Architecture', ids: ['02', '11', '12', '14', '28'] },
+  { name: 'Development & Community', ids: ['17', '18', '20', '21', '25', '26', '27'] },
 ];
 
 /* ===== Component ===== */
