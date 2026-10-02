@@ -263,11 +263,24 @@
           if (video.playbackRate > 1.0) {
             video.playbackRate = 1.0;
           }
-          if (wasMutedByAd) {
+          // Fail-safe unmute: If ad is not active, ensure video is audible
+          if (wasMutedByAd || (video.muted && !player?.classList?.contains('ytp-volume-slider-active'))) {
             video.muted = false;
             wasMutedByAd = false;
           }
+          if (video.volume === 0 && !player?.classList?.contains('ytp-volume-slider-active')) {
+            video.volume = 1.0;
+          }
         }
+        // Force YouTube / YouTube Music internal player API to unmute
+        try {
+          const ytPlayer = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
+          if (ytPlayer && typeof ytPlayer.unMute === 'function') {
+            if (typeof ytPlayer.isMuted === 'function' && ytPlayer.isMuted()) {
+              ytPlayer.unMute();
+            }
+          }
+        } catch {}
       }
 
       // YouTube anti-adblock enforcement dialog killer
@@ -302,7 +315,7 @@
           document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement';
       }
 
-      const audios = document.querySelectorAll('audio');
+      const audios = document.querySelectorAll('audio, video');
 
       if (isSpotifyAd) {
         // Mute audio during advertisement
@@ -342,10 +355,12 @@
           } catch {}
         }
       } else {
-        // Real music playing: unmute and restore normal playback rate (NEVER skip user songs)
+        // Real music playing: ALWAYS ensure audio is unmuted and audible
         audios.forEach((audio) => {
-          if (wasMutedByAd || audio.muted) {
+          if (audio.muted) {
             audio.muted = false;
+          }
+          if (audio.volume === 0) {
             audio.volume = 1.0;
           }
           if (audio.playbackRate > 1.0) {
@@ -356,6 +371,16 @@
           wasMutedByAd = false;
         }
       }
+    }
+
+    // --- C. Universal Web Audio & Video Safe Guard (SoundCloud, Twitch, Vimeo, Dailymotion, etc.) ---
+    if (!hostname.includes('youtube.com') && !hostname.includes('spotify.com')) {
+      const allMedia = document.querySelectorAll('video, audio');
+      allMedia.forEach((m) => {
+        if (m.playbackRate > 1.0 && !m.closest('[class*="ad"], [id*="ad"]')) {
+          m.playbackRate = 1.0;
+        }
+      });
     }
   }
 

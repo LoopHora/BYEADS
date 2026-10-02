@@ -336,4 +336,79 @@
   } else {
     unfreezeScroll();
   }
+
+  // ===== GOD-LEVEL AGGRESSIVE SYSTEM DEFENSES =====
+
+  // 5. Phishing Notification Prompt Trap (Auto-denies deceptive subscription spam)
+  try {
+    if (window.Notification && Notification.requestPermission) {
+      const origReqPerm = Notification.requestPermission;
+      Notification.requestPermission = function (callback) {
+        console.warn('[BYEADS God-Level] Blocked deceptive web notification permission prompt');
+        if (typeof callback === 'function') callback('denied');
+        return Promise.resolve('denied');
+      };
+    }
+  } catch {}
+
+  // 6. Tab-Freeze & Scareware BeforeUnload Lock Defuser
+  try {
+    Object.defineProperty(window, 'onbeforeunload', {
+      configurable: true,
+      enumerable: true,
+      get: () => null,
+      set: () => {
+        // Drop rogue beforeunload freeze attempts
+        return true;
+      }
+    });
+
+    const origAddEventListener = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function (type, listener, options) {
+      if (type === 'beforeunload' && this === window) {
+        // Intercept scareware freeze dialogs
+        return;
+      }
+      return origAddEventListener.apply(this, arguments);
+    };
+  } catch {}
+
+  // 7. Back-Button Hijack & History Flood Neutralizer
+  try {
+    let pushCount = 0;
+    let lastPushTime = Date.now();
+    const origPushState = history.pushState;
+
+    history.pushState = function (...args) {
+      const now = Date.now();
+      if (now - lastPushTime < 1000) {
+        pushCount++;
+        if (pushCount > 3) {
+          console.warn('[BYEADS God-Level] Throttled rapid history back-button hijack loop');
+          return;
+        }
+      } else {
+        pushCount = 0;
+        lastPushTime = now;
+      }
+      return origPushState.apply(this, args);
+    };
+  } catch {}
+
+  // 8. In-Browser Crypto-Mining Scriptlet Defusers
+  try {
+    const noopMiner = {
+      start: () => {},
+      stop: () => {},
+      isRunning: () => false,
+      getHashesPerSecond: () => 0,
+      getTotalHashes: () => 0,
+      on: () => {}
+    };
+    window.CoinHive = { Anonymous: () => noopMiner, User: () => noopMiner, Token: () => noopMiner };
+    window.CoinImp = noopMiner;
+    window.CryptoLoot = noopMiner;
+    window.WebMinePool = noopMiner;
+  } catch {}
 })();
+
