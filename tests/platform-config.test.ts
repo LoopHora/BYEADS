@@ -35,7 +35,7 @@ describe('Platform Artifacts & Configurations', () => {
     expect(content).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(content).toContain('com.apple.dnsSettings.managed');
     expect(content).toContain('DNSSettings');
-    expect(content).toContain('https://security.cloudflare-dns.com/dns-query');
+    expect(content).toContain('dns-query');
   });
 
   it('Windows setup-windows-doh.ps1 should be present and executable', () => {

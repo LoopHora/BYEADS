@@ -11,18 +11,18 @@
                 <string>HTTPS</string>
                 <key>ServerAddresses</key>
                 <array>
-                    <string>1.1.1.2</string>
-                    <string>1.0.0.2</string>
-                    <string>2606:4700:4700::1112</string>
-                    <string>2606:4700:4700::1002</string>
+                    <string>94.140.14.14</string>
+                    <string>94.140.15.15</string>
+                    <string>2a10:50c0::ad1:ff</string>
+                    <string>2a10:50c0::ad2:ff</string>
                 </array>
                 <key>ServerURL</key>
-                <string>https://security.cloudflare-dns.com/dns-query</string>
+                <string>https://dns.adguard-dns.com/dns-query</string>
             </dict>
             <key>PayloadDescription</key>
-            <string>Configures encrypted DNS-over-HTTPS (DoH) for BYEADS protection on Wi-Fi and Cellular connections.</string>
+            <string>Configures encrypted DNS-over-HTTPS (DoH) for BYEADS system-wide ad, tracker, and malicious domain blocking on Wi-Fi and Cellular connections.</string>
             <key>PayloadDisplayName</key>
-            <string>BYEADS Encrypted DNS Profile</string>
+            <string>BYEADS Ad-Blocking DNS Profile</string>
             <key>PayloadIdentifier</key>
             <string>org.loophora.byeads.dns</string>
             <key>PayloadType</key>
@@ -36,7 +36,7 @@
         </dict>
     </array>
     <key>PayloadDescription</key>
-    <string>BYEADS Free &amp; Open Source Encrypted DNS Protection by LoopHora</string>
+    <string>BYEADS Free &amp; Open Source Encrypted Ad-Blocking DNS Protection by LoopHora</string>
     <key>PayloadDisplayName</key>
     <string>BYEADS Protection Profile</string>
     <key>PayloadIdentifier</key>

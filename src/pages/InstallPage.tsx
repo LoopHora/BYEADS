@@ -67,7 +67,7 @@ export default function InstallPage() {
         }}>
           <AlertCircle style={{ width: 22, height: 22, color: 'var(--badge-amber-text)', flexShrink: 0, marginTop: '2px' }} />
           <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--text-main)' }}>Important:</strong> System-level DNS setup uses <strong>Cloudflare Security DNS (1.1.1.2)</strong>. DNS filtering is domain-based and does not provide complete ad removal, in-page inspection, or antivirus protection. Browser extensions add browser-specific inspection and filtering capabilities.
+            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles configure encrypted queries routed to <strong>Ad-Blocking DNS (AdGuard Anycast)</strong> or <strong>Cloudflare Security (1.1.1.2)</strong>, blocking ad and tracker domains network-wide across all apps. Browser extensions provide in-page protection (DOM fake button detection, video/audio ad fast-forwarding, and download interception). For full protection, apply both your device's DNS settings and the browser extension.
           </div>
         </div>
 
@@ -383,7 +383,7 @@ export default function InstallPage() {
                     byeads-encrypted-dns.mobileconfig
                   </div>
                   <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    Official Apple Managed Encrypted DNS Profile (iOS 14+ / macOS 11+)
+                    Official Apple Managed Encrypted DNS Profile (iOS 14+ / macOS 11+) · System-Wide Ad &amp; Tracker Blocking via DoH
                   </div>
                 </div>
 
@@ -420,6 +420,22 @@ export default function InstallPage() {
                     <li>Tap <strong>Install</strong> and enter your passcode to confirm.</li>
                   </ol>
                 </div>
+
+                {/* YouTube note for iOS */}
+                <div style={{
+                  marginTop: '12px',
+                  background: 'rgba(249, 115, 22, 0.08)',
+                  border: '1px solid rgba(249, 115, 22, 0.25)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px 18px',
+                }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    YouTube &amp; YouTube Music on iOS / iPadOS
+                  </div>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.5, margin: 0 }}>
+                    Encrypted DNS profiles block banner ads, trackers, and popup networks across all iOS apps. However, in-stream video ads in the official YouTube app stream from the video servers (<code>googlevideo.com</code>) and require browser-level content blockers (such as Safari content extensions) to skip and mute in-stream ads.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -444,42 +460,90 @@ export default function InstallPage() {
 
               <div style={{ marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                  Private DNS Hostname
+                  Private DNS Provider Hostname
                 </h3>
-                <div style={{
-                  background: 'var(--bg-sidebar)',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-sub)',
-                  fontFamily: 'monospace',
-                  fontSize: '0.875rem',
-                  color: 'var(--text-main)',
-                  position: 'relative',
-                  overflowX: 'auto'
-                }}>
-                  <code>security.cloudflare-dns.com</code>
-                  <button
-                    onClick={() => handleCopy('security.cloudflare-dns.com', 'dot_host')}
-                    className="btn btn-secondary btn-sm"
-                    style={{ position: 'absolute', right: '12px', top: '10px' }}
-                  >
-                    {copiedKey === 'dot_host' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
-                    <span>{copiedKey === 'dot_host' ? 'Copied' : 'Copy'}</span>
-                  </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Hostname 1: Ad & Tracker Blocker (Recommended) */}
+                  <div style={{
+                    background: 'var(--bg-sidebar)',
+                    padding: '14px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-sub)',
+                    position: 'relative'
+                  }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--badge-green-text)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Recommended: System-Wide Ad &amp; Tracker Blocker
+                    </div>
+                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)', fontWeight: 600 }}>dns.adguard-dns.com</code>
+                    <button
+                      onClick={() => handleCopy('dns.adguard-dns.com', 'dot_adblock')}
+                      className="btn btn-secondary btn-sm"
+                      style={{ position: 'absolute', right: '12px', top: '12px' }}
+                    >
+                      {copiedKey === 'dot_adblock' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
+                      <span>{copiedKey === 'dot_adblock' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                      Blocks in-app banner ads, popups, and telemetry trackers across all Android apps and games.
+                    </div>
+                  </div>
+
+                  {/* Hostname 2: Security & Malware Only */}
+                  <div style={{
+                    background: 'var(--bg-sidebar)',
+                    padding: '14px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-sub)',
+                    position: 'relative'
+                  }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Alternative: Malware &amp; Scam Shield Only
+                    </div>
+                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)' }}>security.cloudflare-dns.com</code>
+                    <button
+                      onClick={() => handleCopy('security.cloudflare-dns.com', 'dot_security')}
+                      className="btn btn-secondary btn-sm"
+                      style={{ position: 'absolute', right: '12px', top: '12px' }}
+                    >
+                      {copiedKey === 'dot_security' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
+                      <span>{copiedKey === 'dot_security' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                      Blocks known malware and phishing domains via Cloudflare 1.1.1.2 Anycast.
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
+              <div style={{ marginBottom: '28px' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
                   Setup Steps
                 </h3>
                 <ol style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.875rem', color: 'var(--text-sub)', paddingLeft: '20px', listStyleType: 'decimal' }}>
                   <li>Open <strong>Settings</strong> on your Android phone.</li>
                   <li>Tap <strong>Network &amp; internet</strong> (or <strong>Connections</strong>).</li>
-                  <li>Tap <strong>Private DNS</strong>.</li>
+                  <li>Tap <strong>Private DNS</strong> (often located under More Connection Settings).</li>
                   <li>Select <strong>Private DNS provider hostname</strong>.</li>
-                  <li>Paste <code>security.cloudflare-dns.com</code> and tap <strong>Save</strong>.</li>
+                  <li>Paste <code>dns.adguard-dns.com</code> and tap <strong>Save</strong>.</li>
                 </ol>
+              </div>
+
+              {/* YouTube / YouTube Music on Mobile Section */}
+              <div style={{
+                background: 'rgba(249, 115, 22, 0.08)',
+                border: '1px solid rgba(249, 115, 22, 0.25)',
+                borderRadius: 'var(--radius-md)',
+                padding: '18px 20px',
+              }}>
+                <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  YouTube &amp; YouTube Music on Smartphones
+                </h3>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: '10px' }}>
+                  <strong>Why DNS alone cannot block YouTube video/audio ads:</strong> YouTube streams ads from the exact same CDN servers (<code>*.googlevideo.com</code>) as the songs and videos. Blocking that domain at the DNS level completely breaks video and music playback.
+                </p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, margin: 0 }}>
+                  <strong>How to get ad-free streaming on mobile:</strong> Install <strong>Firefox for Android</strong> or <strong>Kiwi Browser</strong> (Chromium mobile with extension support). Load the BYEADS extension to automatically mute, fast-forward, and skip all YouTube and YouTube Music ads on your phone!
+                </p>
               </div>
             </div>
           )}
