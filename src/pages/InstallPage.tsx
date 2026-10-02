@@ -421,7 +421,7 @@ export default function InstallPage() {
                   </ol>
                 </div>
 
-                {/* YouTube note for iOS */}
+                {/* In-Stream Media Boundary Note for iOS */}
                 <div style={{
                   marginTop: '12px',
                   background: 'rgba(249, 115, 22, 0.08)',
@@ -430,10 +430,10 @@ export default function InstallPage() {
                   padding: '16px 18px',
                 }}>
                   <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    YouTube &amp; YouTube Music on iOS / iPadOS
+                    Scope &amp; In-Stream Video Limitations on iOS
                   </div>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.5, margin: 0 }}>
-                    Encrypted DNS profiles block banner ads, trackers, and popup networks across all iOS apps. However, in-stream video ads in the official YouTube app stream from the video servers (<code>googlevideo.com</code>) and require browser-level content blockers (such as Safari content extensions) to skip and mute in-stream ads.
+                    The encrypted DNS profile provides system-wide domain filtering against known ad, tracker, and malware domains across all iOS apps. Because encrypted DNS operates at the network resolution level, it cannot inspect encrypted HTTPS payloads or alter in-stream video playback (such as YouTube pre-rolls or sponsored segments).
                   </p>
                 </div>
               </div>
@@ -528,7 +528,7 @@ export default function InstallPage() {
                 </ol>
               </div>
 
-              {/* YouTube / YouTube Music on Mobile Section */}
+              {/* In-Stream Media & Mobile Extension Boundary Note */}
               <div style={{
                 background: 'rgba(249, 115, 22, 0.08)',
                 border: '1px solid rgba(249, 115, 22, 0.25)',
@@ -536,13 +536,13 @@ export default function InstallPage() {
                 padding: '18px 20px',
               }}>
                 <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
-                  YouTube &amp; YouTube Music on Smartphones
+                  Mobile Scope &amp; In-Stream Video Ad Boundaries
                 </h3>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, marginBottom: '10px' }}>
-                  <strong>Why DNS alone cannot block YouTube video/audio ads:</strong> YouTube streams ads from the exact same CDN servers (<code>*.googlevideo.com</code>) as the songs and videos. Blocking that domain at the DNS level completely breaks video and music playback.
+                  <strong>DNS Resolution Scope:</strong> Android Private DNS blocks network requests to known advertising and telemetry servers system-wide. Because YouTube in-stream video ads share the same content delivery hostnames (<code>*.googlevideo.com</code>) as the media stream itself, network-level DNS cannot filter video ads without breaking playback.
                 </p>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, margin: 0 }}>
-                  <strong>How to get ad-free streaming on mobile:</strong> Install <strong>Firefox for Android</strong> or <strong>Kiwi Browser</strong> (Chromium mobile with extension support). Load the BYEADS extension to automatically mute, fast-forward, and skip all YouTube and YouTube Music ads on your phone!
+                  <strong>Browser Extension Support on Android:</strong> In-page scriptlet defusion (such as fast-forwarding or DOM filtering) requires a mobile browser that supports user extensions (such as Kiwi Browser or Firefox Developer/Nightly). Adding a website as a Home Screen shortcut (PWA) creates a standalone launcher, but standalone PWAs may run in isolated webviews where extension injection is restricted by the operating system. Always verify extension status in your browser's extension manager.
                 </p>
               </div>
             </div>
