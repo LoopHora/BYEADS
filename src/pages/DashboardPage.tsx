@@ -364,42 +364,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Source Code & Production Package Download Card */}
-        <div style={{
-          backgroundColor: 'var(--bg-card)',
-          border: '1px solid var(--border-sub)',
-          borderRadius: 'var(--radius-md)',
-          padding: '24px',
-          marginBottom: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '20px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <FileCode style={{ width: 36, height: 36, color: 'var(--brand-primary)', flexShrink: 0 }} />
-            <div>
-              <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-                Complete Source Code Archive &amp; Audit Bundle
-              </div>
-              <div style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
-                Contains full core engines, platform scripts, extension packages, test suites, and documentation. Zero build artifacts or telemetry.
-              </div>
-            </div>
-          </div>
-
-          <a
-            href="/byeads-source-bundle.zip"
-            download="byeads-source-bundle.zip"
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <Download style={{ width: 16, height: 16 }} />
-            <span>Download Source Bundle (.ZIP)</span>
-          </a>
-        </div>
-
         {/* Interactive Simulators Section */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: '28px', marginBottom: '40px' }}>
           {/* Simulator 1: Deception Engine Fake Button Tester */}

@@ -12,7 +12,6 @@ import {
   Terminal,
   ExternalLink,
   ChevronRight,
-  FileCode,
   FolderArchive,
   Info,
   Layers,
@@ -48,10 +47,9 @@ export default function InstallPage() {
             <Download style={{ width: 14, height: 14 }} />
             <span>Install &amp; Setup Center</span>
           </div>
-          <h1 className="section-title">Production Installation Guide</h1>
+          <h1 className="section-title">Installation &amp; Setup Center</h1>
           <p className="section-desc">
-            Production-ready setup guides and direct downloadable packages for every device.
-            Zero third-party telemetry, 100% open-source under MPL-2.0.
+            Install BYEADS on your supported device using the relevant setup guide and available extension package.
           </p>
         </div>
 
@@ -613,33 +611,6 @@ export default function InstallPage() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Full Source Code Download Section */}
-        <div className="card-panel" style={{ padding: '32px', maxWidth: '920px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <FileCode style={{ width: 32, height: 32, color: 'var(--brand-primary)', flexShrink: 0 }} />
-              <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
-                  Auditor &amp; Developer Source Bundle
-                </h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)' }}>
-                  Download the complete uncompiled source repository including all engines, extensions, scripts, and 37 automated tests.
-                </p>
-              </div>
-            </div>
-
-            <a
-              href="/byeads-source-bundle.zip"
-              download="byeads-source-bundle.zip"
-              className="btn btn-secondary"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-            >
-              <Download style={{ width: 14, height: 14 }} />
-              <span>Download Source .ZIP</span>
-            </a>
-          </div>
         </div>
       </div>
     </main>
