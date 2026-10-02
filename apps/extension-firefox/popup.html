@@ -2,29 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BYEADS — LoopHora</title>
+  <title>BYEADS</title>
   <style>
     :root {
-      --bg-base: #090d14;
-      --glass-panel: rgba(18, 24, 38, 0.72);
-      --glass-panel-hover: rgba(28, 36, 54, 0.85);
+      --bg-base: #0a0e17;
+      --glass-card: rgba(22, 29, 45, 0.65);
+      --glass-card-hover: rgba(30, 40, 62, 0.8);
       --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-border-light: rgba(255, 255, 255, 0.14);
-      --glass-shine: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      --glass-border-hover: rgba(255, 255, 255, 0.16);
+      --glass-shine: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
       --brand: #f97316;
-      --brand-glow: rgba(249, 115, 22, 0.35);
+      --brand-glow: rgba(249, 115, 22, 0.3);
       --green: #34c759;
-      --green-glow: rgba(52, 199, 89, 0.4);
-      --green-subtle: rgba(52, 199, 89, 0.14);
-      --red: #ff3b30;
+      --green-glow: rgba(52, 199, 89, 0.35);
+      --green-subtle: rgba(52, 199, 89, 0.12);
       --amber: #f59e0b;
-      --radius-xl: 18px;
-      --radius-lg: 14px;
-      --radius-md: 10px;
-      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-sm: 10px;
     }
 
     * {
@@ -34,26 +31,20 @@
     }
 
     body {
-      width: 350px;
-      min-height: 480px;
-      max-height: 590px;
-      overflow-y: auto;
-      background: radial-gradient(circle at 50% 10%, rgba(52, 199, 89, 0.1) 0%, transparent 50%),
-                  radial-gradient(circle at 90% 90%, rgba(249, 115, 22, 0.08) 0%, transparent 40%),
+      width: 320px;
+      height: 410px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, rgba(52, 199, 89, 0.12) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 90%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
                   var(--bg-base);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, sans-serif;
       padding: 14px 14px 12px;
       user-select: none;
       -webkit-font-smoothing: antialiased;
-    }
-
-    body::-webkit-scrollbar {
-      width: 4px;
-    }
-    body::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     /* Top Bar */
@@ -61,45 +52,27 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
     }
 
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
     }
 
     .brand-logo {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       object-fit: contain;
       border-radius: 6px;
-      filter: drop-shadow(0 2px 8px var(--brand-glow));
+      filter: drop-shadow(0 2px 6px var(--brand-glow));
     }
 
     .brand-title {
       font-size: 0.9375rem;
       font-weight: 800;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.02em;
       color: var(--text-main);
-      line-height: 1.1;
-    }
-
-    .brand-tag {
-      display: inline-block;
-      font-size: 0.5625rem;
-      font-weight: 700;
-      color: var(--brand);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      line-height: 1;
-    }
-
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     .icon-btn {
@@ -114,75 +87,71 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
+      outline: none;
     }
 
     .icon-btn:hover {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-main);
-      border-color: var(--glass-border-light);
+      border-color: var(--glass-border-hover);
     }
 
-    /* Hero AdGuard-Style Shield Section */
-    .hero-shield-section {
+    /* Hero Shield Section */
+    .hero-section {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 10px 0 14px;
       text-align: center;
-      position: relative;
+      padding: 6px 0 2px;
     }
 
-    /* Outer glowing pulse ring */
     .shield-btn-wrap {
       position: relative;
-      width: 96px;
-      height: 96px;
+      width: 90px;
+      height: 90px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    .shield-pulse-ring {
+    .shield-glow-ring {
       position: absolute;
       inset: -4px;
       border-radius: 50%;
       background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
-      opacity: 0.7;
-      animation: shieldPulse 3s infinite ease-in-out;
+      opacity: 0.8;
+      animation: pulseGlow 3s infinite ease-in-out;
       pointer-events: none;
       transition: opacity 0.3s ease;
     }
 
-    @keyframes shieldPulse {
-      0%, 100% { transform: scale(0.96); opacity: 0.45; }
-      50% { transform: scale(1.08); opacity: 0.85; }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(0.96); opacity: 0.5; }
+      50% { transform: scale(1.08); opacity: 0.9; }
     }
 
-    /* Central Big Shield Button */
     .shield-btn {
       position: relative;
-      width: 86px;
-      height: 86px;
+      width: 82px;
+      height: 82px;
       border-radius: 50%;
       border: 2px solid var(--green);
-      background: radial-gradient(circle at 35% 30%, rgba(52, 199, 89, 0.22) 0%, rgba(13, 19, 29, 0.95) 75%);
-      box-shadow: 0 0 24px var(--green-glow),
-                  inset 0 0 16px rgba(52, 199, 89, 0.2),
+      background: radial-gradient(circle at 35% 30%, rgba(52, 199, 89, 0.22) 0%, rgba(14, 20, 32, 0.95) 75%);
+      box-shadow: 0 0 22px var(--green-glow),
+                  inset 0 0 14px rgba(52, 199, 89, 0.2),
                   var(--glass-shine);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       outline: none;
     }
 
     .shield-btn:hover {
-      transform: scale(1.04);
-      box-shadow: 0 0 32px var(--green-glow),
-                  inset 0 0 20px rgba(52, 199, 89, 0.3);
+      transform: scale(1.05);
+      box-shadow: 0 0 30px var(--green-glow);
     }
 
     .shield-btn:active {
@@ -190,152 +159,139 @@
     }
 
     .shield-icon {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       color: var(--green);
-      transition: all 0.3s ease;
       filter: drop-shadow(0 2px 8px var(--green-glow));
+      transition: all 0.25s ease;
     }
 
     /* Paused / Disabled State */
-    .hero-shield-section.disabled .shield-pulse-ring {
+    .hero-section.disabled .shield-glow-ring {
       display: none;
     }
 
-    .hero-shield-section.disabled .shield-btn {
+    .hero-section.disabled .shield-btn {
       border-color: rgba(255, 255, 255, 0.14);
-      background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.05) 0%, rgba(13, 17, 24, 0.95) 75%);
+      background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.05) 0%, rgba(14, 18, 26, 0.95) 75%);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
 
-    .hero-shield-section.disabled .shield-icon {
+    .hero-section.disabled .shield-icon {
       color: var(--text-dim);
       filter: none;
     }
 
-    /* Protection Status Label */
-    .status-text {
+    .status-title {
       font-size: 0.8125rem;
       font-weight: 800;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--green);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       transition: color 0.25s ease;
     }
 
-    .hero-shield-section.disabled .status-text {
+    .hero-section.disabled .status-title {
       color: var(--text-dim);
     }
 
-    .hero-shield-section.whitelisted .status-text {
+    .hero-section.whitelisted .status-title {
       color: var(--amber);
     }
 
-    /* Site Domain Capsule */
-    .site-capsule {
+    .site-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: var(--glass-panel);
+      gap: 5px;
+      background: var(--glass-card);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       box-shadow: var(--glass-shine);
       border-radius: 9999px;
-      padding: 4px 12px;
-      font-size: 0.75rem;
+      padding: 3px 10px;
+      font-size: 0.72rem;
       font-weight: 600;
       color: var(--text-muted);
-      max-width: 280px;
+      max-width: 250px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      transition: border-color 0.2s ease;
     }
 
-    .site-capsule svg {
-      width: 13px;
-      height: 13px;
-      flex-shrink: 0;
+    .site-pill svg {
+      width: 12px;
+      height: 12px;
       color: var(--brand);
+      flex-shrink: 0;
     }
 
-    /* Clean 2-Stat Glassmorphic Cards */
-    .stats-row {
+    /* Clean 2-Stat Glass Row */
+    .stats-card {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .stat-card {
-      background: var(--glass-panel);
+      background: var(--glass-card);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--glass-border);
       box-shadow: var(--glass-shine), 0 4px 20px rgba(0, 0, 0, 0.25);
-      border-radius: var(--radius-lg);
-      padding: 10px 12px;
-      text-align: left;
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      border-radius: var(--radius);
+      padding: 9px 12px;
     }
 
-    .stat-card:hover {
-      transform: translateY(-1px);
-      border-color: var(--glass-border-light);
+    .stat-col {
+      display: flex;
+      flex-direction: column;
     }
 
-    .stat-tag {
-      font-size: 0.625rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-dim);
-      margin-bottom: 4px;
+    .stat-col:first-child {
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding-right: 8px;
     }
 
-    .stat-value {
-      font-size: 1.375rem;
+    .stat-col:last-child {
+      padding-left: 8px;
+    }
+
+    .stat-num {
+      font-size: 1.25rem;
       font-weight: 800;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       line-height: 1.1;
-      color: var(--text-main);
-    }
-
-    .stat-value.green {
       color: #4ade80;
-      text-shadow: 0 0 14px rgba(74, 222, 128, 0.35);
     }
 
-    .stat-value.brand {
+    .stat-num.brand {
       color: #fb923c;
-      text-shadow: 0 0 14px rgba(251, 146, 60, 0.35);
     }
 
-    .stat-caption {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      margin-top: 3px;
+    .stat-desc {
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
-    /* Action Buttons Row */
-    .actions-grid {
+    /* 3 Action Buttons */
+    .actions-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      margin-bottom: 12px;
     }
 
-    .action-btn {
+    .act-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      padding: 8px 4px;
-      border-radius: var(--radius-md);
-      background: var(--glass-panel);
+      gap: 4px;
+      padding: 7px 4px;
+      border-radius: var(--radius-sm);
+      background: var(--glass-card);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
@@ -349,246 +305,43 @@
       outline: none;
     }
 
-    .action-btn svg {
-      width: 17px;
-      height: 17px;
+    .act-btn svg {
+      width: 15px;
+      height: 15px;
       transition: transform 0.2s ease, color 0.2s ease;
     }
 
-    .action-btn:hover {
-      background: var(--glass-panel-hover);
-      border-color: var(--glass-border-light);
+    .act-btn:hover {
+      background: var(--glass-card-hover);
+      border-color: var(--glass-border-hover);
       color: var(--text-main);
       transform: translateY(-1px);
     }
 
-    .action-btn:hover svg {
+    .act-btn:hover svg {
       transform: scale(1.1);
       color: var(--brand);
     }
 
-    .action-btn.active {
+    .act-btn.active {
       background: rgba(249, 115, 22, 0.15);
       border-color: var(--brand);
       color: var(--brand);
     }
 
-    .action-btn.healed {
+    .act-btn.healed {
       background: var(--green-subtle);
       border-color: var(--green);
       color: var(--green);
     }
 
-    /* Collapsible Shield Modules Drawer */
-    .modules-accordion {
-      background: var(--glass-panel);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shine);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      margin-bottom: 10px;
-      transition: all 0.25s ease;
-    }
-
-    .accordion-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s ease;
-    }
-
-    .accordion-header:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .accordion-title {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .accordion-badge {
-      font-size: 0.59rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 9999px;
-      background: var(--green-subtle);
-      color: var(--green);
-      border: 1px solid rgba(52, 199, 89, 0.3);
-    }
-
-    .accordion-arrow {
-      width: 14px;
-      height: 14px;
-      color: var(--text-dim);
-      transition: transform 0.25s ease;
-    }
-
-    .modules-accordion.open .accordion-arrow {
-      transform: rotate(180deg);
-    }
-
-    .modules-body {
-      display: none;
-      border-top: 1px solid var(--glass-border);
-    }
-
-    .modules-accordion.open .modules-body {
-      display: block;
-    }
-
-    .module-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      transition: background 0.15s ease;
-    }
-
-    .module-item:last-child {
-      border-bottom: none;
-    }
-
-    .module-item:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .module-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .module-name {
-      font-size: 0.71875rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .module-desc {
-      font-size: 0.625rem;
-      color: var(--text-dim);
-    }
-
-    /* Apple-Style Switch */
-    .switch {
-      position: relative;
-      width: 32px;
-      height: 18px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .switch-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 9px;
-    }
-
-    .switch-slider:before {
-      position: absolute;
-      content: "";
-      height: 14px;
-      width: 14px;
-      left: 1px;
-      bottom: 1px;
-      background-color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 50%;
-    }
-
-    .switch input:checked + .switch-slider {
-      background-color: var(--green);
-      border-color: var(--green);
-      box-shadow: 0 0 8px var(--green-glow);
-    }
-
-    .switch input:checked + .switch-slider:before {
-      transform: translateX(14px);
-    }
-
-    /* Traffic Log Drawer */
-    .log-drawer {
-      background: var(--glass-panel);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shine);
-      border-radius: var(--radius-lg);
-      padding: 10px;
-      margin-bottom: 10px;
-      display: none;
-      animation: fadeIn 0.2s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .log-drawer.open {
-      display: block;
-    }
-
-    .log-drawer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
-    }
-
-    .log-list {
-      max-height: 110px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .log-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 5px 8px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      font-size: 0.65rem;
-    }
-
-    /* Footer */
+    /* Simple Footer */
     .footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      padding-top: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.65rem;
+      padding-top: 2px;
+      font-size: 0.625rem;
       color: var(--text-dim);
     }
 
@@ -597,7 +350,7 @@
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       transition: color 0.15s ease;
     }
 
@@ -611,62 +364,56 @@
   <div class="topbar">
     <div class="brand-group">
       <img src="logo.png" alt="BYEADS" class="brand-logo" />
-      <div>
-        <div class="brand-tag">LoopHora Security</div>
-        <div class="brand-title">BYEADS</div>
-      </div>
+      <span class="brand-title">BYEADS</span>
     </div>
-    <div class="topbar-actions">
-      <button class="icon-btn" id="openDashboardIcon" title="Open BYEADS Web Dashboard">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-      </button>
-    </div>
+    <button class="icon-btn" id="openDashboardIcon" title="Open Dashboard">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+    </button>
   </div>
 
-  <!-- Hero AdGuard-Style Central Shield Button -->
-  <div class="hero-shield-section" id="heroShieldWrap">
+  <!-- Hero Shield Section -->
+  <div class="hero-section" id="heroSection">
     <div class="shield-btn-wrap">
-      <div class="shield-pulse-ring"></div>
-      <button class="shield-btn" id="mainShieldToggle" title="Click to toggle protection on/off">
-        <svg class="shield-icon" id="shieldIconSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="shield-glow-ring"></div>
+      <button class="shield-btn" id="shieldToggleBtn" title="Click to toggle protection">
+        <svg class="shield-icon" id="shieldIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           <path d="m9 12 2 2 4-4"></path>
         </svg>
       </button>
     </div>
 
-    <!-- Status Text & Active Domain -->
-    <div class="status-text" id="statusHeading">Protection Active</div>
-    <div class="site-capsule" id="siteCapsule" title="Current tab domain">
+    <!-- Status Text & Domain -->
+    <div class="status-title" id="statusTitle">Protected</div>
+    <div class="site-pill" title="Current tab domain">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="2" y1="12" x2="22" y2="12"></line>
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
       </svg>
-      <span id="siteHostname">Active Tab</span>
+      <span id="siteDomain">Active Tab</span>
     </div>
   </div>
 
-  <!-- AdGuard-Style Clean 2-Stat Glass Cards -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-tag">On This Site</div>
-      <div class="stat-value green" id="statSiteBlocked">0</div>
-      <div class="stat-caption">Threats &amp; ads blocked</div>
+  <!-- Necessary Info: 2-Stat Glass Card -->
+  <div class="stats-card">
+    <div class="stat-col">
+      <div class="stat-num" id="siteBlockedCount">0</div>
+      <div class="stat-desc">This Page</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-tag">Total All-Time</div>
-      <div class="stat-value brand" id="statTotalBlocked">0</div>
-      <div class="stat-caption">Neutralized globally</div>
+    <div class="stat-col">
+      <div class="stat-num brand" id="totalBlockedCount">0</div>
+      <div class="stat-desc">Total Blocked</div>
     </div>
   </div>
 
-  <!-- Quick Action Pills Grid -->
-  <div class="actions-grid">
-    <button class="action-btn" id="zapperBtn" title="Point and click any annoying element to permanently zap it">
+  <!-- 3 Necessary Actions: Zap, Pause Site, Fix Page -->
+  <div class="actions-row">
+    <button class="act-btn" id="zapBtn" title="Click any element on this page to remove it">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="22" y1="12" x2="18" y2="12"></line>
@@ -674,114 +421,32 @@
         <line x1="12" y1="6" x2="12" y2="2"></line>
         <line x1="12" y1="22" x2="12" y2="18"></line>
       </svg>
-      <span>Zap</span>
+      <span>Block Element</span>
     </button>
-    <button class="action-btn" id="fixPageBtn" title="Restore broken checkouts, login modals, or forms">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
-      </svg>
-      <span id="fixPageText">Fix Page</span>
-    </button>
-    <button class="action-btn" id="whitelistBtn" title="Pause or whitelist protection on this specific domain">
+    <button class="act-btn" id="pauseSiteBtn" title="Pause or whitelist protection on this domain">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="6" y="4" width="4" height="16"></rect>
         <rect x="14" y="4" width="4" height="16"></rect>
       </svg>
-      <span id="whitelistBtnText">Pause Site</span>
+      <span id="pauseSiteText">Pause Site</span>
     </button>
-    <button class="action-btn" id="toggleLoggerBtn" title="View live traffic inspection log">
+    <button class="act-btn" id="healBtn" title="Fix page if checkout, form, or modal is broken">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path>
       </svg>
-      <span>Activity</span>
+      <span id="healText">Fix Page</span>
     </button>
   </div>
 
-  <!-- Collapsible Shield Modules Accordion -->
-  <div class="modules-accordion" id="modulesAccordion">
-    <div class="accordion-header" id="accordionToggle">
-      <div class="accordion-title">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="9" y1="3" x2="9" y2="21"></line>
-        </svg>
-        <span>Protection Modules</span>
-        <span class="accordion-badge" id="activeModulesBadge">4 Active</span>
-      </div>
-      <svg class="accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    </div>
-
-    <div class="modules-body">
-      <div class="module-item">
-        <div class="module-meta">
-          <div class="module-name">Web Shield (DNR)</div>
-          <div class="module-desc">Declarative tracker &amp; ad blocker</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="shieldWeb" checked>
-          <span class="switch-slider"></span>
-        </label>
-      </div>
-
-      <div class="module-item">
-        <div class="module-meta">
-          <div class="module-name">Media &amp; Music Guard</div>
-          <div class="module-desc">YouTube stream &amp; Spotify ad defuser</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="shieldMedia" checked>
-          <span class="switch-slider"></span>
-        </label>
-      </div>
-
-      <div class="module-item">
-        <div class="module-meta">
-          <div class="module-name">Deception Engine</div>
-          <div class="module-desc">Fake download &amp; clickjack trap</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="shieldDeception" checked>
-          <span class="switch-slider"></span>
-        </label>
-      </div>
-
-      <div class="module-item">
-        <div class="module-meta">
-          <div class="module-name">Cookie Auto-Reject</div>
-          <div class="module-desc">Automatic GDPR &amp; CCPA dismissal</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="shieldCookie" checked>
-          <span class="switch-slider"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-
-  <!-- Live Traffic Log Drawer -->
-  <div class="log-drawer" id="loggerDrawer">
-    <div class="log-drawer-header">
-      <span>Live Interception Events</span>
-      <span id="loggerCount" style="color: var(--brand);">0 events</span>
-    </div>
-    <div class="log-list" id="loggerList">
-      <div style="color: var(--text-dim); text-align: center; padding: 8px;">No interception events recorded.</div>
-    </div>
-  </div>
-
-  <!-- Footer -->
+  <!-- Minimal Footer -->
   <div class="footer">
-    <a href="#" id="openDashboardBtn">
-      <span>Open Dashboard</span>
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-        <polyline points="15 3 21 3 21 9"></polyline>
-        <line x1="10" y1="14" x2="21" y2="3"></line>
+    <a href="#" id="openDashboardLink">
+      <span>Dashboard</span>
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
     </a>
-    <span>v1.0.0 · Local Heuristics</span>
+    <span>v1.0.0</span>
   </div>
 
   <script src="popup.js"></script>
