@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const [connState, setConnState] = useState<VerificationState>('connected_verified');
   const [latency, setLatency] = useState<number>(22);
   const [lastCheck, setLastCheck] = useState<string>('Just now');
-  const [resolverProvider, setResolverProvider] = useState<string>('Cloudflare Security (1.1.1.2) / Encrypted DoH');
+  const [resolverProvider, setResolverProvider] = useState<string>('BYEADS Anycast DNS Shield (dns.byeads.net)');
   const [targetDomain, setTargetDomain] = useState<string>('probe.byeads.net');
   const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
 
@@ -219,7 +219,7 @@ export default function DashboardPage() {
 
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px', flex: 1, lineHeight: 1.5 }}>
               {connState === 'connected_verified'
-                ? `Test query succeeded in ${latency}ms via RFC 8484 DoH query. Upstream security resolver blocks known malware and phishing domains.`
+                ? `Test query succeeded in ${latency}ms via RFC 8484 DoH query. BYEADS Anycast resolver blocks known ad, tracker, and malware domains.`
                 : 'Could not complete test DNS probe. Check your network connection or resolver reachability.'}
             </p>
 
@@ -234,7 +234,7 @@ export default function DashboardPage() {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Upstream:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Cloudflare Security (1.1.1.2)</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>BYEADS Anycast (dns.byeads.net)</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Probe Target:</span>

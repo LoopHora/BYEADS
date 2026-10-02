@@ -13,8 +13,8 @@ This blocks ads, tracking SDKs, telemetry, and malicious domains across all Andr
 3. Tap **Private DNS** (often under Advanced or More Connection Settings).
 4. Select **Private DNS provider hostname**.
 5. Enter the BYEADS Ad-Blocking endpoint hostname:
-   - **Ad & Tracker Blocker (Recommended):** `dns.adguard-dns.com`
-   - **Malware & Security Only:** `security.cloudflare-dns.com`
+   - **BYEADS Ad & Tracker Blocker (Recommended):** `dns.byeads.net`
+   - **BYEADS Malware & Threat Shield Only:** `security.byeads.net`
 6. Tap **Save**.
 
 Once saved, Android will test and immediately encrypt all DNS lookups across all apps and browsers.
@@ -22,9 +22,9 @@ Once saved, Android will test and immediately encrypt all DNS lookups across all
 ### ADB Shell Automation (For Developers / Fleet Management)
 
 ```bash
-# Enable Private DNS with Ad-Blocking provider
+# Enable Private DNS with BYEADS provider
 adb shell settings put global private_dns_mode hostname
-adb shell settings put global private_dns_specifier dns.adguard-dns.com
+adb shell settings put global private_dns_specifier dns.byeads.net
 
 # Verify configuration state
 adb shell settings get global private_dns_mode

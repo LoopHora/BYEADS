@@ -9,15 +9,8 @@
             <dict>
                 <key>DNSProtocol</key>
                 <string>HTTPS</string>
-                <key>ServerAddresses</key>
-                <array>
-                    <string>94.140.14.14</string>
-                    <string>94.140.15.15</string>
-                    <string>2a10:50c0::ad1:ff</string>
-                    <string>2a10:50c0::ad2:ff</string>
-                </array>
                 <key>ServerURL</key>
-                <string>https://dns.adguard-dns.com/dns-query</string>
+                <string>https://dns.byeads.net/dns-query</string>
             </dict>
             <key>PayloadDescription</key>
             <string>Configures encrypted DNS-over-HTTPS (DoH) for BYEADS system-wide ad, tracker, and malicious domain blocking on Wi-Fi and Cellular connections.</string>

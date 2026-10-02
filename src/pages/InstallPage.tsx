@@ -67,7 +67,7 @@ export default function InstallPage() {
         }}>
           <AlertCircle style={{ width: 22, height: 22, color: 'var(--badge-amber-text)', flexShrink: 0, marginTop: '2px' }} />
           <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles configure encrypted queries routed to <strong>Ad-Blocking DNS (AdGuard Anycast)</strong> or <strong>Cloudflare Security (1.1.1.2)</strong>, blocking ad and tracker domains network-wide across all apps. Browser extensions provide in-page protection (DOM fake button detection, video/audio ad fast-forwarding, and download interception). For full protection, apply both your device's DNS settings and the browser extension.
+            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles configure encrypted queries routed to <strong>BYEADS Anycast DNS Shield (<code>dns.byeads.net</code>)</strong>, blocking ad and tracker domains network-wide across all apps. Browser extensions provide in-page protection (DOM fake button detection, video/audio ad fast-forwarding, and download interception). For full protection, apply both your device's DNS settings and the browser extension.
           </div>
         </div>
 
@@ -515,11 +515,11 @@ export default function InstallPage() {
                     position: 'relative'
                   }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--badge-green-text)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                      Recommended: System-Wide Ad &amp; Tracker Blocker
+                      Recommended: BYEADS System-Wide Ad &amp; Tracker Blocker
                     </div>
-                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)', fontWeight: 600 }}>dns.adguard-dns.com</code>
+                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)', fontWeight: 600 }}>dns.byeads.net</code>
                     <button
-                      onClick={() => handleCopy('dns.adguard-dns.com', 'dot_adblock')}
+                      onClick={() => handleCopy('dns.byeads.net', 'dot_adblock')}
                       className="btn btn-secondary btn-sm"
                       style={{ position: 'absolute', right: '12px', top: '12px' }}
                     >
@@ -527,7 +527,7 @@ export default function InstallPage() {
                       <span>{copiedKey === 'dot_adblock' ? 'Copied' : 'Copy'}</span>
                     </button>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                      Blocks in-app banner ads, popups, and telemetry trackers across all Android apps and games.
+                      Official BYEADS Anycast Private DNS. Blocks in-app banner ads, popups, and telemetry trackers across all Android apps and games.
                     </div>
                   </div>
 
@@ -540,11 +540,11 @@ export default function InstallPage() {
                     position: 'relative'
                   }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                      Alternative: Malware &amp; Scam Shield Only
+                      Alternative: BYEADS Malware &amp; Threat Shield Only
                     </div>
-                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)' }}>security.cloudflare-dns.com</code>
+                    <code style={{ fontSize: '0.9375rem', color: 'var(--text-main)' }}>security.byeads.net</code>
                     <button
-                      onClick={() => handleCopy('security.cloudflare-dns.com', 'dot_security')}
+                      onClick={() => handleCopy('security.byeads.net', 'dot_security')}
                       className="btn btn-secondary btn-sm"
                       style={{ position: 'absolute', right: '12px', top: '12px' }}
                     >
@@ -552,7 +552,7 @@ export default function InstallPage() {
                       <span>{copiedKey === 'dot_security' ? 'Copied' : 'Copy'}</span>
                     </button>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                      Blocks known malware and phishing domains via Cloudflare 1.1.1.2 Anycast.
+                      Blocks known malware, phishing gateways, and deceptive fraud servers.
                     </div>
                   </div>
                 </div>
@@ -567,7 +567,7 @@ export default function InstallPage() {
                   <li>Tap <strong>Network &amp; internet</strong> (or <strong>Connections</strong>).</li>
                   <li>Tap <strong>Private DNS</strong> (often located under More Connection Settings).</li>
                   <li>Select <strong>Private DNS provider hostname</strong>.</li>
-                  <li>Paste <code>dns.adguard-dns.com</code> and tap <strong>Save</strong>.</li>
+                  <li>Paste <code>dns.byeads.net</code> and tap <strong>Save</strong>.</li>
                 </ol>
               </div>
 

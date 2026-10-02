@@ -52,7 +52,7 @@ describe('Platform Artifacts & Configurations', () => {
     expect(fs.existsSync(androidPath)).toBe(true);
 
     const guide = fs.readFileSync(androidPath, 'utf-8');
-    expect(guide).toContain('security.cloudflare-dns.com');
+    expect(guide).toContain('dns.byeads.net');
     expect(guide).toContain('private_dns_specifier');
   });
 
