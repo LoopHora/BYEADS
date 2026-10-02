@@ -222,3 +222,44 @@ Traditional ad-blocking software compiles standalone Windows background daemons 
 - **Zero Antivirus / SmartScreen False Alarms:** Third-party `.exe` binaries from open-source repositories lack multi-thousand dollar Microsoft EV Code-Signing certificates, triggering alarming "Unknown Publisher / Windows Protected Your PC" warnings. Native PowerShell scripts and batch files avoid this entirely.
 - **Full Transparency & Auditing:** The 1-click installer ([`install-byeads-dns.bat`](file:///d:/BYEADS/platforms/windows/install-byeads-dns.bat)) and PowerShell script ([`setup-windows-doh.ps1`](file:///d:/BYEADS/platforms/windows/setup-windows-doh.ps1)) are 100% human-readable and auditable before execution.
 - **Desktop App Integration via PWA:** The BYEADS Dashboard can be installed directly from Edge or Chrome as a standalone Windows desktop app (Start Menu, taskbar pinning, window framing) without requiring an executable installer.
+
+## 8. Windows PowerShell Execution Guide & Execution Policy Handling
+
+### How to Run `setup-windows-doh.ps1`
+Windows machines default to a `Restricted` or `RemoteSigned` execution policy, which prevents running unsigned PowerShell scripts when double-clicked or invoked without flags.
+
+BYEADS provides three verified methods to execute the configuration script cleanly:
+
+#### Method A: 1-Click Batch Launcher (Recommended)
+Double-click `platforms\windows\install-byeads-dns.bat` (or download it from the BYEADS Dashboard / Install page).
+- Automatically prompts for Administrator privileges via Windows UAC.
+- Launches PowerShell with `-ExecutionPolicy Bypass -NoProfile`.
+- Detects local `setup-windows-doh.ps1` or falls back seamlessly to the remote URL.
+- Offers an interactive menu to apply BYEADS Full Shield, Malware Only, or Revert to DHCP Automatic.
+
+#### Method B: Elevated PowerShell with ExecutionPolicy Bypass
+Open PowerShell as Administrator (`Win + X` → **Terminal (Admin)** or **Windows PowerShell (Admin)**):
+```powershell
+Set-Location "D:\BYEADS\platforms\windows"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-doh.ps1
+```
+
+Or pass custom DNS parameters:
+```powershell
+# Enable Ad & Malware Shield
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-doh.ps1 -ServerIp "1.1.1.2" -DohTemplate "https://dns.byeads.net/dns-query"
+
+# Revert back to system default (DHCP Automatic)
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-doh.ps1 -Uninstall
+```
+
+#### Method C: One-Liner Web Installer (PowerShell Terminal)
+Run directly inside an elevated PowerShell prompt:
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
+```
+
+### Self-Elevation Protection
+`setup-windows-doh.ps1` automatically checks for administrative privileges using:
+`([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)`
+If launched from a standard non-admin shell, it automatically invokes `Start-Process powershell.exe -Verb RunAs` with `-ExecutionPolicy Bypass` to seamlessly elevate without throwing errors.

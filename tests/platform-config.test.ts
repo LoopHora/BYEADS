@@ -102,5 +102,21 @@ describe('Platform Artifacts & Configurations', () => {
     expect(manifest.manifest_version).toBe(3);
     expect(manifest.permissions).toContain('declarativeNetRequest');
   });
+
+  it('setup-windows-doh.ps1 should be synchronized with public and contain safe syntax', () => {
+    const psPath = path.join(root, 'platforms', 'windows', 'setup-windows-doh.ps1');
+    const publicPsPath = path.join(root, 'public', 'setup-windows-doh.ps1');
+    expect(fs.existsSync(psPath)).toBe(true);
+    expect(fs.existsSync(publicPsPath)).toBe(true);
+
+    const psContent = fs.readFileSync(psPath, 'utf-8');
+    const publicContent = fs.readFileSync(publicPsPath, 'utf-8');
+    expect(psContent).toBe(publicContent);
+    expect(psContent).toContain('[CmdletBinding()]');
+    expect(psContent).toContain('param (');
+    expect(psContent).toContain('Add-DnsClientDohServerAddress');
+    expect(psContent).toContain('Start-Process powershell.exe');
+  });
 });
+
 
