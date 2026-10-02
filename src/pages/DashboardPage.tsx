@@ -557,93 +557,98 @@ export default function DashboardPage() {
           </div>
 
           <div className="card-panel" style={{ overflow: 'hidden', padding: 0 }}>
-            {/* Table Header: 12-column grid matching inficy-gateway */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(12, 1fr)',
-              fontSize: '0.75rem',
-              color: 'var(--text-dim)',
-              fontWeight: 500,
-              padding: '10px 16px',
-              borderBottom: '1px solid var(--border-card)',
-              background: 'transparent'
-            }}>
-              <span style={{ gridColumn: 'span 2' }}>Time</span>
-              <span style={{ gridColumn: 'span 2' }}>Shield</span>
-              <span style={{ gridColumn: 'span 2' }}>Action</span>
-              <span style={{ gridColumn: 'span 4' }}>Target</span>
-              <span style={{ gridColumn: 'span 2', textAlign: 'right' }}>Decision</span>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <div style={{ minWidth: '520px' }}>
+                {/* Table Header: 12-column grid matching inficy-gateway */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(12, 1fr)',
+                  fontSize: '0.75rem',
+                  color: 'var(--text-dim)',
+                  fontWeight: 500,
+                  padding: '10px 16px',
+                  borderBottom: '1px solid var(--border-card)',
+                  background: 'transparent'
+                }}>
+                  <span style={{ gridColumn: 'span 2' }}>Time</span>
+                  <span style={{ gridColumn: 'span 2' }}>Shield</span>
+                  <span style={{ gridColumn: 'span 2' }}>Action</span>
+                  <span style={{ gridColumn: 'span 4' }}>Target</span>
+                  <span style={{ gridColumn: 'span 2', textAlign: 'right' }}>Decision</span>
+                </div>
+
+                {/* Table Rows */}
+                {!isActivated ? (
+                  <div style={{ padding: '36px 20px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
+                    No recent security incidents recorded — continuous protection active.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {mockActivityFeed.map((evt) => {
+                      const isBlock = evt.action === 'Blocked';
+                      const isNeutralized = evt.action === 'Neutralized';
+
+                      return (
+                        <div
+                          key={evt.id}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(12, 1fr)',
+                            alignItems: 'center',
+                            padding: '12px 16px',
+                            fontSize: '0.75rem',
+                            borderBottom: '1px solid var(--border-item)',
+                            background: isBlock ? 'var(--bg-block-row)' : 'transparent',
+                            transition: 'background var(--transition-fast)'
+                          }}
+                        >
+                          <span style={{ gridColumn: 'span 2', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-main)' }}>
+                            {evt.time}
+                          </span>
+                          <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)' }}>
+                            {evt.layer}
+                          </span>
+                          <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)', textTransform: 'capitalize' }}>
+                            {evt.category}
+                          </span>
+                          <span style={{ gridColumn: 'span 4', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+                            {evt.domain}
+                          </span>
+                          <div style={{ gridColumn: 'span 2', textAlign: 'right' }}>
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 10px',
+                              borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              backgroundColor: isBlock
+                                ? '#ef4444'
+                                : isNeutralized
+                                ? 'var(--badge-amber-bg)'
+                                : 'var(--badge-green-bg)',
+                              color: isBlock
+                                ? '#ffffff'
+                                : isNeutralized
+                                ? 'var(--badge-amber-text)'
+                                : 'var(--badge-green-text)',
+                              border: isBlock
+                                ? 'none'
+                                : isNeutralized
+                                ? '1px solid var(--badge-amber-border)'
+                                : '1px solid var(--badge-green-border)'
+                            }}>
+                              {evt.action === 'Blocked' ? 'Block' : evt.action === 'Neutralized' ? 'Review' : 'Allow'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Table Rows */}
-            {!isActivated ? (
-              <div style={{ padding: '36px 20px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-sub)' }}>
-                No recent security incidents recorded — continuous protection active.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {mockActivityFeed.map((evt) => {
-                  const isBlock = evt.action === 'Blocked';
-                  const isNeutralized = evt.action === 'Neutralized';
-
-                  return (
-                    <div
-                      key={evt.id}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(12, 1fr)',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        fontSize: '0.75rem',
-                        borderBottom: '1px solid var(--border-item)',
-                        background: isBlock ? 'var(--bg-block-row)' : 'transparent',
-                        transition: 'background var(--transition-fast)'
-                      }}
-                    >
-                      <span style={{ gridColumn: 'span 2', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-main)' }}>
-                        {evt.time}
-                      </span>
-                      <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)' }}>
-                        {evt.layer}
-                      </span>
-                      <span style={{ gridColumn: 'span 2', fontWeight: 700, color: 'var(--text-main)', textTransform: 'capitalize' }}>
-                        {evt.category}
-                      </span>
-                      <span style={{ gridColumn: 'span 4', fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
-                        {evt.domain}
-                      </span>
-                      <div style={{ gridColumn: 'span 2', textAlign: 'right' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '2px 10px',
-                          borderRadius: 'var(--radius-full)',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          backgroundColor: isBlock
-                            ? '#ef4444'
-                            : isNeutralized
-                            ? 'var(--badge-amber-bg)'
-                            : 'var(--badge-green-bg)',
-                          color: isBlock
-                            ? '#ffffff'
-                            : isNeutralized
-                            ? 'var(--badge-amber-text)'
-                            : 'var(--badge-green-text)',
-                          border: isBlock
-                            ? 'none'
-                            : isNeutralized
-                            ? '1px solid var(--badge-amber-border)'
-                            : '1px solid var(--badge-green-border)'
-                        }}>
-                          {evt.action === 'Blocked' ? 'Block' : evt.action === 'Neutralized' ? 'Review' : 'Allow'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
+
 
           {/* 24h Timeline Slider (inficy-gateway signature element) */}
           <div style={{

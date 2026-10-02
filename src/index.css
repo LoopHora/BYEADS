@@ -218,6 +218,12 @@ ul, ol {
   padding: 0 var(--space-xl);
 }
 
+@media (max-width: 640px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+}
+
 .section {
   padding: var(--space-4xl) 0;
   position: relative;
