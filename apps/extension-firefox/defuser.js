@@ -94,13 +94,57 @@
     }
   } catch {}
 
-  // 3. Prevent Anti-Adblock Overlays from Locking Body Scroll
+  // 3. Popunder & Unsolicited Window Trap Killer
+  try {
+    const originalWindowOpen = window.open;
+    let lastUserClickTime = 0;
+    window.addEventListener('click', () => {
+      lastUserClickTime = Date.now();
+    }, true);
+
+    const POPUNDER_DOMAINS = [
+      'popads', 'propeller', 'onclickads', 'adcash', 'popcash', 'adsterra',
+      'affiliate', 'trafficjunky', 'exoclick', 'juicyads'
+    ];
+
+    window.open = function (url, target, features) {
+      const urlStr = String(url || '').toLowerCase();
+      const timeSinceClick = Date.now() - lastUserClickTime;
+
+      const isPopunderPattern = POPUNDER_DOMAINS.some(d => urlStr.includes(d));
+      const isUnsolicited = timeSinceClick > 1200;
+
+      if (isPopunderPattern || (isUnsolicited && urlStr.startsWith('http'))) {
+        console.warn('[BYEADS Defuser] Blocked popunder/unsolicited window open:', url);
+        return {
+          focus: () => {},
+          blur: () => {},
+          close: () => {},
+          closed: true,
+          document: {},
+          location: { href: '' }
+        };
+      }
+
+      return originalWindowOpen.apply(this, arguments);
+    };
+  } catch {}
+
+  // 4. Prevent Anti-Adblock & Nag-Wall Overlays from Locking Body Scroll
   const unfreezeScroll = () => {
     try {
       if (document.body) {
         const style = window.getComputedStyle(document.body);
-        if (style.overflow === 'hidden' && document.querySelector('[class*="adblock"], [id*="adblock"], [class*="paywall"]')) {
-          document.body.style.setProperty('overflow', 'auto', 'important');
+        if (style.overflow === 'hidden') {
+          const hasBlocker = document.querySelector(
+            '[class*="adblock"], [id*="adblock"], [class*="paywall"], [class*="signup_wall"], [class*="AppPrompt"], [data-testid="bottom_sheet"]'
+          );
+          if (hasBlocker) {
+            document.body.style.setProperty('overflow', 'auto', 'important');
+            if (document.documentElement) {
+              document.documentElement.style.setProperty('overflow', 'auto', 'important');
+            }
+          }
         }
       }
     } catch {}

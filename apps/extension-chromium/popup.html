@@ -329,15 +329,15 @@
       transform: translateX(15px);
     }
 
-    /* Action Buttons */
-    .action-row {
-      display: flex;
+    /* Action Buttons Grid */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 6px;
       margin-bottom: 10px;
     }
 
     .btn {
-      flex: 1;
       padding: 7px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
@@ -368,6 +368,22 @@
     .btn-zapper:hover {
       background-color: rgba(249, 115, 22, 0.1);
       border-color: var(--brand);
+    }
+
+    .btn-heal {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--blue);
+    }
+
+    .btn-heal:hover {
+      background-color: rgba(56, 189, 248, 0.1);
+      border-color: var(--blue);
+    }
+
+    .btn-heal.healed {
+      border-color: rgba(16, 185, 129, 0.6);
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--green);
     }
 
     /* Live Traffic Drawer */
@@ -526,10 +542,13 @@
     </div>
   </div>
 
-  <!-- Action Row -->
-  <div class="action-row">
+  <!-- Action Buttons Grid -->
+  <div class="action-grid">
     <button id="zapperBtn" class="btn btn-zapper" title="Point and click any annoying element to permanently zap it">
       <span>Element Zapper</span>
+    </button>
+    <button id="fixPageBtn" class="btn btn-heal" title="Fix broken checkout, banking, or form elements without disabling full security">
+      <span id="fixPageText">Fix Page</span>
     </button>
     <button id="toggleLoggerBtn" class="btn" title="View live blocked network events on this tab">
       <span>Traffic Log</span>

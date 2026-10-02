@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const shieldCookie = document.getElementById('shieldCookie');
 
   const zapperBtn = document.getElementById('zapperBtn');
+  const fixPageBtn = document.getElementById('fixPageBtn');
+  const fixPageText = document.getElementById('fixPageText');
   const toggleLoggerBtn = document.getElementById('toggleLoggerBtn');
   const whitelistBtn = document.getElementById('whitelistBtn');
   const whitelistBtnText = document.getElementById('whitelistBtnText');
@@ -101,6 +103,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeTabId) {
       chrome.tabs.sendMessage(activeTabId, { type: 'START_ZAPPER' }, () => {
         window.close(); // Close popup so user can click to zap
+      });
+    }
+  });
+
+  // 4. Smart Auto-Healer (Fix Broken Page)
+  fixPageBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (activeTabId) {
+      chrome.tabs.sendMessage(activeTabId, { type: 'FIX_THIS_PAGE' }, (res) => {
+        fixPageBtn.classList.add('healed');
+        fixPageText.textContent = 'Healed!';
+        statusBadge.classList.remove('disabled');
+        statusText.textContent = 'Healed';
+        masterDesc.textContent = 'Cosmetic blocks relaxed to restore broken forms';
+        setTimeout(() => {
+          fixPageText.textContent = 'Fix Page';
+          fixPageBtn.classList.remove('healed');
+          statusText.textContent = 'Active';
+          masterDesc.textContent = 'All 4 shields active on this page';
+        }, 4000);
       });
     }
   });

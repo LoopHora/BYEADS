@@ -43,7 +43,7 @@
     });
   }
 
-  // 2. Inject Universal & Streaming Cosmetic CSS Rules
+  // 2. Inject Universal, Streaming, Search Cleanser & App-Nag CSS Rules
   function injectCosmeticFilter() {
     if (!byeadsActive || isWhitelisted) return;
     if (document.getElementById('byeads-cosmetic-shield')) return;
@@ -73,7 +73,7 @@
         height: 0 !important;
       }
 
-      /* YouTube & YouTube Music Specific Ad Removals */
+      /* YouTube & YouTube Music Specific Ad Removals & Anti-Adblock Defuser */
       ytd-ad-slot-renderer,
       ytd-banner-promo-renderer,
       ytd-in-feed-ad-layout-renderer,
@@ -92,7 +92,54 @@
       ytmusic-statement-banner-renderer,
       ytmusic-banner-promo-renderer,
       .ytmusic-ad-player-overlay-renderer,
-      ytmusic-popup-container ytmusic-mealbar-promo-renderer {
+      ytmusic-popup-container ytmusic-mealbar-promo-renderer,
+      ytd-enforcement-message-view-model,
+      tp-yt-paper-dialog:has(#feedback) {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+      }
+
+      /* Search Engine Cleanser (Google, Bing, Yahoo Sponsored Links) */
+      #tads,
+      #tadsb,
+      #bottomads,
+      div[data-text-ad],
+      .commercial-unit-desktop-top,
+      .commercial-unit-desktop-rhs,
+      div[aria-label="Ads"],
+      div.uE20Vc,
+      div.cu-container,
+      #b_results .b_ad,
+      li.b_ad,
+      .b_adSlug,
+      #b_adUnit,
+      .results--ads,
+      #results .ads {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+      }
+
+      /* "Open in App" & Forced Login Nag-Wall Killer (Reddit, Twitter/X, Quora, Pinterest, Medium) */
+      shreddit-async-loader[bundlename="bottom_sheet"],
+      reddit-bottom-sheet,
+      xpromo-nsfw-blocking-container,
+      xpromo-app-selector,
+      div[data-testid="bottom_sheet"],
+      div[data-testid="login-bottom-sheet"],
+      div[class*="AppPrompt"],
+      div[data-testid="sheetDialog"],
+      div[data-testid="BottomBar"],
+      .signup_wall,
+      .BaseSignupForm,
+      .signup_modal,
+      div[data-test-id="full-page-signup"],
+      div[data-test-id="gift-wrap"],
+      #branch-banner-iframe,
+      div[class*="branch-journey"] {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -161,6 +208,19 @@
         video.muted = false;
       }
     }
+
+    // YouTube anti-adblock enforcement dialog killer
+    try {
+      const enforcement = document.querySelector('ytd-enforcement-message-view-model, tp-yt-paper-dialog[dialog-type="action"]');
+      if (enforcement) {
+        enforcement.remove();
+        const backdrop = document.querySelector('tp-yt-iron-overlay-backdrop');
+        if (backdrop) backdrop.remove();
+        if (video && video.paused) {
+          video.play().catch(() => {});
+        }
+      }
+    } catch {}
   }
 
   // 4. Smart Cookie Banner Auto-Dismiss (GDPR/CCPA)
@@ -347,7 +407,78 @@
     return el.tagName.toLowerCase();
   }
 
-  // 7. Message Dispatcher
+  // 7. Invisible Clickjack & Popunder Trap Killer
+  let lastClickjackAlertTime = 0;
+  function killInvisibleClickjacks() {
+    if (!byeadsActive || isWhitelisted) return;
+
+    const elements = document.querySelectorAll('div, a, span, section');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    elements.forEach((el) => {
+      if (el === document.body || el === document.documentElement) return;
+      if (el.id === 'byeads-zapper-overlay' || el.closest('#byeads-zapper-overlay')) return;
+
+      try {
+        const style = window.getComputedStyle(el);
+        const pos = style.position;
+        if (pos !== 'fixed' && pos !== 'absolute') return;
+
+        const zIndex = parseInt(style.zIndex, 10);
+        if (isNaN(zIndex) || zIndex < 400) return;
+
+        const rect = el.getBoundingClientRect();
+        if (rect.width >= vw * 0.65 && rect.height >= vh * 0.65) {
+          const opacity = parseFloat(style.opacity);
+          const bg = style.backgroundColor;
+          const isTransparentBg = bg === 'transparent' || bg.includes('rgba(0, 0, 0, 0)') || bg === 'rgba(0,0,0,0)';
+          const isTransparent = opacity <= 0.1 || isTransparentBg;
+
+          const hasVisibleControls = el.querySelectorAll('input, form, button, h1, h2, h3, p, video').length > 0;
+          const textLength = (el.innerText || '').trim().length;
+
+          if ((isTransparent && textLength < 10 && !hasVisibleControls) || (opacity === 0)) {
+            el.remove();
+
+            const now = Date.now();
+            if (now - lastClickjackAlertTime > 2000) {
+              lastClickjackAlertTime = now;
+              try {
+                chrome.runtime.sendMessage({
+                  type: 'CLICKJACK_NEUTRALIZED',
+                  domain: hostname
+                });
+              } catch {}
+            }
+          }
+        }
+      } catch {}
+    });
+  }
+
+  // 8. Smart Auto-Healer (Fix This Page)
+  function handleFixThisPage() {
+    const style = document.getElementById('byeads-cosmetic-shield');
+    if (style) style.remove();
+
+    if (document.body) {
+      document.body.style.setProperty('overflow', 'auto', 'important');
+      document.body.style.setProperty('pointer-events', 'auto', 'important');
+    }
+    if (document.documentElement) {
+      document.documentElement.style.setProperty('overflow', 'auto', 'important');
+    }
+
+    const forms = document.querySelectorAll('form, iframe[src*="stripe"], iframe[src*="paypal"], iframe[src*="checkout"]');
+    forms.forEach((f) => {
+      f.style.setProperty('display', 'block', 'important');
+      f.style.setProperty('visibility', 'visible', 'important');
+      f.style.setProperty('opacity', '1', 'important');
+    });
+  }
+
+  // 9. Message Dispatcher
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === 'START_ZAPPER') {
       initElementZapper();
@@ -362,22 +493,28 @@
         injectCosmeticFilter();
       }
       sendResponse({ success: true });
+    } else if (msg.type === 'FIX_THIS_PAGE') {
+      handleFixThisPage();
+      sendResponse({ healed: true });
     }
   });
 
   // Run initializations
   injectCosmeticFilter();
   scanForDeceptiveButtons();
+  killInvisibleClickjacks();
   setTimeout(handleCookieBanners, 800);
 
-  // Fast loop for media streaming
+  // Fast loop for media streaming & clickjacks
   setInterval(handleMediaStreamAds, 250);
+  setInterval(killInvisibleClickjacks, 1000);
 
   // Dynamic mutation observer
   const observer = new MutationObserver(() => {
     handleMediaStreamAds();
     scanForDeceptiveButtons();
     handleCookieBanners();
+    killInvisibleClickjacks();
   });
 
   observer.observe(document.body || document.documentElement, {

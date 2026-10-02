@@ -106,6 +106,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.storage.local.set({ byeads_stats: stats });
     logBlockedEvent(msg.targetDomain || 'external', 'Deceptive Button Target', msg.claimedText);
     sendResponse({ success: true, stats });
+  } else if (msg.type === 'CLICKJACK_NEUTRALIZED') {
+    stats.threatsDetected = (stats.threatsDetected || 0) + 1;
+    chrome.storage.local.set({ byeads_stats: stats });
+    logBlockedEvent(msg.domain || 'page', 'Clickjack Overlay Trapped', 'Removed transparent intercepting overlay');
+    sendResponse({ success: true, stats });
   } else if (msg.type === 'GET_STATS') {
     chrome.storage.local.get(['byeads_stats'], (res) => {
       if (res && res.byeads_stats) stats = { ...stats, ...res.byeads_stats };
