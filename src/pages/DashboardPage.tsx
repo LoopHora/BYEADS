@@ -146,6 +146,23 @@ export default function DashboardPage() {
   const [queryCounter, setQueryCounter] = useState(1486);
   const [blockedCounter, setBlockedCounter] = useState(343);
 
+  // Configured devices list (only shows devices actually configured/connected)
+  const [configuredDevices, setConfiguredDevices] = useState<DetectedPlatform[]>(() => {
+    if (typeof window === 'undefined') return ['windows'];
+    const current = detectClientPlatform();
+    try {
+      const saved = localStorage.getItem('byeads_configured_devices');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (!parsed.includes(current)) parsed.push(current);
+          return parsed;
+        }
+      }
+    } catch {}
+    return [current];
+  });
+
   // Device Activated State (Verified vs Unverified)
   const [isActivated, setIsActivated] = useState<boolean>(true);
 
@@ -208,6 +225,15 @@ export default function DashboardPage() {
         setConnState('connected_verified');
         setIsActivated(true);
         localStorage.setItem(`byeads_active_${selectedDevice}`, 'true');
+        // Register device as verified & configured
+        setConfiguredDevices((prev) => {
+          if (!prev.includes(selectedDevice)) {
+            const next = [...prev, selectedDevice];
+            localStorage.setItem('byeads_configured_devices', JSON.stringify(next));
+            return next;
+          }
+          return prev;
+        });
       } else {
         setConnState('configured_unverified');
         setIsActivated(false);
@@ -238,7 +264,7 @@ export default function DashboardPage() {
     <main style={{ flex: 1, padding: '36px 0 96px' }}>
       <div className="container" style={{ maxWidth: '896px', margin: '0 auto' }}>
         
-        {/* Device Switcher Bar */}
+        {/* Active Configured Device & Status Bar */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -249,7 +275,7 @@ export default function DashboardPage() {
           paddingBottom: '16px',
           borderBottom: '1px solid var(--border-sub)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Target Device:
             </span>
@@ -259,31 +285,96 @@ export default function DashboardPage() {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
               ({deviceProfile.deviceId})
             </span>
+
+            {/* DNS Connection Status Badge */}
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.6875rem',
+              fontWeight: 600,
+              backgroundColor: isActivated ? 'var(--badge-green-bg)' : 'var(--badge-amber-bg)',
+              color: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)',
+              border: `1px solid ${isActivated ? 'var(--badge-green-border)' : 'var(--badge-amber-border)'}`
+            }}>
+              <span style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)'
+              }} />
+              {isActivated ? 'DNS Connected' : 'Awaiting DNS'}
+            </span>
+
+            {/* Homescreen (PWA Add-to-Home-Screen) Badge */}
+            {deviceProfile.isStandalone && (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.6875rem',
+                fontWeight: 600,
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                color: 'var(--brand-primary)',
+                border: '1px solid rgba(234, 88, 12, 0.25)'
+              }}>
+                Homescreen App
+              </span>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-sidebar)', padding: '3px', borderRadius: 'var(--radius-sm)' }}>
-            {(['ios', 'android', 'windows', 'macbook'] as DetectedPlatform[]).map((dev) => (
-              <button
-                key={dev}
-                onClick={() => setSelectedDevice(dev)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 'var(--radius-xs)',
-                  fontSize: '0.75rem',
-                  fontWeight: selectedDevice === dev ? 700 : 500,
-                  backgroundColor: selectedDevice === dev ? 'var(--bg-card)' : 'transparent',
-                  color: selectedDevice === dev ? 'var(--brand-primary)' : 'var(--text-sub)',
-                  border: selectedDevice === dev ? '1px solid var(--border-card)' : '1px solid transparent',
-                  cursor: 'pointer',
-                  textTransform: 'capitalize',
-                  transition: 'all var(--transition-fast)'
-                }}
-              >
-                {dev === 'ios' ? 'iPhone / iOS' : dev === 'macbook' ? 'MacBook' : dev}
-              </button>
-            ))}
+          {/* Right Action: Show configured device pills only if multiple devices were configured */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {configuredDevices.length > 1 && (
+              <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-sidebar)', padding: '3px', borderRadius: 'var(--radius-sm)' }}>
+                {configuredDevices.map((dev) => (
+                  <button
+                    key={dev}
+                    onClick={() => setSelectedDevice(dev)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.75rem',
+                      fontWeight: selectedDevice === dev ? 700 : 500,
+                      backgroundColor: selectedDevice === dev ? 'var(--bg-card)' : 'transparent',
+                      color: selectedDevice === dev ? 'var(--brand-primary)' : 'var(--text-sub)',
+                      border: selectedDevice === dev ? '1px solid var(--border-card)' : '1px solid transparent',
+                      cursor: 'pointer',
+                      textTransform: 'capitalize',
+                      transition: 'all var(--transition-fast)'
+                    }}
+                  >
+                    {dev === 'ios' ? 'iPhone' : dev === 'macbook' ? 'MacBook' : dev}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <a
+              href="#/install"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '5px 12px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--text-sub)',
+                backgroundColor: 'var(--bg-btn)',
+                border: '1px solid var(--border-card)',
+                textDecoration: 'none'
+              }}
+            >
+              <span>+ Add device</span>
+            </a>
           </div>
         </div>
+
 
         {/* Top Section: Hero (Left 7-col) + Stats Grid (Right 5-col) - inficy-gateway structure */}
         <div style={{
