@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, FileText, CheckCircle2, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText, CheckCircle2, Menu, Search, X } from 'lucide-react';
 
 /* ===== Document Registry ===== */
 interface DocEntry {
@@ -1063,6 +1063,7 @@ export default function DocsPage() {
   const { docId } = useParams<{ docId: string }>();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const activeId = docId || '01';
   const activeDoc = docs.find((d) => d.id === activeId) || docs[0];
 
@@ -1072,33 +1073,97 @@ export default function DocsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const filteredDocs = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const q = searchQuery.toLowerCase().trim();
+    return docs.filter(d => d.title.toLowerCase().includes(q) || d.id.includes(q));
+  }, [searchQuery]);
+
   return (
     <div className="container">
       <div className="docs-layout">
         {/* Sidebar */}
         <aside className={`docs-sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px 16px', borderBottom: '1px solid var(--border-sub)', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px 12px', borderBottom: '1px solid var(--border-sub)', marginBottom: '12px' }}>
             <FileText style={{ width: 16, height: 16, color: 'var(--brand-primary)' }} />
             <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>Documentation Specs</span>
           </div>
-          {categories.map((cat) => (
-            <div key={cat.name} className="docs-sidebar-section">
-              <div className="docs-sidebar-title">{cat.name}</div>
-              {cat.ids.map((id) => {
-                const doc = docs.find((d) => d.id === id);
-                if (!doc) return null;
-                return (
-                  <div
-                    key={id}
-                    className={`docs-sidebar-link ${activeId === id ? 'active' : ''}`}
-                    onClick={() => handleDocClick(id)}
-                  >
-                    <span>{doc.id}. {doc.title}</span>
-                  </div>
-                );
-              })}
+
+          {/* Quick Search */}
+          <div style={{ position: 'relative', marginBottom: '14px', padding: '0 4px' }}>
+            <Search style={{ width: 14, height: 14, color: 'var(--text-dim)', position: 'absolute', left: '14px', top: '10px' }} />
+            <input
+              type="text"
+              placeholder="Filter specifications..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '6px 28px 6px 30px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-sub)',
+                color: 'var(--text-main)',
+                fontSize: '0.8125rem',
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '8px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-dim)',
+                  padding: 0
+                }}
+              >
+                <X style={{ width: 14, height: 14 }} />
+              </button>
+            )}
+          </div>
+
+          {filteredDocs ? (
+            <div className="docs-sidebar-section">
+              <div className="docs-sidebar-title">Search Results ({filteredDocs.length})</div>
+              {filteredDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className={`docs-sidebar-link ${activeId === doc.id ? 'active' : ''}`}
+                  onClick={() => handleDocClick(doc.id)}
+                >
+                  <span>{doc.id}. {doc.title}</span>
+                </div>
+              ))}
+              {filteredDocs.length === 0 && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', padding: '8px 12px' }}>
+                  No specifications match your search.
+                </div>
+              )}
             </div>
-          ))}
+          ) : (
+            categories.map((cat) => (
+              <div key={cat.name} className="docs-sidebar-section">
+                <div className="docs-sidebar-title">{cat.name}</div>
+                {cat.ids.map((id) => {
+                  const doc = docs.find((d) => d.id === id);
+                  if (!doc) return null;
+                  return (
+                    <div
+                      key={id}
+                      className={`docs-sidebar-link ${activeId === id ? 'active' : ''}`}
+                      onClick={() => handleDocClick(id)}
+                    >
+                      <span>{doc.id}. {doc.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))
+          )}
         </aside>
 
         {/* Content */}

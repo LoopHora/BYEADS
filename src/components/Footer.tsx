@@ -88,7 +88,7 @@ export default function Footer() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div className="badge badge-protection" style={{ fontSize: '0.75rem' }}>
               <ShieldCheck style={{ width: 14, height: 14 }} />
-              <span>Zero Server Telemetry · 100% On-Device Enforcement</span>
+              <span>Zero User Profiling · Local Heuristics · Encrypted DNS</span>
             </div>
 
             <button

@@ -60,15 +60,15 @@ export default function InstallPage() {
           backgroundColor: 'var(--bg-card)',
           border: '1px solid var(--border-sub)',
           borderRadius: 'var(--radius-md)',
-          padding: '16px 20px',
+          padding: '18px 22px',
           marginBottom: '28px',
           display: 'flex',
           alignItems: 'flex-start',
-          gap: '12px'
+          gap: '14px'
         }}>
-          <Info style={{ width: 20, height: 20, color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
-          <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.5 }}>
-            <strong style={{ color: 'var(--text-main)' }}>Architectural Scope Notice:</strong> Installing this Web Dashboard (PWA) does NOT install an operating-system packet filter or system proxy. DNS Shield protection requires applying your platform's encrypted DNS settings (DoH/DoT or Apple profile). In-page deception detection and download interception require installing the BYEADS Browser Extension.
+          <Info style={{ width: 22, height: 22, color: 'var(--brand-primary)', flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
+            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles (Windows DoH, Apple .mobileconfig, Android DoT) configure encrypted queries routed to <strong>Cloudflare Security (1.1.1.2)</strong>, blocking known ad and malware domains network-wide. Browser extensions provide in-page protection (DOM fake button detection, redirect chain analysis, and double-extension download interception). For full protection, apply both your device's DNS settings and the browser extension.
           </div>
         </div>
 
@@ -273,10 +273,10 @@ export default function InstallPage() {
               {/* Option A: One-Liner PowerShell Command */}
               <div style={{ marginBottom: '28px' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                  Option A: One-Command PowerShell Setup (Run as Administrator)
+                  Option A: Automated PowerShell Setup (Run as Administrator)
                 </h3>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-sub)', marginBottom: '10px' }}>
-                  Open PowerShell as Administrator and run the production script directly:
+                  Open PowerShell as Administrator and run the remote setup command:
                 </p>
                 <div style={{
                   background: 'var(--bg-sidebar)',
@@ -287,7 +287,8 @@ export default function InstallPage() {
                   fontSize: '0.8125rem',
                   color: 'var(--text-main)',
                   position: 'relative',
-                  overflowX: 'auto'
+                  overflowX: 'auto',
+                  marginBottom: '12px'
                 }}>
                   <code>
                     irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
@@ -299,6 +300,33 @@ export default function InstallPage() {
                   >
                     {copiedKey === 'ps_remote' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
                     <span>{copiedKey === 'ps_remote' ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
+
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
+                  Or if running from a downloaded repository / source bundle:
+                </p>
+                <div style={{
+                  background: 'var(--bg-sidebar)',
+                  padding: '12px 16px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-sub)',
+                  fontFamily: 'monospace',
+                  fontSize: '0.8125rem',
+                  color: 'var(--text-main)',
+                  position: 'relative',
+                  overflowX: 'auto'
+                }}>
+                  <code>
+                    powershell -ExecutionPolicy Bypass -File .\platforms\windows\setup-windows-doh.ps1
+                  </code>
+                  <button
+                    onClick={() => handleCopy('powershell -ExecutionPolicy Bypass -File .\\platforms\\windows\\setup-windows-doh.ps1', 'ps_local')}
+                    className="btn btn-secondary btn-sm"
+                    style={{ position: 'absolute', right: '12px', top: '8px' }}
+                  >
+                    {copiedKey === 'ps_local' ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
+                    <span>{copiedKey === 'ps_local' ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
               </div>

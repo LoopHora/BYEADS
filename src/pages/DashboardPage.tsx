@@ -279,19 +279,19 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 2: Threat Intelligence Rules */}
+          {/* Card 2: Core Policy & Threat Engines */}
           <div className="card-panel" style={{ padding: '24px' }}>
             <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '16px' }}>
-              Validated Rule Bundle
+              Core Policy &amp; Engine Suite
             </div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--brand-primary)', marginBottom: '4px' }}>
-              5,240
+              6
             </div>
             <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '12px' }}>
-              Core Filter Signatures (In-Memory)
+              Tested Detection Modules
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '16px' }}>
-              Enforces compiled blocklists across malvertising domains, deceptive button DOM patterns, and double-extension lures.
+              Client-side heuristic policy engines: DNS filtering, DOM deception analysis, download guard tolerance, redirect loop detection, and risk scoring.
             </p>
             <div style={{
               display: 'flex',
@@ -303,16 +303,20 @@ export default function DashboardPage() {
               color: 'var(--text-dim)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Bundle Version:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>v1.0.0-stable</span>
+                <span>Architecture:</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Client Heuristic Core</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Signature Integrity:</span>
-                <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>Ed25519 Verified</span>
+                <span>Automated Tests:</span>
+                <span style={{ color: 'var(--badge-green-text)', fontWeight: 600 }}>37/37 Specifications Passing</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Manifest Hash:</span>
-                <span><code>sha256-b7f9...c28e</code></span>
+                <span>Declarative Rules:</span>
+                <span>14 Built-In DNR Rules (MV3)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Upstream Resolver:</span>
+                <span>Cloudflare Security (1.1.1.2)</span>
               </div>
             </div>
           </div>

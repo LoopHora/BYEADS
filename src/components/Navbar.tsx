@@ -10,7 +10,16 @@ import { useTheme } from '../utils/theme';
 export default function Navbar() {
   const { theme, cycleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isExtensionActive, setIsExtensionActive] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    try {
+      setIsExtensionActive(typeof window !== 'undefined' && Boolean((window as any).chrome?.runtime?.id));
+    } catch {
+      setIsExtensionActive(false);
+    }
+  }, []);
 
   const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Laptop;
 
@@ -61,20 +70,40 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Center: Protection Status Pill Badge */}
-          <div className="badge badge-protection header-center-badge">
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--badge-green-text)',
-                display: 'inline-block',
-                boxShadow: '0 0 6px var(--badge-green-text)',
-              }}
-            />
-            <span>Real-Time Protection Active</span>
-          </div>
+          {/* Center: Dynamic Protection Status Pill Badge */}
+          {isExtensionActive ? (
+            <div className="badge badge-protection header-center-badge" title="BYEADS browser extension is connected and enforcing active web filters">
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--badge-green-text)',
+                  display: 'inline-block',
+                  boxShadow: '0 0 6px var(--badge-green-text)',
+                }}
+              />
+              <span>Extension Active &amp; Protecting</span>
+            </div>
+          ) : (
+            <Link
+              to="/install"
+              className="badge badge-amber header-center-badge"
+              style={{ textDecoration: 'none' }}
+              title="Web app mode: in-page protection requires installing the BYEADS browser extension. Click to set up."
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--badge-amber-text)',
+                  display: 'inline-block',
+                }}
+              />
+              <span>Web App Mode · Setup Extension</span>
+            </Link>
+          )}
 
           {/* Right: Desktop Navigation & Theme Control */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

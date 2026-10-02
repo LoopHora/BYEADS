@@ -162,8 +162,8 @@ export const HomePage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ShieldCheck style={{ width: 16, height: 16, color: 'var(--brand-primary)' }} />
             <div>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>5,240 Core Rules</div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)' }}>Validated Local Bundle</div>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>6 Core Engines</div>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)' }}>Policy &amp; Heuristic Logic</div>
             </div>
           </div>
 
@@ -196,7 +196,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Task-First Protection Modules Explorer */}
-      <div>
+      <div id="shields">
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)' }}>
             Explore Protection Modules &amp; Subsystems
