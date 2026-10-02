@@ -7,20 +7,21 @@
     interfaces, and enables encrypted DNS lookups with fallback protection.
 
 .EXAMPLE
-    .\setup-windows-doh.ps1 -ServerIp "1.1.1.2" -DohTemplate "https://security.cloudflare-dns.com/dns-query"
+    .\setup-windows-doh.ps1 -ServerIp "1.1.1.2" -DohTemplate "https://dns.byeads.net/dns-query"
     .\setup-windows-doh.ps1 -Uninstall
 #>
 
 [CmdletBinding()]
 param (
     [string]$ServerIp = "1.1.1.2",
-    [string]$DohTemplate = "https://security.cloudflare-dns.com/dns-query",
+    [string]$DohTemplate = "https://dns.byeads.net/dns-query",
     [switch]$AllowFallback = $true,
     [switch]$Uninstall = $false
 )
 
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "  BYEADS — Windows Encrypted DNS Installer" -ForegroundColor Cyan
+Write-Host "  Native DoH Setup (0 MB Background RAM)  " -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
 # Check for Administrator privileges

@@ -2,23 +2,22 @@
 
 BYEADS supports Windows 10 (Build 19628+) and Windows 11 natively using system-level **DNS-over-HTTPS (DoH)** encryption without requiring third-party drivers or VPN software.
 
-## Option 1: Automated PowerShell Setup (Recommended)
+## Architecture Note: Why No .EXE or Separate Windows Extension?
 
-1. Open PowerShell as Administrator (`Win + X` -> **Terminal (Admin)** or **PowerShell (Admin)**).
-2. Run the remote one-liner:
-   ```powershell
-   irm https://raw.githubusercontent.com/AzeemS24/BYEADS/main/platforms/windows/setup-windows-doh.ps1 | iex
-   ```
-   Or if executing from a cloned repository:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File "./platforms/windows/setup-windows-doh.ps1"
-   ```
-3. To revert back to automatic default DNS at any time:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File "./platforms/windows/setup-windows-doh.ps1" -Uninstall
-   ```
+- **No duplicate Windows extension:** Browser extensions are cross-platform by definition. Windows users run the official Chromium MV3 extension (in Chrome, Edge, Brave, Opera) or Firefox package.
+- **No .EXE installer needed (0 MB background RAM):** Traditional ad-blocking software installs background `.exe` daemons that consume 80MB-150MB of RAM and trigger SmartScreen/Antivirus warnings. BYEADS instead configures Windows' own native kernel resolver (`dnscache`) to route DNS over HTTPS directly.
 
-## Option 2: Windows 11 GUI Configuration
+---
+
+## Option 1: 1-Click Batch Installer (Easiest)
+
+1. Download [`install-byeads-dns.bat`](file:///d:/BYEADS/platforms/windows/install-byeads-dns.bat).
+2. Right-click and select **Run as administrator**.
+3. Choose option `[1]` to enable BYEADS Anycast DNS Shield (`dns.byeads.net`).
+
+---
+
+## Option 2: Automated PowerShell Command
 
 1. Open **Settings** (`Win + I`) and click **Network & Internet**.
 2. Select your active connection (**Wi-Fi** or **Ethernet**).

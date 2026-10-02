@@ -81,5 +81,26 @@ describe('Platform Artifacts & Configurations', () => {
     expect(manifest.display).toBe('standalone');
     expect(manifest.name).toContain('BYEADS');
   });
+
+  it('Windows 1-click install-byeads-dns.bat should be present in platforms and public', () => {
+    const batPath = path.join(root, 'platforms', 'windows', 'install-byeads-dns.bat');
+    const publicBatPath = path.join(root, 'public', 'install-byeads-dns.bat');
+    expect(fs.existsSync(batPath)).toBe(true);
+    expect(fs.existsSync(publicBatPath)).toBe(true);
+
+    const content = fs.readFileSync(batPath, 'utf-8');
+    expect(content).toContain('BYEADS');
+    expect(content).toContain('dns.byeads.net');
+    expect(content).toContain('setup-windows-doh.ps1');
+  });
+
+  it('Safari WebExtension manifest.json should be valid MV3', () => {
+    const safariManifestPath = path.join(root, 'apps', 'extension-safari', 'manifest.json');
+    expect(fs.existsSync(safariManifestPath)).toBe(true);
+
+    const manifest = JSON.parse(fs.readFileSync(safariManifestPath, 'utf-8'));
+    expect(manifest.manifest_version).toBe(3);
+    expect(manifest.permissions).toContain('declarativeNetRequest');
+  });
 });
 

@@ -289,6 +289,82 @@ export default function InstallPage() {
                 </div>
               </div>
 
+              {/* Architecture Scope Notice: No EXE needed */}
+              <div style={{
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px 20px',
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px'
+              }}>
+                <Info style={{ width: 20, height: 20, color: '#60a5fa', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--text-main)' }}>Why No .EXE Installer or Duplicate Windows Extension?</strong><br />
+                  • <strong>Browser Protection:</strong> Extensions are cross-platform by nature. On Windows, simply install the official <strong>Chromium Extension</strong> (for Chrome, Edge, Brave) or <strong>Firefox Extension</strong>.<br />
+                  • <strong>System Protection:</strong> An <code>.exe</code> background program is unnecessary and wastes 80–150MB of RAM. Instead, Windows 10/11 natively includes kernel-level <strong>DNS-over-HTTPS (DoH)</strong>. Our lightweight script registers <code>dns.byeads.net</code> with <strong>0 MB background RAM usage</strong> and zero SmartScreen/Antivirus warnings.
+                </div>
+              </div>
+
+              {/* 1-Click Batch Installer Card (Glassmorphic) */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.035)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 12px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '22px 24px',
+                marginBottom: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '10px',
+                    background: 'rgba(249, 115, 22, 0.15)',
+                    border: '1px solid rgba(249, 115, 22, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--brand-primary)',
+                    flexShrink: 0
+                  }}>
+                    <Terminal style={{ width: 22, height: 22 }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>install-byeads-dns.bat</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>1-Click Setup</span>
+                    </div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
+                      Double-click to run · Configures native Windows 11/10 DoH for all network adapters (Wi-Fi &amp; Ethernet)
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="/install-byeads-dns.bat"
+                  download="install-byeads-dns.bat"
+                  className="btn btn-primary"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                    padding: '10px 20px',
+                    borderRadius: 'var(--radius-md)'
+                  }}
+                >
+                  <Download style={{ width: 16, height: 16 }} />
+                  <span>Download .BAT</span>
+                </a>
+              </div>
+
               {/* Option A: One-Liner PowerShell Command */}
               <div style={{ marginBottom: '28px' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>

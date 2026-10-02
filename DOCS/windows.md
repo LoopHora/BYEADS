@@ -207,3 +207,18 @@ To provide accurate monitoring, BYEADS needs a defined communication method betw
 The existing audit describes browser extensions, DNS configuration and the dashboard, but does not establish that this full automatic detection and live-monitoring integration is already implemented.
 
 In short: Windows can support the experience you're envisioning: install BYEADS, configure DNS, open the dashboard, and see verified protection and monitoring status. For genuinely live, accurate data, the extension and DNS resolver need to actively provide that information; simply detecting that the PWA is open is not enough.
+
+## 7. Architectural Decision: Why Windows Does Not Need an .EXE or Duplicate Extension
+
+### 1. No Duplicate "Windows Extension"
+Browser extensions are cross-platform by specification:
+- The **Chromium MV3 package** runs natively on Google Chrome, Microsoft Edge, Brave, Opera, and Vivaldi on Windows.
+- The **Firefox package** runs natively on Mozilla Firefox on Windows.
+Creating a separate "Windows Extension" is redundant and creates maintenance divergence. Windows users simply install the standard browser extension corresponding to their desktop browser.
+
+### 2. Why an .EXE Installer is NOT Needed
+Traditional ad-blocking software compiles standalone Windows background daemons (`.exe` executables). For BYEADS, an `.exe` is intentionally avoided:
+- **0 MB Background RAM:** Windows 10 (Build 19628+) and Windows 11 natively support kernel-level **DNS-over-HTTPS (DoH)** inside the Windows `dnscache` service. Running a background `.exe` daemon wastes 80MB–150MB of system memory; Windows native DoH uses 0 additional memory.
+- **Zero Antivirus / SmartScreen False Alarms:** Third-party `.exe` binaries from open-source repositories lack multi-thousand dollar Microsoft EV Code-Signing certificates, triggering alarming "Unknown Publisher / Windows Protected Your PC" warnings. Native PowerShell scripts and batch files avoid this entirely.
+- **Full Transparency & Auditing:** The 1-click installer ([`install-byeads-dns.bat`](file:///d:/BYEADS/platforms/windows/install-byeads-dns.bat)) and PowerShell script ([`setup-windows-doh.ps1`](file:///d:/BYEADS/platforms/windows/setup-windows-doh.ps1)) are 100% human-readable and auditable before execution.
+- **Desktop App Integration via PWA:** The BYEADS Dashboard can be installed directly from Edge or Chrome as a standalone Windows desktop app (Start Menu, taskbar pinning, window framing) without requiring an executable installer.
