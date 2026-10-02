@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import PwaAppHeader from './components/PwaAppHeader';
+import PwaBottomNav from './components/PwaBottomNav';
 import HomePage from './pages/HomePage';
 import DocsPage from './pages/DocsPage';
 import InstallPage from './pages/InstallPage';
@@ -9,6 +11,7 @@ import DashboardPage from './pages/DashboardPage';
 export default function App() {
   return (
     <>
+      <PwaAppHeader />
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -18,6 +21,7 @@ export default function App() {
         <Route path="/docs/:docId" element={<DocsPage />} />
       </Routes>
       <Footer />
+      <PwaBottomNav />
     </>
   );
 }
