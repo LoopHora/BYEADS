@@ -1,5 +1,5 @@
 // ===== BYEADS DASHBOARD =====
-// Inspired by inficy-gateway minimalist design: clean typography, 2x2 stat grid, and 24h timeline
+// Minimalist security dashboard: clean typography, 2x2 stat grid, and 24h timeline
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -376,7 +376,7 @@ export default function DashboardPage() {
         </div>
 
 
-        {/* Top Section: Hero (Left 7-col) + Stats Grid (Right 5-col) - inficy-gateway structure */}
+        {/* Top Section: Hero (Left 7-col) + Stats Grid (Right 5-col) */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -451,7 +451,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Stats Grid (2x2 pure typography - inficy-gateway style) */}
+          {/* Right Stats Grid (2x2 pure typography) */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
@@ -544,7 +544,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Live Activity Section (inficy-gateway table + 24h timeline) */}
+        {/* Live Activity Section (activity table + 24h timeline) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '36px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>
@@ -559,7 +559,7 @@ export default function DashboardPage() {
           <div className="card-panel" style={{ overflow: 'hidden', padding: 0 }}>
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <div style={{ minWidth: '520px' }}>
-                {/* Table Header: 12-column grid matching inficy-gateway */}
+                {/* Table Header: 12-column grid */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(12, 1fr)',
@@ -650,7 +650,7 @@ export default function DashboardPage() {
           </div>
 
 
-          {/* 24h Timeline Slider (inficy-gateway signature element) */}
+          {/* 24h Timeline Slider */}
           <div style={{
             display: 'flex',
             alignItems: 'center',

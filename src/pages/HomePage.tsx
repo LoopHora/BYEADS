@@ -1,6 +1,5 @@
 // ===== HOME PAGE =====
-// Styled with Inficy Universal Product Design Standard
-// Matching Infini-Convert, infini-diagrams & inficy-gateway
+// LoopHora Home Page Component
 
 import React from 'react';
 import { Link } from 'react-router-dom';

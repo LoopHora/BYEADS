@@ -84,7 +84,7 @@ BYEADS uses a zero-cost open-source hybrid approach for Apple devices:
 
 ---
 
-## 📊 Minimalist Dashboard (Inspired by Inficy-Gateway)
+## 📊 Minimalist Security Dashboard
 
 The BYEADS Dashboard (`/#/dashboard`) features an ultra-clean, focused security center:
 - **Configured Device Focus**: Only displays your active, verified device (`Target Device: Windows Desktop PC (BYEADS-4096)  ● DNS Connected`).

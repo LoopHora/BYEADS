@@ -1,5 +1,5 @@
 // ===== THEME MANAGEMENT =====
-// Universal format from Inficy Universal Product Design Standard: Dark, Light, and System modes with localStorage persistence
+// LoopHora Theme Manager: Dark, Light, and System modes with localStorage persistence
 
 import { useEffect, useState } from 'react';
 
@@ -7,7 +7,7 @@ export type Theme = 'dark' | 'light' | 'system';
 
 export const getInitialTheme = (): Theme => {
   if (typeof window === 'undefined') return 'dark';
-  const saved = localStorage.getItem('inficy_theme') as Theme | null;
+  const saved = localStorage.getItem('byeads_theme') as Theme | null;
   return saved || 'dark';
 };
 
@@ -20,7 +20,7 @@ export const applyTheme = (theme: Theme): boolean => {
 
   document.documentElement.classList.toggle('dark', isDark);
   try {
-    localStorage.setItem('inficy_theme', theme);
+    localStorage.setItem('byeads_theme', theme);
   } catch {}
   return isDark;
 };

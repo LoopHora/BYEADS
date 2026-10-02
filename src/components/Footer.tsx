@@ -1,6 +1,5 @@
 // ===== FOOTER =====
-// Styled with Inficy Universal Product Design Standard & Theme Toggle
-// Matching Infini-Convert, infini-diagrams & inficy-gateway
+// LoopHora Footer Component & Theme Selector
 
 import React from 'react';
 import { Link } from 'react-router-dom';

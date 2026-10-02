@@ -1,6 +1,5 @@
 // ===== HEADER =====
-// Styled with Inficy Universal Product Design Standard & Theme Toggle
-// Matching Infini-Convert, infini-diagrams & inficy-gateway
+// LoopHora Navigation Bar & Theme Toggle
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';

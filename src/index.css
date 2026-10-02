@@ -1,8 +1,8 @@
 /* ===== DESIGN SYSTEM — BYEADS by LoopHora ===== */
-/* Inherited from Inficy Universal Product Design Standard */
+/* LoopHora Universal Product Design Standard */
 
 :root {
-  /* Inficy Universal Light Theme */
+  /* LoopHora Universal Light Theme */
   --bg-app: #f8fafc;
   --bg-header: #ffffff;
   --bg-sidebar: #f1f5f9;
@@ -84,7 +84,7 @@
 }
 
 html.dark {
-  /* Inficy Universal Dark Theme */
+  /* LoopHora Universal Dark Theme */
   --bg-app: #121214;
   --bg-header: #121214;
   --bg-sidebar: #0e0e10;
@@ -235,7 +235,7 @@ ul, ol {
   border-radius: var(--radius-lg);
 }
 
-/* ===== HEADER (Inficy Universal Standard) ===== */
+/* ===== HEADER (LoopHora Standard) ===== */
 
 .app-header {
   position: sticky;
@@ -1056,7 +1056,7 @@ ul, ol {
   line-height: 1.6;
 }
 
-/* ===== FOOTER (Inficy Universal Standard) ===== */
+/* ===== FOOTER (LoopHora Standard) ===== */
 
 .app-footer {
   margin-top: auto;
