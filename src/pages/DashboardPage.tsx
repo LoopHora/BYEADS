@@ -183,8 +183,8 @@ export default function DashboardPage() {
   const [extensionDetected, setExtensionDetected] = useState<boolean>(false);
   const [extensionTelemetry, setExtensionTelemetry] = useState<ExtensionTelemetry | null>(null);
 
-  // Device Activated State (Flekstore-style)
-  const [isActivated, setIsActivated] = useState<boolean>(true);
+  // Device Activated State (Flekstore-style: Activated ONLY after DNS is verified)
+  const [isActivated, setIsActivated] = useState<boolean>(false);
 
   // Initialize platform detection
   useEffect(() => {
@@ -194,16 +194,26 @@ export default function DashboardPage() {
     setDeviceProfile(getDetailedDeviceProfile(os));
 
     const savedActive = localStorage.getItem(`byeads_active_${os}`);
-    if (savedActive !== null) {
-      setIsActivated(savedActive === 'true');
-    } else {
+    if (savedActive === 'true') {
       setIsActivated(true);
+      setConnState('connected_verified');
+    } else {
+      setIsActivated(false);
+      setConnState('configured_unverified');
     }
   }, []);
 
   // Update profile when selector changes
   useEffect(() => {
     setDeviceProfile(getDetailedDeviceProfile(selectedDevice));
+    const savedActive = localStorage.getItem(`byeads_active_${selectedDevice}`);
+    if (savedActive === 'true') {
+      setIsActivated(true);
+      setConnState('connected_verified');
+    } else {
+      setIsActivated(false);
+      setConnState('configured_unverified');
+    }
   }, [selectedDevice]);
 
   // Live query increment ticker
@@ -444,16 +454,30 @@ export default function DashboardPage() {
                   <span>Verify &amp; Activate</span>
                 </button>
               ) : (
-                <button
-                  onClick={runConnectionCheck}
-                  disabled={checking}
-                  className="btn btn-secondary btn-sm"
-                  style={{ borderRadius: 'var(--radius-sm)' }}
-                  title="Test DNS latency"
-                >
-                  <RefreshCw style={{ width: 13, height: 13, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
-                  <span>Re-Probe Latency</span>
-                </button>
+                <>
+                  <button
+                    onClick={runConnectionCheck}
+                    disabled={checking}
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-sm)' }}
+                    title="Test DNS latency"
+                  >
+                    <RefreshCw style={{ width: 13, height: 13, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
+                    <span>Re-Probe Latency</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsActivated(false);
+                      setConnState('configured_unverified');
+                      localStorage.removeItem(`byeads_active_${selectedDevice}`);
+                    }}
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', fontSize: '0.6875rem' }}
+                    title="Reset to unverified state to re-test setup"
+                  >
+                    <span>Reset</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -530,10 +554,10 @@ export default function DashboardPage() {
                 Queries Monitored
               </div>
               <div style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'monospace' }}>
-                {queryCounter.toLocaleString()}
+                {isActivated ? queryCounter.toLocaleString() : '—'}
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--badge-green-text)', marginTop: '4px' }}>
-                Live Stream Active
+              <div style={{ fontSize: '0.6875rem', color: isActivated ? 'var(--badge-green-text)' : 'var(--text-dim)', marginTop: '4px' }}>
+                {isActivated ? 'Live Stream Active' : 'Awaiting DNS Verification'}
               </div>
             </div>
 
@@ -546,11 +570,11 @@ export default function DashboardPage() {
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
                 Ads &amp; Threats Blocked
               </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--brand-primary)', fontFamily: 'monospace' }}>
-                {blockedCounter.toLocaleString()}
+              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: isActivated ? 'var(--brand-primary)' : 'var(--text-dim)', fontFamily: 'monospace' }}>
+                {isActivated ? blockedCounter.toLocaleString() : '—'}
               </div>
               <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                {Math.round((blockedCounter / queryCounter) * 100)}% Block Ratio
+                {isActivated ? `${Math.round((blockedCounter / queryCounter) * 100)}% Block Ratio` : 'Awaiting DNS Verification'}
               </div>
             </div>
 
@@ -564,10 +588,10 @@ export default function DashboardPage() {
                 Encrypted Resolver
               </div>
               <div style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'monospace' }}>
-                {latency} ms
+                {isActivated ? `${latency} ms` : 'Unverified'}
               </div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--badge-green-text)', marginTop: '4px' }}>
-                dns.byeads.net (Anycast)
+              <div style={{ fontSize: '0.6875rem', color: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)', marginTop: '4px' }}>
+                {isActivated ? 'dns.byeads.net (Anycast)' : 'Setup Required'}
               </div>
             </div>
 
@@ -580,11 +604,11 @@ export default function DashboardPage() {
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '6px' }}>
                 Active Shields
               </div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: '#10b981' }}>
-                4 / 4 Active
+              <div style={{ fontSize: '1.625rem', fontWeight: 800, color: isActivated ? '#10b981' : 'var(--text-dim)' }}>
+                {isActivated ? '4 / 4 Active' : 'Standby'}
               </div>
               <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                DNS · DOM · PopUp · Deception
+                {isActivated ? 'DNS · DOM · PopUp · Deception' : 'DNS Setup Required'}
               </div>
             </div>
           </div>
@@ -606,7 +630,9 @@ export default function DashboardPage() {
                   DNS Shield (Anycast)
                 </span>
               </div>
-              <span className="badge badge-protection" style={{ fontSize: '0.6875rem' }}>Active</span>
+              <span className={isActivated ? 'badge badge-protection' : 'badge badge-amber'} style={{ fontSize: '0.6875rem' }}>
+                {isActivated ? 'Active' : 'Unverified'}
+              </span>
             </div>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', marginBottom: '12px', lineHeight: 1.5 }}>
               Filters all domain queries before network traffic reaches your device. Blocks ad-servers, spyware trackers, and telemetry domains.
@@ -686,56 +712,78 @@ export default function DashboardPage() {
               </h2>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--badge-green-text)' }} />
-              Real-time heuristic filtering
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActivated ? 'var(--badge-green-text)' : 'var(--badge-amber-text)' }} />
+              {isActivated ? 'Real-time heuristic filtering' : 'Awaiting DNS verification'}
             </span>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-sub)', textAlign: 'left' }}>
-                  <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Time</th>
-                  <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Domain / Target</th>
-                  <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Category</th>
-                  <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Defense Layer</th>
-                  <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockActivityFeed.map((item) => (
-                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-sub)' }}>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{item.time}</td>
-                    <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)' }}>
-                      <code>{item.domain}</code>
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.6875rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        backgroundColor: item.category === 'popup' ? 'rgba(245, 158, 11, 0.12)' : item.category === 'clean' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                        color: item.category === 'popup' ? 'var(--badge-amber-text)' : item.category === 'clean' ? 'var(--badge-green-text)' : 'var(--badge-red-text)'
-                      }}>
-                        {item.category}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 12px', color: 'var(--text-sub)' }}>{item.layer}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      <span style={{
-                        fontWeight: 700,
-                        color: item.action === 'Allowed' ? 'var(--badge-green-text)' : 'var(--brand-primary)'
-                      }}>
-                        {item.action}
-                      </span>
-                    </td>
+          {!isActivated ? (
+            <div style={{
+              padding: '36px 20px',
+              textAlign: 'center',
+              border: '1px dashed var(--border-sub)',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(255, 255, 255, 0.02)'
+            }}>
+              <Globe style={{ width: 36, height: 36, color: 'var(--text-dim)', margin: '0 auto 12px', opacity: 0.6 }} />
+              <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
+                Awaiting DNS Verification for {deviceProfile.name}
+              </div>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', maxWidth: '440px', margin: '0 auto 16px' }}>
+                Real-time threat blocks, telemetry, and filtered domain queries will stream here live once you complete DNS setup and tap <strong>Verify &amp; Activate</strong>.
+              </p>
+              <button onClick={runConnectionCheck} disabled={checking} className="btn btn-primary btn-sm">
+                <RefreshCw style={{ width: 14, height: 14, animation: checking ? 'spin 1s linear infinite' : 'none' }} />
+                <span>Verify &amp; Activate Now</span>
+              </button>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-sub)', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Time</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Domain / Target</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Category</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase' }}>Defense Layer</th>
+                    <th style={{ padding: '10px 12px', color: 'var(--text-dim)', fontWeight: 700, fontSize: '0.6875rem', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {mockActivityFeed.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border-sub)' }}>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>{item.time}</td>
+                      <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)' }}>
+                        <code>{item.domain}</code>
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: 'var(--radius-sm)',
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          backgroundColor: item.category === 'popup' ? 'rgba(245, 158, 11, 0.12)' : item.category === 'clean' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                          color: item.category === 'popup' ? 'var(--badge-amber-text)' : item.category === 'clean' ? 'var(--badge-green-text)' : 'var(--badge-red-text)'
+                        }}>
+                          {item.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-sub)' }}>{item.layer}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <span style={{
+                          fontWeight: 700,
+                          color: item.action === 'Allowed' ? 'var(--badge-green-text)' : 'var(--brand-primary)'
+                        }}>
+                          {item.action}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Add Device / Cross-Platform Quick Setup Banner */}
