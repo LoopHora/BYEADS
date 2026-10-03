@@ -61,7 +61,14 @@ const BLOCKED_DOMAINS = [
   "*://*.youtube.com/pagead/*",
   "*://*.youtube.com/ptracking*",
   "*://*.music.youtube.com/api/stats/ads*",
-  "*://*.googleads.g.doubleclick.net/pagead/*"
+  "*://*.googleads.g.doubleclick.net/pagead/*",
+  "*://*.adeventtracker.spotify.com/*",
+  "*://*.ads-fa.spotify.com/*",
+  "*://*.audio-fa.scdn.co/*",
+  "*://spclient.wg.spotify.com/ad-logic/*",
+  "*://spclient.wg.spotify.com/ads/*",
+  "*://spclient.wg.spotify.com/desktop-omni-ads/*",
+  "*://spclient.wg.spotify.com/ad-experiences/*"
 ];
 
 let stats = {
@@ -177,6 +184,19 @@ if (chrome.downloads && chrome.downloads.onCreated) {
   });
 }
 
+// Trusted identity, login, and checkout providers permitted to open popup tabs
+const TRUSTED_AUTH_GATEWAYS = [
+  'accounts.google.com', 'appleid.apple.com', 'github.com', 'login.microsoftonline.com',
+  'facebook.com', 'twitter.com', 'x.com', 'paypal.com', 'stripe.com', 'discord.com',
+  'checkout.stripe.com', 'pay.google.com', 'auth0.com', 'amazon.com', 'steamcommunity.com'
+];
+
+function isTrustedAuthHost(hostname) {
+  if (!hostname) return false;
+  const h = hostname.toLowerCase().replace(/^www\./, '');
+  return TRUSTED_AUTH_GATEWAYS.some(t => h === t || h.endsWith('.' + t));
+}
+
 // Pop-up Tab & Unsolicited Redirect Killer
 const POPUP_AD_PATTERNS = [
   'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
@@ -187,7 +207,8 @@ const POPUP_AD_PATTERNS = [
   'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain', 'mgid', 'revcontent', 'doubleclick',
   'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
   'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
-  'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump'
+  'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump', 'adkeeper',
+  'adserver', 'infolinks', 'terraclicks', 'propellerclick', 'linkbucks', 'adf.ly', 'ouo.io'
 ];
 
 function isAdOrPopupUrl(url) {
@@ -199,17 +220,50 @@ function isAdOrPopupUrl(url) {
   return POPUP_AD_PATTERNS.some(d => lower.includes(d));
 }
 
+async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
+  if (!targetUrlStr || !openerTabId) return;
+
+  if (isAdOrPopupUrl(targetUrlStr)) {
+    chrome.tabs.remove(tabId, () => {
+      stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+      chrome.storage.local.set({ byeads_stats: stats });
+      logBlockedEvent('popup-killer', 'Blocked Ad Popup Tab', targetUrlStr);
+    });
+    return;
+  }
+
+  if (targetUrlStr.startsWith('http://') || targetUrlStr.startsWith('https://')) {
+    try {
+      const opener = await chrome.tabs.get(openerTabId);
+      if (!opener || !opener.url) return;
+
+      const openerUrl = new URL(opener.url);
+      if (openerUrl.protocol.startsWith('about') || openerUrl.protocol.startsWith('moz-extension')) return;
+
+      const openerHost = openerUrl.hostname.replace(/^www\./, '');
+      const targetUrl = new URL(targetUrlStr);
+      const targetHost = targetUrl.hostname.replace(/^www\./, '');
+
+      const isSameDomain = targetHost === openerHost || targetHost.endsWith('.' + openerHost) || openerHost.endsWith('.' + targetHost);
+
+      if (!isSameDomain && !isTrustedAuthHost(targetHost)) {
+        if (isAdOrPopupUrl(targetHost) || isAdOrPopupUrl(targetUrlStr)) {
+          chrome.tabs.remove(tabId, () => {
+            stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+            chrome.storage.local.set({ byeads_stats: stats });
+            logBlockedEvent('popup-killer', 'Blocked Cross-Origin Ad Popup Tab', targetHost);
+          });
+        }
+      }
+    } catch {}
+  }
+}
+
 if (chrome.tabs && chrome.tabs.onCreated) {
   chrome.tabs.onCreated.addListener((tab) => {
     if (tab.openerTabId) {
       const targetUrl = tab.url || tab.title || '';
-      if (isAdOrPopupUrl(targetUrl)) {
-        chrome.tabs.remove(tab.id, () => {
-          stats.adsBlocked = (stats.adsBlocked || 0) + 1;
-          chrome.storage.local.set({ byeads_stats: stats });
-          logBlockedEvent('popup-killer', 'Blocked Unsolicited Popup Tab', targetUrl);
-        });
-      }
+      evaluatePopupTab(tab.id, targetUrl, tab.openerTabId);
     }
   });
 }
@@ -217,13 +271,7 @@ if (chrome.tabs && chrome.tabs.onCreated) {
 if (chrome.tabs && chrome.tabs.onUpdated) {
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url && tab.openerTabId) {
-      if (isAdOrPopupUrl(changeInfo.url)) {
-        chrome.tabs.remove(tabId, () => {
-          stats.adsBlocked = (stats.adsBlocked || 0) + 1;
-          chrome.storage.local.set({ byeads_stats: stats });
-          logBlockedEvent('popup-killer', 'Closed Popunder Redirect Tab', changeInfo.url);
-        });
-      }
+      evaluatePopupTab(tabId, changeInfo.url, tab.openerTabId);
     }
   });
 }

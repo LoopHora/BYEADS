@@ -18,13 +18,20 @@
     {
       "matches": ["<all_urls>"],
       "js": ["defuser.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
     },
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true
     }
+  ],
+  "web_accessible_resources": [
+    "defuser.js"
   ],
   "browser_action": {
     "default_popup": "popup.html",

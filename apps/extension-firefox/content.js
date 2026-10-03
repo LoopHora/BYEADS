@@ -17,6 +17,15 @@
   let localTabBlockedCount = 0;
   let lastReportedCosmeticCount = 0;
 
+  // Inject defuser.js into page execution context so it hooks window.open and fetch in page world
+  try {
+    const s = document.createElement('script');
+    s.src = chrome.runtime.getURL('defuser.js');
+    s.async = false;
+    (document.head || document.documentElement).prepend(s);
+    s.remove();
+  } catch {}
+
   // Listen for defuser events from MAIN world
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'BYEADS_SPOTIFY_AD_DEFUSED') {
@@ -96,6 +105,10 @@
       ytd-in-feed-ad-layout-renderer,
       ytd-promoted-sparkles-web-renderer,
       ytd-statement-banner-renderer,
+      ytd-rich-item-renderer:has(ytd-ad-slot-renderer),
+      ytd-promoted-video-renderer,
+      ytd-display-ad-renderer,
+      ytd-action-companion-ad-renderer,
       #player-ads,
       .ytp-ad-overlay-container,
       .ytp-ad-overlay-slot,
@@ -163,6 +176,14 @@
       div[data-testid="in-app-ad"],
       div[data-testid="desktop-client-sponsor-container"],
       div[aria-label="Sponsored"],
+      div[data-testid="billboard-ad"],
+      div[data-testid="leaderboard-ad"],
+      div[data-testid="top-bar-ad"],
+      div[data-testid="in-app-message-wrapper"],
+      div[data-testid="ad-break"],
+      a[href*="spotify:ad:"],
+      button[data-testid="ad-feedback-button"],
+      span[data-testid="track-info-advertiser"],
 
       /* TeraBox Ad & Forced App Download Guide Modals */
       div[class*="GuideModal"],
@@ -376,21 +397,24 @@
 
     // --- B. Spotify Web Player (open.spotify.com) ---
     if (hostname.includes('spotify.com')) {
-      // 1. A real song ALWAYS has a link to /track/ or /album/ in the now-playing bar
+      // 1. Direct ad indicators (titles, advertiser tags, ad buttons, ad links)
+      const docTitle = document.title.toLowerCase();
+      const hasAdIndicator =
+        docTitle.includes('advertisement') ||
+        docTitle.startsWith('spotify – advertisement') ||
+        !!document.querySelector(
+          '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
+        ) ||
+        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement' ||
+        document.querySelector('[data-testid="context-item-link"]')?.textContent?.trim().toLowerCase() === 'advertisement';
+
+      // 2. Track link verification
       const hasRealTrackLink = !!document.querySelector(
-        '[data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/album/"]'
+        '[data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/album/"], [data-testid="context-item-info-title"] a[href*="/track/"]'
       );
 
-      // 2. Identify advertisements ONLY when there is NO real track link present
-      let isSpotifyAd = false;
-      if (!hasRealTrackLink) {
-        isSpotifyAd =
-          document.title.toLowerCase().startsWith('advertisement') ||
-          !!document.querySelector(
-            '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
-          ) ||
-          document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement';
-      }
+      // Trigger ad mode if explicit indicator exists OR when playing without a valid track/album link while in generic player state
+      const isSpotifyAd = hasAdIndicator || (!hasRealTrackLink && (docTitle.startsWith('spotify') && !docTitle.includes('·')));
 
       const audios = document.querySelectorAll('audio, video');
 
@@ -411,9 +435,17 @@
           } catch {}
         });
 
+        // Attempt skip button click if available
+        try {
+          const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
+          if (skipBtn && !skipBtn.disabled && skipBtn.getAttribute('aria-disabled') !== 'true') {
+            skipBtn.click();
+          }
+        } catch {}
+
         // Purge visual billboard and modal overlays
         document.querySelectorAll(
-          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-message-wrapper"], [data-testid="ad-break"], div[class*="GenericModal"]'
+          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-message-wrapper"], [data-testid="ad-break"], [data-testid="track-info-advertiser"], a[href*="spotify:ad:"], div[class*="GenericModal"]'
         ).forEach((el) => {
           try { el.remove(); } catch {}
         });
@@ -605,7 +637,7 @@
 
     // B. Reddit promoted posts & "Open in App" killer
     if (hostname.includes('reddit.com')) {
-      document.querySelectorAll('shreddit-post[is-promoted="true"], .promotedlink, [data-adclickarea]').forEach((el) => {
+      document.querySelectorAll('shreddit-post[is-promoted="true"], .promotedlink, [data-adclickarea], div[data-testid="post-container"]:has([data-testid="placementTracking"])').forEach((el) => {
         try { el.remove(); } catch {}
       });
       document.querySelectorAll('shreddit-async-loader[bundlename="bottom_sheet"], reddit-bottom-sheet, xpromo-app-selector').forEach((el) => {
@@ -625,9 +657,28 @@
       });
     }
 
-    // D. SoundCloud sponsored stream audio banners
+    // D. SoundCloud sponsored stream audio banners & audio ad neutralizer
     if (hostname.includes('soundcloud.com')) {
-      document.querySelectorAll('div[class*="soundBadge__sponsored"], .streamAds, div[class*="sidebarAd"]').forEach((el) => {
+      const isSoundcloudAd = !!document.querySelector('div[class*="soundBadge__sponsored"], .soundBadge__sponsored') ||
+                             document.title.toLowerCase().includes('audio ad') ||
+                             !!document.querySelector('.playControls__soundBadge [aria-label*="Sponsored"]');
+      if (isSoundcloudAd) {
+        document.querySelectorAll('audio').forEach((a) => {
+          if (!a.muted) a.muted = true;
+          try {
+            a.playbackRate = 16.0;
+            if (a.duration && !isNaN(a.duration)) a.currentTime = a.duration - 0.1;
+          } catch {}
+        });
+        const skip = document.querySelector('.playControls__next, button[title="Skip to next"]');
+        if (skip && !skip.disabled) skip.click();
+      } else {
+        document.querySelectorAll('audio').forEach((a) => {
+          if (a.muted) a.muted = false;
+          if (a.playbackRate > 1.0) a.playbackRate = 1.0;
+        });
+      }
+      document.querySelectorAll('div[class*="soundBadge__sponsored"], .streamAds, div[class*="sidebarAd"], .soundBadge__sponsored').forEach((el) => {
         try { el.remove(); } catch {}
       });
     }
@@ -944,7 +995,7 @@
     const target = e.target;
     if (!target) return;
 
-    // Check if target or parent is an ad-link
+    // 1. Check if target or parent is an ad-link
     const anchor = target.closest('a');
     if (anchor) {
       const href = String(anchor.href || '').toLowerCase();
@@ -952,7 +1003,8 @@
         'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
         'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'clickadu', 'yllix',
         'bidvertiser', 'admaven', 'deloton', 'zeroredirect', 'alwingulla', 'onclickperformance',
-        'bet365', '1xbet', 'spinanga', 'vulkanvegas'
+        'bet365', '1xbet', 'spinanga', 'vulkanvegas', 'clck.ru', 'terraclicks', 'propellerclick',
+        'direct-link', 'redirect-jump', 'linkbucks', 'ouo.io', 'adf.ly', 'shorte.st'
       ];
       if (AD_PATTERNS.some(p => href.includes(p))) {
         e.preventDefault();
@@ -961,19 +1013,40 @@
         anchor.remove();
         return false;
       }
+
+      // If link opens in _blank to an external ad domain on shady/streaming/adware sites
+      if (anchor.target === '_blank' && (href.startsWith('http://') || href.startsWith('https://'))) {
+        try {
+          const currentHost = window.location.hostname.replace(/^www\./, '');
+          const destHost = new URL(href).hostname.replace(/^www\./, '');
+          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
+          if (!isSameDomain && AD_PATTERNS.some(p => destHost.includes(p))) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            anchor.remove();
+            return false;
+          }
+        } catch {}
+      }
     }
 
-    // Check if clicked element is a transparent overlay
+    // 2. Check if clicked element is a transparent or clickjack overlay
     const rect = target.getBoundingClientRect();
-    if (rect.width >= window.innerWidth * 0.65 && rect.height >= window.innerHeight * 0.65 && target.tagName !== 'VIDEO') {
+    const isLargeArea = rect.width >= window.innerWidth * 0.35 && rect.height >= window.innerHeight * 0.35;
+    if (isLargeArea && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
       const style = window.getComputedStyle(target);
       const isFixed = style.position === 'fixed' || style.position === 'absolute';
-      const isTransparent = parseFloat(style.opacity) <= 0.1 ||
+      const isTransparent = parseFloat(style.opacity) <= 0.2 ||
                             style.backgroundColor === 'transparent' ||
                             style.backgroundColor.includes('rgba(0, 0, 0, 0)') ||
-                            style.backgroundColor === 'rgba(0,0,0,0)';
+                            style.backgroundColor === 'rgba(0,0,0,0)' ||
+                            style.backgroundColor.includes('rgba(255, 255, 255, 0)');
+      const zIndex = parseInt(style.zIndex, 10);
+      const hasHighZ = !isNaN(zIndex) && zIndex >= 50;
       const textLen = (target.innerText || '').trim().length;
-      if (isFixed && isTransparent && textLen < 15) {
+
+      if (isFixed && (isTransparent || hasHighZ) && textLen < 25) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();

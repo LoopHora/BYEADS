@@ -68,7 +68,7 @@ export default function InstallPage() {
         }}>
           <AlertCircle style={{ width: 22, height: 22, color: 'var(--badge-amber-text)', flexShrink: 0, marginTop: '2px' }} />
           <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles configure encrypted queries routed to <strong>BYEADS Anycast DNS Shield (<code>dns.byeads.net</code>)</strong>, blocking ad and tracker domains network-wide across all apps. Browser extensions provide in-page protection (DOM fake button detection, video/audio ad fast-forwarding, and download interception). For full protection, apply both your device's DNS settings and the browser extension.
+            <strong style={{ color: 'var(--text-main)' }}>Dual-Layer Architecture:</strong> System-level DNS profiles configure encrypted queries routed to <strong>BYEADS encrypted DNS resolver (<code>dns.byeads.net</code>)</strong>, helping block known ad and tracker domains network-wide. Browser extensions provide in-page protection (deceptive button detection, ad filtering, and download interception). For full protection, apply both your device's DNS settings and the browser extension.
           </div>
         </div>
 
@@ -877,7 +877,7 @@ export default function InstallPage() {
                       <span>{copiedKey === 'dot_adblock' ? 'Copied' : 'Copy'}</span>
                     </button>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                      Official BYEADS Anycast Private DNS. Blocks in-app banner ads, popups, and telemetry trackers across all Android apps and games.
+                      Official BYEADS Private DNS. Helps block known ad, pop-up, and tracker domains across Android apps.
                     </div>
                   </div>
 
@@ -902,7 +902,7 @@ export default function InstallPage() {
                       <span>{copiedKey === 'dot_security' ? 'Copied' : 'Copy'}</span>
                     </button>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                      Blocks known malware, phishing gateways, and deceptive fraud servers.
+                      Blocks known malware, phishing, and fraud domains.
                     </div>
                   </div>
                 </div>
@@ -935,7 +935,7 @@ export default function InstallPage() {
                   <strong>DNS Resolution Scope:</strong> Android Private DNS blocks network requests to known advertising and telemetry servers system-wide. Because YouTube in-stream video ads share the same content delivery hostnames (<code>*.googlevideo.com</code>) as the media stream itself, network-level DNS cannot filter video ads without breaking playback.
                 </p>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--text-sub)', lineHeight: 1.6, margin: 0 }}>
-                  <strong>Browser Extension Support on Android:</strong> In-page scriptlet defusion (such as fast-forwarding or DOM filtering) requires a mobile browser that supports user extensions (such as Kiwi Browser or Firefox Developer/Nightly). Adding a website as a Home Screen shortcut (PWA) creates a standalone launcher, but standalone PWAs may run in isolated webviews where extension injection is restricted by the operating system. Always verify extension status in your browser's extension manager.
+                  <strong>Browser Extension Support on Android:</strong> In-page filtering (such as ad element removal) requires a mobile browser that supports extensions (such as Kiwi Browser or Firefox for Android). Adding a website as a Home Screen shortcut (PWA) creates a standalone launcher, but standalone PWAs may run in isolated webviews where extension injection is restricted by the operating system. Always verify extension status in your browser's extension manager.
                 </p>
               </div>
             </div>

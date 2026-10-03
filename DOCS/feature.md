@@ -1,6 +1,4 @@
-You're right. I narrowed BYEADS too much toward DNS filtering in my previous response. Our original plan was to build a layered protection system that detects threats before, during and after a user's interaction with a website—not simply block ad domains.
-
-# BYEADS — Our agreed product scope
+# BYEADS — Product Scope & Layered Protection Specification
 
 Free · Open source · Privacy-first · Cross-platform · Maximum practical protection
 

@@ -62,7 +62,7 @@ const protectionModules: ProtectionModule[] = [
     statusType: 'detected',
     items: [
       { label: 'Manifest V3 declarativeNetRequest', path: '/docs/06', status: 'Implemented' },
-      { label: '14 Built-In Filter Rules', path: '/docs/06', status: 'Tested' },
+      { label: 'Declarative Net Request Rules', path: '/docs/06', status: 'Tested' },
       { label: 'Tracker & Telemetry Request Blocker', path: '/docs/06', status: 'Implemented' },
       { label: 'Pop-Up & Overlay Request Guard', path: '/docs/08', status: 'Implemented' },
     ],
@@ -200,7 +200,7 @@ export const HomePage: React.FC = () => {
             <ShieldCheck style={{ width: 16, height: 16, color: 'var(--brand-primary)' }} />
             <div>
               <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-main)' }}>6 Core Engines</div>
-              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)' }}>37 Passing Test Specifications</div>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--text-dim)' }}>44 Passing Automated Tests</div>
             </div>
           </div>
 

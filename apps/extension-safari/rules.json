@@ -691,5 +691,59 @@
       "urlFilter": "||music.youtube.com/api/stats/ads*",
       "resourceTypes": ["xmlhttprequest", "ping", "script"]
     }
+  },
+  {
+    "id": 78,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adeventtracker.spotify.com^",
+      "resourceTypes": ["xmlhttprequest", "ping", "script", "other"]
+    }
+  },
+  {
+    "id": 79,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||ads-fa.spotify.com^",
+      "resourceTypes": ["xmlhttprequest", "ping", "script", "other"]
+    }
+  },
+  {
+    "id": 80,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||spclient.wg.spotify.com/ad-logic/*",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 81,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||spclient.wg.spotify.com/ads/*",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 82,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||spclient.wg.spotify.com/desktop-omni-ads/*",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 83,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||spclient.wg.spotify.com/ad-experiences/*",
+      "resourceTypes": ["xmlhttprequest", "other"]
+    }
   }
 ]

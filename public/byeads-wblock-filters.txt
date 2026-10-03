@@ -120,3 +120,20 @@
 ##a[href*="terraclicks.com"]
 ##a[href*="propellerclick.com"]
 ##div[class*="advertisement"]
+
+! === SECTION 6: SPOTIFY AD TELEMETRY & MEDIA FILTERS ===
+||adeventtracker.spotify.com^
+||ads-fa.spotify.com^
+||audio-fa.scdn.co^
+||spclient.wg.spotify.com/ad-logic/*
+||spclient.wg.spotify.com/ads/*
+||spclient.wg.spotify.com/desktop-omni-ads/*
+||spclient.wg.spotify.com/ad-experiences/*
+##[data-testid="billboard-ad"]
+##[data-testid="leaderboard-ad"]
+##[data-testid="top-bar-ad"]
+##[data-testid="in-app-message-wrapper"]
+##[data-testid="ad-break"]
+##a[href*="spotify:ad:"]
+##[data-testid="ad-feedback-button"]
+##[data-testid="track-info-advertiser"]
