@@ -88,12 +88,27 @@
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      // Block pure ad telemetry trackers (NEVER block audio-fa.scdn.co or spclient player APIs)
+      // Block pure ad telemetry trackers & ad audio asset CDNs (NEVER block audio-fa.scdn.co or legit streams)
       if (
         url.includes('adeventtracker.spotify.com') ||
-        url.includes('ads-fa.spotify.com')
+        url.includes('ads-fa.spotify.com') ||
+        url.includes('adstudio-assets.scdn.co') ||
+        url.includes('adstudio-assets.spotifycdn.com') ||
+        url.includes('/mp3-ad/')
       ) {
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+
+      // Neutralize Spotify ad-logic and desktop-omni-ads by returning clean empty roster (prevents ad queuing)
+      if (
+        url.includes('spclient.wg.spotify.com/ad-logic') ||
+        url.includes('spclient.wg.spotify.com/desktop-omni-ads') ||
+        url.includes('spclient.wg.spotify.com/ad-experiences')
+      ) {
+        return new Response(JSON.stringify({ ads: [], breaks: [], payload: {}, mappings: [] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        });
       }
 
       const response = await originalFetch.apply(this, args);
@@ -133,12 +148,19 @@
           u.includes('/api/stats/ads') ||
           u.includes('adeventtracker.spotify.com') ||
           u.includes('ads-fa.spotify.com') ||
+          u.includes('adstudio-assets.scdn.co') ||
+          u.includes('adstudio-assets.spotifycdn.com') ||
+          u.includes('/mp3-ad/') ||
+          u.includes('spclient.wg.spotify.com/ad-logic') ||
+          u.includes('spclient.wg.spotify.com/desktop-omni-ads') ||
+          u.includes('spclient.wg.spotify.com/ad-experiences') ||
           isAdPattern(u) // God-Level Block: XHR ad patterns
         ) {
           console.warn('[BYEADS Defuser] Blocked background XHR ad request:', u);
+          const emptyBody = u.includes('spotify') ? '{"ads":[],"breaks":[],"payload":{}}' : '{}';
           Object.defineProperty(this, 'status', { value: 200, writable: false });
-          Object.defineProperty(this, 'responseText', { value: '{}', writable: false });
-          Object.defineProperty(this, 'response', { value: '{}', writable: false });
+          Object.defineProperty(this, 'responseText', { value: emptyBody, writable: false });
+          Object.defineProperty(this, 'response', { value: emptyBody, writable: false });
           Object.defineProperty(this, 'readyState', { value: 4, writable: false });
           setTimeout(() => {
             this.dispatchEvent(new Event('readystatechange'));
@@ -464,19 +486,22 @@
         if (this.tagName === 'AUDIO') {
           const docTitle = (document.title || '').toLowerCase();
           const isAd = docTitle.includes('advertisement') ||
-                       !!document.querySelector('[data-testid="track-info-advertiser"], [data-testid="context-item-info-ad-title"], [aria-label="Advertisement"], [data-testid="ad-break"]');
+                       !!document.querySelector(
+                         '[data-testid="track-info-advertiser"], ' +
+                         '[data-testid="context-item-info-ad-title"], ' +
+                         '[data-testid="context-item-info-ad-subtitle"], ' +
+                         '[data-testid="ad-companion-card"], ' +
+                         'a[data-context-item-type="ad"], ' +
+                         'footer[data-testid*="ad-type-ad"], ' +
+                         'footer[data-testadtype*="ad-type-ad"], ' +
+                         '[aria-label="Advertisement"], ' +
+                         '[data-testid="ad-break"]'
+                       );
           if (isAd) {
             this.muted = true;
-            try {
-              this.playbackRate = 16.0;
-              if (this.duration && isFinite(this.duration) && this.currentTime < this.duration - 0.2) {
-                this.currentTime = this.duration - 0.1;
-              }
-            } catch {}
-          } else {
-            if (this.playbackRate > 1.0) this.playbackRate = 1.0;
-            this.muted = false;
+            this.volume = 0;
           }
+          // NEVER unmute in play() - unmuting is safely handled by the debounced real-track verifier in content.js
         }
         return origPlay.apply(this, arguments);
       };

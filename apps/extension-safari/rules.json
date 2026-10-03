@@ -745,5 +745,32 @@
       "urlFilter": "||spclient.wg.spotify.com/ad-experiences/*",
       "resourceTypes": ["xmlhttprequest", "other"]
     }
+  },
+  {
+    "id": 84,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adstudio-assets.scdn.co^",
+      "resourceTypes": ["xmlhttprequest", "media", "script", "other"]
+    }
+  },
+  {
+    "id": 85,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adstudio-assets.spotifycdn.com^",
+      "resourceTypes": ["xmlhttprequest", "media", "script", "other"]
+    }
+  },
+  {
+    "id": 86,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||scdn.co/mp3-ad/*",
+      "resourceTypes": ["media", "xmlhttprequest", "other"]
+    }
   }
 ]

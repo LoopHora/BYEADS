@@ -162,7 +162,10 @@
       #branch-banner-iframe,
       div[class*="branch-journey"],
 
-      /* Spotify Web Player Ad Slots & Upgrade Nags */
+      /* Spotify Web Player Ad Slots, Companion Cards & Upgrade Nags */
+      div[data-testid="ad-companion-card"],
+      div[data-testid="ad-companion-card-tagline"],
+      div[data-testid="ad-slot-container"],
       div[data-testid="ad-banner"],
       div[data-testid="in-app-ad"],
       div[data-testid="desktop-client-sponsor-container"],
@@ -172,14 +175,31 @@
       div[data-testid="top-bar-ad"],
       div[data-testid="in-app-message-wrapper"],
       div[data-testid="ad-break"],
+      a[data-context-item-type="ad"],
       a[href*="spotify:ad:"],
       button[data-testid="ad-feedback-button"],
       span[data-testid="track-info-advertiser"],
+      span[data-testid="context-item-info-ad-title"],
+      span[data-testid="context-item-info-ad-subtitle"],
+      div[data-testid="context-item-info-ad-title"],
+      div[data-testid="context-item-info-ad-subtitle"],
       button[data-testid="upgrade-button"],
+      div[data-testid="user-widget-upgrade-button"],
+      div[data-testid="banner-upsell"],
+      div[data-testid="upsell-container"],
+      div[data-testid="upsell-banner"],
+      div[data-testid="premium-modal"],
       [aria-label="Upgrade to Premium"],
+      footer[data-testid*="ad-type-ad"],
+      footer[data-testadtype*="ad-type-ad"],
+      #Desktop_PanelContainer_Id:has([data-testid="ad-companion-card"]),
+      div:has(> [data-testid="ad-companion-card"]),
+      div:has(> a[data-context-item-type="ad"]),
+      div:has(> a[href*="spotify:ad:"]),
       div[class*="GenericModal"]:has([aria-label="Advertisement"]),
       div[class*="GenericModal"]:has(button[data-testid="ad-feedback-button"]),
-      div:has(> a[href*="spotify:ad:"]),
+      div[class*="GenericModal"]:has(a[href*="spotify:ad:"]),
+      div[class*="ReactModal"]:has([aria-label="Advertisement"]),
 
       /* TeraBox Ad & Forced App Download Guide Modals */
       div[class*="GuideModal"],
@@ -291,6 +311,29 @@
         pointer-events: none !important;
         height: 0 !important;
       }
+
+      @layer byeads_override {
+        [data-testid="ad-companion-card"],
+        [data-testid="ad-companion-card-tagline"],
+        [data-testid="ad-slot-container"],
+        [data-testid="ad-banner"],
+        [data-testid="in-app-ad"],
+        [data-testid="desktop-client-sponsor-container"],
+        [data-testid="billboard-ad"],
+        [data-testid="leaderboard-ad"],
+        [data-testid="top-bar-ad"],
+        [data-testid="in-app-message-wrapper"],
+        [data-testid="ad-break"],
+        a[data-context-item-type="ad"],
+        a[href*="spotify:ad:"] {
+          display: none !important;
+          visibility: hidden !important;
+          height: 0 !important;
+          max-height: 0 !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -298,6 +341,72 @@
   // 3. Media Stream Ad Neutralizer (YouTube, YouTube Music & Spotify)
   let wasMutedByAd = false;
   let lastSpotifyMuteTime = 0;
+  let spotifyMutedByAd = false;
+  let spotifyConfirmedRealTrackTicks = 0;
+
+  const SPOTIFY_AD_SELECTORS = [
+    '[data-testid="ad-companion-card"]',
+    '[data-testid="ad-companion-card-tagline"]',
+    '[data-testid="ad-slot-container"]',
+    '[data-testid="ad-banner"]',
+    '[data-testid="in-app-ad"]',
+    '[data-testid="desktop-client-sponsor-container"]',
+    '[data-testid="billboard-ad"]',
+    '[data-testid="leaderboard-ad"]',
+    '[data-testid="top-bar-ad"]',
+    '[data-testid="in-app-message-wrapper"]',
+    '[data-testid="ad-break"]',
+    '[data-testid="track-info-advertiser"]',
+    '[data-testid="context-item-info-ad-title"]',
+    '[data-testid="context-item-info-ad-subtitle"]',
+    '[data-testid="user-widget-upgrade-button"]',
+    '[data-testid="banner-upsell"]',
+    '[data-testid="upsell-container"]',
+    '[data-testid="upsell-banner"]',
+    '[data-testid="premium-modal"]',
+    'button[data-testid="ad-feedback-button"]',
+    'button[data-testid="upgrade-button"]',
+    '[aria-label="Upgrade to Premium"]',
+    'a[data-context-item-type="ad"]',
+    'a[href*="spotify:ad:"]',
+    'footer[data-testid*="ad-type-ad"]',
+    'footer[data-testadtype*="ad-type-ad"]',
+    '#Desktop_PanelContainer_Id:has([data-testid="ad-companion-card"])',
+    'div:has(> [data-testid="ad-companion-card"])',
+    'div:has(> a[data-context-item-type="ad"])',
+    'div:has(> a[href*="spotify:ad:"])',
+    'div[class*="GenericModal"]:has([aria-label="Advertisement"])',
+    'div[class*="GenericModal"]:has(button[data-testid="ad-feedback-button"])',
+    'div[class*="GenericModal"]:has(a[href*="spotify:ad:"])',
+    'div[class*="ReactModal"]:has([aria-label="Advertisement"])'
+  ];
+
+  function cleanSpotifyDOMAds() {
+    if (!hostname.includes('spotify.com')) return;
+    try {
+      const elements = document.querySelectorAll(SPOTIFY_AD_SELECTORS.join(', '));
+      elements.forEach((el) => {
+        try {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.style.setProperty('height', '0px', 'important');
+          el.style.setProperty('max-height', '0px', 'important');
+          el.style.setProperty('opacity', '0', 'important');
+          el.style.setProperty('pointer-events', 'none', 'important');
+          if (
+            el.matches?.(
+              '[data-testid="ad-companion-card"], [data-testid="ad-slot-container"], [data-testid="billboard-ad"], ' +
+              '[data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-ad"], ' +
+              '[data-testid="in-app-message-wrapper"], [data-testid="banner-upsell"], [data-testid="premium-modal"], ' +
+              'div[class*="GenericModal"], div[class*="ReactModal"]'
+            )
+          ) {
+            el.remove();
+          }
+        } catch {}
+      });
+    } catch {}
+  }
 
   function handleMediaStreamAds() {
     if (!byeadsActive || isWhitelisted) return;
@@ -393,22 +502,31 @@
 
     // --- B. Spotify Web Player (open.spotify.com) ---
     if (hostname.includes('spotify.com')) {
+      // 1. Continuous aggressive visual & companion ad suppression
+      cleanSpotifyDOMAds();
+
       const docTitle = document.title.toLowerCase();
 
-      // 1. Explicit advertisement title indicators
+      // 2. Explicit advertisement title indicators
       const hasAdTitle = docTitle.includes('advertisement');
 
-      // 2. Explicit ad widgets, advertiser badges, ad breaks, or ad feedback buttons
+      // 3. Explicit ad widgets, advertiser badges, ad breaks, or ad companion cards
       const adWidget = document.querySelector(
         '[data-testid="context-item-info-ad-title"], ' +
+        '[data-testid="context-item-info-ad-subtitle"], ' +
         '[data-testid="track-info-advertiser"], ' +
-        '[aria-label="Advertisement"], ' +
+        '[data-testid="ad-companion-card"], ' +
+        '[data-testid="ad-companion-card-tagline"], ' +
         '[data-testid="ad-break"], ' +
         '[data-testid="ad-feedback-button"], ' +
+        'a[data-context-item-type="ad"], ' +
+        'footer[data-testid*="ad-type-ad"], ' +
+        'footer[data-testadtype*="ad-type-ad"], ' +
+        '[aria-label="Advertisement"], ' +
         'a[href*="spotify:ad:"]'
       );
 
-      // 3. Check track title in player bar
+      // 4. Check track title in player bar
       const nowPlayingTitle = document.querySelector(
         '[data-testid="now-playing-widget"] [data-testid="context-item-info-title"], ' +
         '[data-testid="context-item-info-title"]'
@@ -416,26 +534,35 @@
       const titleText = nowPlayingTitle ? nowPlayingTitle.textContent.trim().toLowerCase() : '';
       const isTitleAd = titleText === 'advertisement' || titleText.startsWith('advertisement');
 
-      // Strict, reliable advertisement detection (NO false-positives when browsing or paused)
-      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd;
+      // 5. Check for ad-break text in now playing widget / footer
+      const nowPlayingWidget = document.querySelector('[data-testid="now-playing-widget"], footer');
+      const widgetText = nowPlayingWidget ? (nowPlayingWidget.textContent || '').toLowerCase() : '';
+      const hasAdBreakText = widgetText.includes('continue after the break') || widgetText.includes('advertisement');
+
+      // 6. Positive verification of genuine music track link
+      const realTrackLink = document.querySelector(
+        '[data-testid="now-playing-widget"] a[href*="/track/"], ' +
+        '[data-testid="now-playing-widget"] a[href*="/episode/"], ' +
+        'footer a[href*="/track/"], ' +
+        'footer a[href*="/episode/"]'
+      );
+      const hasRealTrack = !!realTrackLink;
+
+      // Detection: any ad indicator or audio playing with advertiser badge / no real track
+      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd || hasAdBreakText || (!hasRealTrack && widgetText.includes('sponsored'));
 
       const audios = document.querySelectorAll('audio, video');
 
       if (isSpotifyAd) {
-        // Advertisement detected: Mute audio immediately and fast-forward
+        spotifyConfirmedRealTrackTicks = 0;
+        spotifyMutedByAd = true;
+
+        // Advertisement detected: Mute audio immediately and continuously
         audios.forEach((audio) => {
           if (!audio.muted) {
             audio.muted = true;
-            wasMutedByAd = true;
           }
           audio.volume = 0;
-          try {
-            audio.playbackRate = 16.0;
-            // Advance near the end of the ad track so it concludes quickly
-            if (audio.duration && isFinite(audio.duration) && audio.currentTime < audio.duration - 0.2) {
-              audio.currentTime = audio.duration - 0.1;
-            }
-          } catch {}
         });
 
         // Trigger skip button if available and enabled
@@ -445,16 +572,6 @@
             skipBtn.click();
           }
         } catch {}
-
-        // Dismiss visual billboard and modal overlays
-        document.querySelectorAll(
-          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], ' +
-          '[data-testid="in-app-message-wrapper"], [data-testid="ad-break"], [data-testid="track-info-advertiser"], ' +
-          'a[href*="spotify:ad:"], div[class*="GenericModal"]:has([aria-label="Advertisement"]), ' +
-          'div[class*="GenericModal"]:has(button[data-testid="ad-feedback-button"])'
-        ).forEach((el) => {
-          try { el.remove(); } catch {}
-        });
 
         const now = Date.now();
         if (now - lastSpotifyMuteTime > 2500) {
@@ -470,20 +587,22 @@
           } catch {}
         }
       } else {
-        // Real music playing or player ready: ALWAYS ensure audio is audible and normal speed
-        audios.forEach((audio) => {
-          if (audio.playbackRate > 1.0) {
-            audio.playbackRate = 1.0;
-          }
-          if (wasMutedByAd || audio.muted) {
+        // Genuine music track confirmed
+        if (hasRealTrack && !hasAdTitle && !isTitleAd) {
+          spotifyConfirmedRealTrackTicks++;
+        } else {
+          spotifyConfirmedRealTrackTicks = 0;
+        }
+
+        // Require 3 consecutive clean ticks (~450ms) to ensure track has stabilized
+        if (spotifyMutedByAd && spotifyConfirmedRealTrackTicks >= 3) {
+          audios.forEach((audio) => {
             audio.muted = false;
-          }
-          if (audio.volume === 0) {
-            audio.volume = 1.0;
-          }
-        });
-        if (wasMutedByAd) {
-          wasMutedByAd = false;
+            if (audio.volume === 0) {
+              audio.volume = 1.0;
+            }
+          });
+          spotifyMutedByAd = false;
         }
       }
     }
@@ -1114,7 +1233,9 @@
     '[data-ad-unit]', '[data-ad-slot]', '#tads', '#tadsb', '#bottomads', 'ytd-ad-slot-renderer',
     '#player-ads', '.ytp-ad-overlay-container', 'ytmusic-player-bar .advertisement',
     'div[data-testid="ad-banner"]', '[data-testid="billboard-ad"]', '[data-testid="leaderboard-ad"]',
-    '[data-testid="top-bar-ad"]', '[data-testid="in-app-message-wrapper"]', 'a[href*="spotify:ad:"]'
+    '[data-testid="top-bar-ad"]', '[data-testid="in-app-message-wrapper"]', 'a[href*="spotify:ad:"]',
+    '[data-testid="ad-companion-card"]', '[data-testid="ad-slot-container"]', '[data-testid="track-info-advertiser"]',
+    'a[data-context-item-type="ad"]'
   ];
 
   function getTabBlockedCount() {
