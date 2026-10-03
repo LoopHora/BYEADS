@@ -938,19 +938,20 @@ const docs: DocEntry[] = [
   },
   {
     id: '27',
-    title: 'Password Utility',
-    category: 'Development',
+    title: 'Apple & wBlock Integration',
+    category: 'Architecture',
     content: {
-      heading: 'BYEADS — Password Utility v1.0',
-      status: 'Finalized planning baseline',
+      heading: 'BYEADS — Apple & wBlock Content Blocking Specification v1.0',
+      status: 'Active implementation specification',
       sections: [
         {
-          title: 'Password Utility Features',
+          title: 'Hybrid Architecture Features',
           items: [
-            'Generates strong, cryptographically random passwords',
-            'Supports configurable length and character sets',
-            'Client-side only — no data leaves the device',
-            'Utility feature, not core security module',
+            'Declarative Adblock Plus syntax rules compiled into WebKit bytecode',
+            'Compatible with open-source wBlock on iOS, iPadOS, and macOS Safari',
+            'Zero-cost architecture avoiding closed App Store developer subscriptions',
+            'Transparent boundary: domain blocking & cosmetic hiding without procedural scriptlets',
+            'Zero user login, account creation, or credential collection required',
           ],
         },
       ],
