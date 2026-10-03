@@ -15,17 +15,35 @@
     'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
     'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
     'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump', 'adkeeper',
-    'adserver', 'adsterra', 'infolinks', 'yieldlove', 'zergnet', 'adtarget', 'adscale',
+    'adserver', 'infolinks', 'yieldlove', 'zergnet', 'adtarget', 'adscale',
     'trafficmovers', 'propellerclick', 'terraclicks', 'linkbucks', 'adf.ly', 'ouo.io',
     'shorte.st', 'bc.vc', 'shrinkearn', 'clk.sh', 'gplinks', 'droplink',
     'twitch.tv/api/ads', 'amazon-adsystem', 'facebook.com/ads', 'twitter.com/i/ads',
-    'soundcloud.com/ads', 'ads.tiktok.com', 'ads.spotify.com'
+    'soundcloud.com/ads', 'ads.tiktok.com', 'ads.spotify.com', 'a-ads', 'richpush',
+    'adtrue', 'pushground', 'coinhive', 'coinimp', 'trafficjunky', 'clickaine',
+    'adkernel', 'adreactor', 'adfox', 'adriver', 'aniview', 'vdo.ai', 'connatix',
+    'playwire', 'brid.tv', 'primis', 'teads', 'clicksor', 'adcombo', 'propellerads',
+    'trackvoluum', 'voluumtrk', 'redtrack', 'bemob', 'redirector', 'redirect-link',
+    'clickid=', 'aff_c=', 'bonus-spin', 'free-spins', 'roulette', 'betway', 'stake.com'
   ];
 
   const TRUSTED_AUTH_GATEWAYS = [
     'accounts.google.com', 'appleid.apple.com', 'github.com', 'login.microsoftonline.com',
     'facebook.com', 'twitter.com', 'x.com', 'paypal.com', 'stripe.com', 'discord.com',
     'checkout.stripe.com', 'pay.google.com', 'auth0.com', 'amazon.com', 'steamcommunity.com'
+  ];
+
+  const REDIRECT_PATHS = [
+    '/jump', '/go/', '/out/', '/redirect', '/click', '/link/', '/gate/',
+    '/pop', '/ad/', '/banner/', '/count/', '/track', '/sponsor', '/load.php',
+    '/direct.php', '/ad.php', '/pop.php', '/click.php', '/gate.php', '/jump.php',
+    '/out.php', '/go.php'
+  ];
+
+  const REDIRECT_PARAMS = [
+    'redirect=', 'url=', 'target=', 'dest=', 'goto=', 'link=', 'zoneid=',
+    'pop=', 'campaign=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
+    'token_hash=', 'pub_id='
   ];
 
   function isAdPattern(str) {
@@ -38,6 +56,37 @@
     if (!hostname) return false;
     const h = hostname.toLowerCase().replace(/^www\./, '');
     return TRUSTED_AUTH_GATEWAYS.some(t => h === t || h.endsWith('.' + t));
+  }
+
+  function isAdOrPopup(urlStr) {
+    if (!urlStr) return false;
+    const s = String(urlStr).trim().toLowerCase();
+    if (s === '' || s === 'about:blank' || s === 'javascript:void(0)' || s.startsWith('data:text/html') || s.startsWith('blob:')) {
+      return true; // blank or synthetic popunder staging
+    }
+    if (isAdPattern(s)) return true;
+
+    try {
+      const parsed = new URL(urlStr, window.location.href);
+      const currentHost = window.location.hostname.replace(/^www\./, '');
+      const destHost = parsed.hostname.replace(/^www\./, '');
+      const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
+
+      const p = parsed.pathname.toLowerCase();
+      const q = parsed.search.toLowerCase();
+      if (REDIRECT_PATHS.some(part => p.includes(part)) || REDIRECT_PARAMS.some(param => q.includes(param))) {
+        return true;
+      }
+
+      // If cross-origin: allow ONLY recognized OAuth or checkout providers
+      if (!isSameDomain && !isTrustedAuth(destHost)) {
+        return true;
+      }
+    } catch {
+      return true; // Malformed URL
+    }
+
+    return false;
   }
 
   // 1. YouTube & YouTube Music Player Response Interceptor
@@ -226,78 +275,97 @@
     };
   }
 
-  // A. Hook window.open (Blocks unsolicited third-party popups & popunders)
+  // Defuse spam notification prompts (blocks fake robot verifications / browser push popups)
+  try {
+    if (window.Notification && typeof window.Notification.requestPermission === 'function') {
+      window.Notification.requestPermission = () => Promise.resolve('denied');
+    }
+  } catch {}
+
+  // A. Hook window.open & Window.prototype.open (God-Level Popup & Popunder Defuser)
   try {
     const originalWindowOpen = window.open;
 
-    window.open = function (url, target, features) {
+    function safeWindowOpen(url, target, features) {
       const urlStr = String(url || '').trim();
-      const currentHost = window.location.hostname.replace(/^www\./, '');
 
-      // 1. Block unassigned/blank window.open popunder staging
-      if (!urlStr || urlStr === '' || urlStr === 'about:blank' || urlStr.toLowerCase() === 'javascript:void(0)') {
-        console.warn('[BYEADS Defuser] Blocked unassigned/blank window.open popunder staging');
+      if (isAdOrPopup(urlStr)) {
+        console.warn('[BYEADS Defuser] Neutralized popup window.open attempt to:', urlStr);
         return createDummyWindow();
-      }
-
-      // 2. Check if URL matches ad patterns
-      if (isAdPattern(urlStr)) {
-        console.warn('[BYEADS Defuser] Blocked ad popup window.open:', url);
-        return createDummyWindow();
-      }
-
-      // 3. Inspect cross-origin destinations
-      if (urlStr.startsWith('http://') || urlStr.startsWith('https://') || urlStr.startsWith('//')) {
-        try {
-          const parsed = new URL(urlStr.startsWith('//') ? window.location.protocol + urlStr : urlStr);
-          const destHost = parsed.hostname.replace(/^www\./, '');
-          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
-
-          if (!isSameDomain) {
-            // Only allow if it is a recognized OAuth login or checkout provider
-            if (!isTrustedAuth(destHost)) {
-              console.warn('[BYEADS Defuser] Blocked untrusted cross-origin popup window.open:', url, '->', destHost);
-              return createDummyWindow();
-            }
-          }
-        } catch {
-          console.warn('[BYEADS Defuser] Blocked malformed popup window.open:', url);
-          return createDummyWindow();
-        }
       }
 
       return originalWindowOpen.apply(this, arguments);
-    };
+    }
+
+    try {
+      Object.defineProperty(window, 'open', {
+        value: safeWindowOpen,
+        writable: false,
+        configurable: false
+      });
+    } catch {
+      window.open = safeWindowOpen;
+    }
+
+    try {
+      Object.defineProperty(Window.prototype, 'open', {
+        value: safeWindowOpen,
+        writable: false,
+        configurable: false
+      });
+    } catch {
+      Window.prototype.open = safeWindowOpen;
+    }
+
+    if (typeof window.openDialog === 'function') {
+      window.openDialog = safeWindowOpen;
+    }
+    if (typeof window.showModalDialog === 'function') {
+      window.showModalDialog = safeWindowOpen;
+    }
+
+    // Dynamic iframe hook: prevent ad scripts from accessing unhooked contentWindow.open
+    const origContentWindowDesc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'contentWindow');
+    if (origContentWindowDesc && origContentWindowDesc.get) {
+      Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+        get: function () {
+          const cw = origContentWindowDesc.get.call(this);
+          if (cw) {
+            try {
+              if (cw.open !== safeWindowOpen) {
+                cw.open = safeWindowOpen;
+              }
+            } catch {}
+          }
+          return cw;
+        },
+        configurable: true
+      });
+    }
   } catch {}
 
-  // B. Hook HTMLAnchorElement.prototype.click (blocks synthetic <a> ad clicks)
+  // B. Hook HTMLAnchorElement.prototype.click & dispatchEvent (blocks synthetic <a> ad clicks)
   try {
     const originalAnchorClick = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
       const href = String(this.href || '').trim();
-      const currentHost = window.location.hostname.replace(/^www\./, '');
-
-      let isExternal = false;
-      let destHost = '';
-      if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) {
-        try {
-          destHost = new URL(href.startsWith('//') ? window.location.protocol + href : href).hostname.replace(/^www\./, '');
-          isExternal = destHost !== currentHost && !destHost.endsWith('.' + currentHost);
-        } catch {}
-      }
-
-      const isDetached = !this.isConnected;
-      const isHidden = this.style.display === 'none' ||
-                       this.style.visibility === 'hidden' ||
-                       this.style.opacity === '0' ||
-                       (this.offsetWidth === 0 && this.offsetHeight === 0);
-
-      if (isAdPattern(href) || (isExternal && !isTrustedAuth(destHost) && (isDetached || isHidden || this.target === '_blank'))) {
-        console.warn('[BYEADS Defuser] Blocked synthetic anchor click ad redirect:', this.href);
+      if (isAdOrPopup(href) || (!this.isConnected && href) || (this.target === '_blank' && isAdOrPopup(href))) {
+        console.warn('[BYEADS Defuser] Blocked synthetic anchor click ad redirect:', href);
         return;
       }
-
       return originalAnchorClick.apply(this, arguments);
+    };
+
+    const origDispatchEvent = EventTarget.prototype.dispatchEvent;
+    EventTarget.prototype.dispatchEvent = function (event) {
+      if (event && (event.type === 'click' || event.type === 'mousedown' || event.type === 'pointerdown' || event.type === 'mouseup')) {
+        const anchor = (this instanceof HTMLAnchorElement) ? this : (this.closest && this.closest('a'));
+        if (anchor && isAdOrPopup(anchor.href)) {
+          console.warn('[BYEADS Defuser] Blocked synthetic dispatchEvent ad popup:', anchor.href);
+          return false;
+        }
+      }
+      return origDispatchEvent.apply(this, arguments);
     };
   } catch {}
 
@@ -305,44 +373,70 @@
   try {
     const originalFormSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
-      const action = String(this.action || '').toLowerCase();
-      if (isAdPattern(action) || (this.target === '_blank' && this.style.display === 'none')) {
-        console.warn('[BYEADS Defuser] Blocked synthetic form submit ad popup:', this.action);
+      const action = String(this.action || '').trim();
+      if ((this.target === '_blank' || this.style.display === 'none') && isAdOrPopup(action)) {
+        console.warn('[BYEADS Defuser] Blocked synthetic form submit ad popup:', action);
         return;
       }
       return originalFormSubmit.apply(this, arguments);
     };
   } catch {}
 
-  // D. Capturing Click Listener: Trap Transparent Overlays & Ad Links
+  // D. Hook EventTarget.prototype.addEventListener (suppress adware click/popunder hijacking)
+  try {
+    const origAddEventListener = EventTarget.prototype.addEventListener;
+    EventTarget.prototype.addEventListener = function (type, listener, options) {
+      if (type === 'click' || type === 'mousedown' || type === 'pointerdown' || type === 'mouseup' || type === 'pointerup') {
+        if (typeof listener === 'function') {
+          const fnStr = listener.toString();
+          if (
+            fnStr.includes('popunder') ||
+            fnStr.includes('popads') ||
+            fnStr.includes('onclickads') ||
+            fnStr.includes('exoclick') ||
+            fnStr.includes('adcash') ||
+            fnStr.includes('propeller') ||
+            fnStr.includes('adsterra') ||
+            fnStr.includes('hilltop') ||
+            fnStr.includes('monetag') ||
+            fnStr.includes('clickadu') ||
+            fnStr.includes('admaven')
+          ) {
+            console.warn('[BYEADS Defuser] Suppressed adware click/mousedown listener registration');
+            return;
+          }
+        }
+      }
+      return origAddEventListener.apply(this, arguments);
+    };
+  } catch {}
+
+  // E. Capturing Click Listener: Trap Transparent Overlays & Ad Links
   try {
     window.addEventListener('click', (e) => {
       const target = e.target;
       if (!target) return;
-      const currentHost = window.location.hostname.replace(/^www\./, '');
 
-      // 1. Transparent / fixed clickjack overlay detection
-      const rect = target.getBoundingClientRect();
-      const isLargeArea = rect.width >= window.innerWidth * 0.35 && rect.height >= window.innerHeight * 0.35;
-
-      if (isLargeArea && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
+      // 1. Transparent / fixed clickjack overlay detection (sensitive to player and button traps)
+      if (target.tagName !== 'VIDEO' && target.tagName !== 'AUDIO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
         const cs = window.getComputedStyle(target);
         const isFixedOrAbs = cs.position === 'fixed' || cs.position === 'absolute';
-        const isTransparent = parseFloat(cs.opacity) <= 0.2 ||
-                              cs.backgroundColor === 'transparent' ||
-                              cs.backgroundColor.includes('rgba(0, 0, 0, 0)') ||
-                              cs.backgroundColor === 'rgba(0,0,0,0)' ||
-                              cs.backgroundColor.includes('rgba(255, 255, 255, 0)');
+        const opacity = parseFloat(cs.opacity);
+        const bg = cs.backgroundColor || '';
+        const isTransparentBg = bg === 'transparent' || bg.includes('rgba(0, 0, 0, 0)') || bg === 'rgba(0,0,0,0)' || bg.includes('rgba(255, 255, 255, 0)');
+        const isTransparent = opacity <= 0.1 || isTransparentBg;
         const zIndex = parseInt(cs.zIndex, 10);
-        const hasHighZ = !isNaN(zIndex) && zIndex >= 50;
+        const hasHighZ = !isNaN(zIndex) && zIndex >= 10;
         const textLen = (target.innerText || '').trim().length;
+        const hasVisibleControls = target.querySelectorAll('input, button, select, textarea').length > 0;
+        const rect = target.getBoundingClientRect();
 
-        if (isFixedOrAbs && (isTransparent || hasHighZ) && textLen < 25) {
+        if (isFixedOrAbs && isTransparent && textLen < 15 && !hasVisibleControls && (hasHighZ || (rect.width >= 120 && rect.height >= 80))) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           target.remove();
-          console.warn('[BYEADS Defuser] Neutralized and removed full-screen clickjack overlay');
+          console.warn('[BYEADS Defuser] Neutralized and removed clickjack trap overlay');
           return false;
         }
       }
@@ -351,28 +445,13 @@
       const anchor = target.closest('a');
       if (anchor) {
         const href = String(anchor.href || '').trim();
-        if (isAdPattern(href)) {
+        if (isAdOrPopup(href)) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           anchor.remove();
           console.warn('[BYEADS Defuser] Neutralized click on ad link:', href);
           return false;
-        }
-
-        if (anchor.target === '_blank' && (href.startsWith('http://') || href.startsWith('https://'))) {
-          try {
-            const destHost = new URL(href).hostname.replace(/^www\./, '');
-            const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
-            if (!isSameDomain && isAdPattern(destHost)) {
-              e.preventDefault();
-              e.stopPropagation();
-              e.stopImmediatePropagation();
-              anchor.remove();
-              console.warn('[BYEADS Defuser] Blocked target=_blank ad redirect click:', href);
-              return false;
-            }
-          } catch {}
         }
       }
     }, true);

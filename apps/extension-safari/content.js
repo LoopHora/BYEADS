@@ -9,6 +9,20 @@
 (function () {
   'use strict';
 
+  // Guarantee MAIN world execution of defuser.js (critical for Firefox MV2 and prototype locking)
+  function ensureMainWorldDefuser() {
+    if (document.getElementById('byeads-defuser-core')) return;
+    try {
+      const script = document.createElement('script');
+      script.id = 'byeads-defuser-core';
+      script.src = chrome.runtime.getURL('defuser.js');
+      script.async = false;
+      (document.head || document.documentElement).prepend(script);
+      script.onload = () => script.remove();
+    } catch {}
+  }
+  ensureMainWorldDefuser();
+
   const hostname = window.location.hostname.replace(/^www\./, '');
   let byeadsActive = true;
   let isWhitelisted = false;
@@ -305,11 +319,71 @@
       a[href*="exoclick.com"],
       a[href*="monetag.com"],
       a[href*="bet365.com"],
-      a[href*="1xbet.com"] {
+      a[href*="1xbet.com"],
+
+      /* Outstream & Floating Sticky Corner Video Players ("Whooshing" Video Ads) */
+      div[class*="corner-player"],
+      div[id*="corner-player"],
+      div[class*="sticky-player"],
+      div[id*="sticky-player"],
+      div[class*="floating-player"],
+      div[id*="floating-player"],
+      div[class*="dock-player"],
+      div[class*="docked-player"],
+      div[class*="outstream"],
+      div[id*="outstream"],
+      div[class*="in-stream-ad"],
+      div[class*="instream-ad"],
+      div[class*="flyin-ad"],
+      div[class*="slide-in-ad"],
+      div[class*="slidein-ad"],
+      div[class*="floater-ad"],
+      div[class*="adhesive-ad"],
+      div[class*="gutter-ad"],
+      div[id*="vdoai"],
+      div[class*="vdo-ai"],
+      div[id*="primis"],
+      div[class*="primis"],
+      div[id*="connatix"],
+      div[class*="connatix"],
+      div[id*="brid_"],
+      div[class*="brid-player"],
+      div[id*="aniview"],
+      div[class*="aniview"],
+      div[class*="playwire"],
+      div[id*="playwire"],
+      div[class*="anyclip"],
+      div[id*="anyclip"],
+      div[class*="teads"],
+      div[id*="teads"],
+      div[class*="undertone"],
+      div[id*="undertone"],
+      div[class*="kargo"],
+      div[class*="ad-dock"],
+      div[class*="sticky-dock"],
+      div[class*="sticky-video-container"],
+      div[class*="video-ad-dock"],
+      div[class*="floating-video"],
+      div[id*="floating-video"],
+      div[class*="interstitial-ad"],
+      div[id*="interstitial-ad"],
+      div[class*="takeover-ad"],
+      div[id*="takeover-ad"],
+      div[class*="overlay-ad"],
+      div[id*="overlay-ad"],
+      div[class*="ad-overlay"],
+      div[id*="ad-overlay"],
+      div[class*="ad-wrapper-floating"],
+      div[class*="floating-banner"],
+      div[id*="floating-banner"],
+      div[class*="corner-banner"],
+      div[id*="corner-banner"] {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
+        visibility: hidden !important;
         height: 0 !important;
+        width: 0 !important;
       }
 
       @layer byeads_override {
@@ -1064,12 +1138,66 @@
     return el.tagName.toLowerCase();
   }
 
-  // 7. Invisible Clickjack & Popunder Trap Killer
+  // 7. Outstream Floating Sticky Corner Video & Takeover Neutralizer ("Whooshing" Video Ads)
+  const OUTSTREAM_PATTERNS = [
+    'corner-player', 'sticky-player', 'floating-player', 'dock-player', 'docked-player',
+    'outstream', 'instream-ad', 'flyin-ad', 'slide-in-ad', 'slidein-ad', 'floater-ad',
+    'adhesive-ad', 'gutter-ad', 'vdoai', 'vdo-ai', 'primis', 'connatix', 'brid_',
+    'brid-player', 'aniview', 'playwire', 'anyclip', 'teads', 'undertone', 'kargo',
+    'ad-dock', 'sticky-dock', 'sticky-video-container', 'video-ad-dock', 'floating-video',
+    'interstitial-ad', 'takeover-ad', 'floating-banner', 'corner-banner'
+  ];
+
+  function killFloatingAndOutstreamAds() {
+    if (!byeadsActive || isWhitelisted) return;
+    try {
+      // 1. Selector-based fast cleanup
+      const selector = OUTSTREAM_PATTERNS.map(p => `div[class*="${p}"], div[id*="${p}"]`).join(', ');
+      const candidates = document.querySelectorAll(selector);
+      candidates.forEach((el) => {
+        el.querySelectorAll('video').forEach(v => {
+          try { v.pause(); v.src = ''; } catch {}
+        });
+        el.remove();
+      });
+
+      // 2. Structural heuristic: fixed/sticky corner video widgets that warp/whoosh into view
+      const fixedContainers = document.querySelectorAll('div, aside, section');
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      fixedContainers.forEach((el) => {
+        if (el === document.body || el === document.documentElement) return;
+        if (el.id === 'byeads-zapper-overlay' || el.closest('#byeads-zapper-overlay')) return;
+
+        const style = window.getComputedStyle(el);
+        if (style.position !== 'fixed' && style.position !== 'sticky') return;
+
+        const rect = el.getBoundingClientRect();
+        // Floating corner widget: 140px-500px wide, 80px-380px high, docked near screen edges
+        const isCornerSize = rect.width >= 140 && rect.width <= 500 && rect.height >= 80 && rect.height <= 380;
+        const isDockedCorner = (rect.bottom >= vh - 60 && (rect.right >= vw - 60 || rect.left <= 60));
+
+        if (isCornerSize && isDockedCorner) {
+          const hasVideoOrIframe = el.querySelector('video, iframe');
+          const hasAdKeywords = /ad|sponsor|promo|outstream|vdo|primis|brid|connatix|video-dock/i.test(el.className + ' ' + el.id);
+          if (hasVideoOrIframe && (hasAdKeywords || !el.querySelector('nav, main, header, article'))) {
+            el.querySelectorAll('video').forEach(v => {
+              try { v.pause(); v.src = ''; } catch {}
+            });
+            el.remove();
+          }
+        }
+      });
+    } catch {}
+  }
+
+  // 8. Invisible Clickjack & Popunder Trap Killer
   let lastClickjackAlertTime = 0;
   function killInvisibleClickjacks() {
     if (!byeadsActive || isWhitelisted) return;
 
-    const elements = document.querySelectorAll('div, a, span, section');
+    const elements = document.querySelectorAll('div, a, span, section, p');
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -1083,19 +1211,26 @@
         if (pos !== 'fixed' && pos !== 'absolute') return;
 
         const zIndex = parseInt(style.zIndex, 10);
-        if (isNaN(zIndex) || zIndex < 400) return;
+        if (isNaN(zIndex) || zIndex < 10) return;
 
         const rect = el.getBoundingClientRect();
-        if (rect.width >= vw * 0.65 && rect.height >= vh * 0.65) {
+        // Catch both full-screen invisible covers and targeted button/player clickjackers
+        const isCoverageTrap = (rect.width >= vw * 0.4 && rect.height >= vh * 0.4) ||
+                               (rect.width >= 100 && rect.height >= 60 && zIndex >= 50);
+
+        if (isCoverageTrap) {
           const opacity = parseFloat(style.opacity);
           const bg = style.backgroundColor;
-          const isTransparentBg = bg === 'transparent' || bg.includes('rgba(0, 0, 0, 0)') || bg === 'rgba(0,0,0,0)';
-          const isTransparent = opacity <= 0.1 || isTransparentBg;
+          const isTransparentBg = bg === 'transparent' ||
+                                  bg.includes('rgba(0, 0, 0, 0)') ||
+                                  bg === 'rgba(0,0,0,0)' ||
+                                  bg.includes('rgba(255, 255, 255, 0)');
+          const isTransparent = opacity <= 0.15 || isTransparentBg;
 
-          const hasVisibleControls = el.querySelectorAll('input, form, button, h1, h2, h3, p, video').length > 0;
+          const hasRealControls = el.querySelectorAll('input, select, textarea, form, h1, h2, h3, video').length > 0;
           const textLength = (el.innerText || '').trim().length;
 
-          if ((isTransparent && textLength < 10 && !hasVisibleControls) || (opacity === 0)) {
+          if ((isTransparent && textLength < 15 && !hasRealControls) || opacity === 0) {
             el.remove();
 
             const now = Date.now();
@@ -1114,7 +1249,44 @@
     });
   }
 
-  // Trap any click on an invisible overlay or ad redirect link in capturing phase
+  // 9. Trap Any Click on an Invisible Overlay or Ad Redirect Link in Capturing Phase
+  const EXTENDED_AD_PATTERNS = [
+    'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
+    'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'exosrv', 'realsrv',
+    'clickadu', 'yllix', 'bidvertiser', 'admaven', 'ad-maven', 'deloton', 'zeroredirect',
+    'alwingulla', 'onclickperformance', 'popunder', 'trafficstars', 'plugrush', 'popmyads',
+    'directrev', 'adnetworkperformance', 'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain',
+    'mgid', 'revcontent', 'doubleclick', 'googlesyndication', 'adservice.google',
+    'smartadserver', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga', 'onclick',
+    'direct-link', 'redirect-jump', 'linkbucks', 'ouo.io', 'adf.ly', 'shorte.st',
+    'richpush', 'a-ads', 'voluumtrk', 'redtrack', 'bemob', 'aniview', 'vdo.ai',
+    'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav', 'rollerads', 'clickaine'
+  ];
+
+  const REDIRECT_GATE_PATHS = [
+    '/jump', '/go/', '/out/', '/redirect', '/click', '/link/', '/gate/', '/pop', '/track', '/away'
+  ];
+
+  function isAdClickTarget(targetHref) {
+    if (!targetHref || targetHref === '#' || targetHref.startsWith('javascript:')) return false;
+    try {
+      const resolved = new URL(targetHref, window.location.href);
+      const destHost = resolved.hostname.toLowerCase().replace(/^www\./, '');
+      const currentHost = window.location.hostname.toLowerCase().replace(/^www\./, '');
+      const fullPath = (resolved.pathname + resolved.search).toLowerCase();
+
+      // Direct pattern match
+      if (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p) || fullPath.includes(p))) return true;
+
+      // Same-host redirect gates
+      if (destHost === currentHost || destHost.endsWith('.' + currentHost)) {
+        if (REDIRECT_GATE_PATHS.some(rg => fullPath.includes(rg))) return true;
+        if (/(\?|&)(url|dest|target|redirect|link|to|clickid)=https?:\/\//i.test(fullPath)) return true;
+      }
+    } catch {}
+    return false;
+  }
+
   window.addEventListener('click', (e) => {
     if (!byeadsActive || isWhitelisted) return;
     const target = e.target;
@@ -1123,15 +1295,8 @@
     // 1. Check if target or parent is an ad-link
     const anchor = target.closest('a');
     if (anchor) {
-      const href = String(anchor.href || '').toLowerCase();
-      const AD_PATTERNS = [
-        'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
-        'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'clickadu', 'yllix',
-        'bidvertiser', 'admaven', 'deloton', 'zeroredirect', 'alwingulla', 'onclickperformance',
-        'bet365', '1xbet', 'spinanga', 'vulkanvegas', 'clck.ru', 'terraclicks', 'propellerclick',
-        'direct-link', 'redirect-jump', 'linkbucks', 'ouo.io', 'adf.ly', 'shorte.st'
-      ];
-      if (AD_PATTERNS.some(p => href.includes(p))) {
+      const href = String(anchor.href || '');
+      if (isAdClickTarget(href)) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -1139,13 +1304,13 @@
         return false;
       }
 
-      // If link opens in _blank to an external ad domain on shady/streaming/adware sites
+      // Check external _blank links on suspicious or media/streaming sites
       if (anchor.target === '_blank' && (href.startsWith('http://') || href.startsWith('https://'))) {
         try {
           const currentHost = window.location.hostname.replace(/^www\./, '');
           const destHost = new URL(href).hostname.replace(/^www\./, '');
           const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
-          if (!isSameDomain && AD_PATTERNS.some(p => destHost.includes(p))) {
+          if (!isSameDomain && EXTENDED_AD_PATTERNS.some(p => destHost.includes(p))) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -1158,8 +1323,10 @@
 
     // 2. Check if clicked element is a transparent or clickjack overlay
     const rect = target.getBoundingClientRect();
-    const isLargeArea = rect.width >= window.innerWidth * 0.35 && rect.height >= window.innerHeight * 0.35;
-    if (isLargeArea && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
+    const isOverlaySize = (rect.width >= window.innerWidth * 0.25 && rect.height >= window.innerHeight * 0.25) ||
+                          (rect.width >= 100 && rect.height >= 60);
+
+    if (isOverlaySize && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
       const style = window.getComputedStyle(target);
       const isFixed = style.position === 'fixed' || style.position === 'absolute';
       const isTransparent = parseFloat(style.opacity) <= 0.2 ||
@@ -1168,10 +1335,10 @@
                             style.backgroundColor === 'rgba(0,0,0,0)' ||
                             style.backgroundColor.includes('rgba(255, 255, 255, 0)');
       const zIndex = parseInt(style.zIndex, 10);
-      const hasHighZ = !isNaN(zIndex) && zIndex >= 50;
+      const hasHighZ = !isNaN(zIndex) && zIndex >= 20;
       const textLen = (target.innerText || '').trim().length;
 
-      if (isFixed && (isTransparent || hasHighZ) && textLen < 25) {
+      if (isFixed && (isTransparent || hasHighZ) && textLen < 20 && !target.querySelector('input, select, textarea, form, video')) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -1319,6 +1486,7 @@
   handleSocialMediaCleaners();
   scanForDeceptiveButtons();
   killInvisibleClickjacks();
+  killFloatingAndOutstreamAds();
   setTimeout(handleCookieBanners, 800);
   setTimeout(trackCosmeticBlocks, 1200);
 
@@ -1329,6 +1497,7 @@
   setInterval(handleFileHosterCleaners, 1000);
   setInterval(handleSocialMediaCleaners, 1000);
   setInterval(killInvisibleClickjacks, 1000);
+  setInterval(killFloatingAndOutstreamAds, 1000);
   setInterval(trackCosmeticBlocks, 2000);
 
   // Dynamic mutation observer
@@ -1340,6 +1509,7 @@
     scanForDeceptiveButtons();
     handleCookieBanners();
     killInvisibleClickjacks();
+    killFloatingAndOutstreamAds();
     trackCosmeticBlocks();
   });
 

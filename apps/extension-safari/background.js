@@ -165,8 +165,11 @@ const POPUP_AD_PATTERNS = [
   'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain', 'mgid', 'revcontent', 'doubleclick',
   'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
   'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
-  'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump', 'adkeeper',
-  'adserver', 'infolinks', 'terraclicks', 'propellerclick', 'linkbucks', 'adf.ly', 'ouo.io'
+  'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'affid=', 'zoneid=', 'direct-link',
+  'redirect-jump', 'adkeeper', 'adserver', 'infolinks', 'terraclicks', 'propellerclick',
+  'linkbucks', 'adf.ly', 'ouo.io', 'richpush', 'a-ads', 'voluumtrk', 'redtrack', 'bemob',
+  'aniview', 'vdo.ai', 'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav',
+  'rollerads', 'clickaine'
 ];
 
 function isAdOrPopupUrl(url) {
@@ -210,7 +213,7 @@ async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
 
       // If opening an unverified third-party cross-origin domain
       if (!isSameDomain && !isTrustedAuthHost(targetHost)) {
-        if (isAdOrPopupUrl(targetHost) || isAdOrPopupUrl(targetUrlStr) || isAdPattern(targetHost)) {
+        if (isAdOrPopupUrl(targetHost) || isAdOrPopupUrl(targetUrlStr)) {
           chrome.tabs.remove(tabId, () => {
             stats.adsBlocked = (stats.adsBlocked || 0) + 1;
             chrome.storage.local.set({ byeads_stats: stats });
