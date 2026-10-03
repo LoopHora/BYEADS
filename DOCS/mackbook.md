@@ -6,7 +6,6 @@ On a MacBook, BYEADS can follow a similar workflow to Windows: the user installs
 
 macOS also supports native applications and system-level networking integrations, which could allow BYEADS to offer richer monitoring in the future. However, a PWA alone cannot inspect all Mac network traffic or independently detect every system configuration.
 
-[Old Republic Cyber | Cyber Insurance & Liability Coverage](https://images.openai.com/static-rsc-4/fpzc5-ZCsgXW9KiHoBFwDxX_STH75FvMCQkES2zwVNWkKlJi2Jtq18iS9gcQx0i7js0n2BdhsPDEzdkztc8FFvyCpmIudJMapM6bbli-Yg2aB0RCNGg0o4VMT9NcA2GTHmBvrq_aebWg876GXff0i8FDKWQhW4VdglcIsWlAYct8KpKXSxwJSGOMkPwyyaYg?purpose=fullsize)
 
 ## 1. How BYEADS works on MacBook
 
@@ -103,7 +102,6 @@ Filtering status and monitoring status should be reported independently.
 
 ## 5. Advanced option: Native macOS integration
 
-[Cyber Security Dashboard :: Behance](https://images.openai.com/static-rsc-4/kpdhLlxxiwJ0FhE3558h_Okk_a-be5IMS_NaO5SU5gfFDcD09vJdVUBRCjKhTEaAgECw7U3eBwxO2ukqJECzBxqcthyde2eVQSImegiqJQoPLyX_JK_tR81B1ehB39P2omg5-d_lKdUatp_4XaNGt1Il94Jq98bEXFL0XCkbsoF-8oF8UynBTpKqy_JCdWL8?purpose=fullsize)
 
 If you want BYEADS to behave more like a native security application, a future macOS companion app could provide additional integration:
 

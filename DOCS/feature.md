@@ -113,11 +113,6 @@ DNS Shield can block known dangerous destination domains, while Web Shield can e
 
 The PWA is the installation and management interface, not a replacement for operating-system networking permissions. Apple documents encrypted DNS settings separately from advanced content filtering and URL filtering. Some deeper system-wide filtering features require native Network Extension capabilities, appropriate entitlements or platform-specific distribution arrangements.&#x20;
 
-[image](https://www.google.com/s2/favicons?domain=https://support.apple.com\&sz=32)
-
-Apple Support
-
-+3
 
 
 
@@ -170,11 +165,6 @@ That means we can make the PWA the main entry point and avoid requiring an app-s
 
 The final architecture should treat every module as a separately testable component. DNS filtering can work across the operating system, while the browser extension provides contextual detection that DNS cannot see. On iOS, we should accurately distinguish the capabilities of an installed DNS profile from those of a native filtering extension.&#x20;
 
-[image](https://www.google.com/s2/favicons?domain=https://support.apple.com\&sz=32)
-
-Apple Support
-
-+2
 
 
 

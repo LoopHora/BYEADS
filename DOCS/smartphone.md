@@ -4,7 +4,6 @@ Device 2 · Android smartphones · Mobile browsers, Private DNS and PWA
 
 On Android, BYEADS can operate through three separate approaches: a compatible mobile browser extension, Android's Private DNS setting, or the BYEADS web dashboard/PWA. These approaches do not provide identical protection, and installing the PWA alone does not activate system-wide ad blocking.
 
-[Cara Menghilangkan Iklan Google Chrome di HP: Panduan Lengkap untuk Browsing Bebas Gangguan - KapanLagi.com](https://images.openai.com/static-rsc-4/ShmHqm9H30CEEKiWpkqSQ61ZYhIDQ50Tnjryr4CSgm5bLn5xX9_Txf2OMLYKZR9zzCn_1F6OPloOTYcSgAzL4qqd0mivvB_g7e0GE3Rvwrho-FT2xWlf1gX6kzIFQhn6M6hYoCml1rrBHe0YAGS_FKykKdsVjYT3bkVCFkAfPnaUZNRNnzF8eowOGgzg3rvf?purpose=fullsize)
 
 ## 1. How BYEADS works on Android
 
@@ -70,7 +69,6 @@ A practical workflow. Exact screen names and setup steps may vary by Android ver
 
 ## 4. Example: A user watches a video on Android
 
-[Orange and Synamedia Partner to Launch First Telco–Multi-CDN Solution - TechAfrica News](https://images.openai.com/static-rsc-4/cRNeg8naQ7AXsP0N9sBOPFPxm0E7Mty0QAB8kyhyVM7N5LASXSLO4mdyp01s4QGG02d9FMzMDi43KsfztBbGadVHMQ6nt_VqwN-Q7bDgO_RBSq5-_rP52TDg97fP4ChiqMIlgFiM2kCCGjqjV5FRkh2FIVJHPloN9zD9U7J0wAET7JpSDwcusMTWI8m7Kbc-?purpose=fullsize)
 
 When the user opens a video website
 
@@ -107,7 +105,6 @@ Device 3 · Apple iPhone · Safari, DNS configuration and PWA
 
 On an iPhone, BYEADS works differently from Windows and Android because iOS restricts how browser extensions, DNS filtering and web apps interact with the operating system. The main approaches are Safari content blocking (if BYEADS provides a compatible Safari extension), DNS filtering through a supported configuration, and the BYEADS web dashboard or PWA.
 
-[How to use tabs and private browsing in Safari for iPhone and iPad | iMore](https://images.openai.com/static-rsc-4/iHydFTNU36gNrDHAkp8Dco2c_N6n9d7QX8A8kMspWeq_N--tIVZ8QFIhBk8I_zw5VgSpWrCSYumDQ9tbVVzWLgt6WqTZMIi4S5uGFWx1-m16R-EoKQRkSWdE0cB9W1b7jtJl3N-Rt7eTNEZyvZfYowqlAMBX7iWZeen0Xlhjh-ZW93OAM1U-lRQ4YQUpwfGz?purpose=fullsize)
 
 ## 1. How BYEADS works on iPhone
 
@@ -180,7 +177,6 @@ The workflow below is based on the protection methods described in the audit. Ex
 
 ## 4. Example: Watching YouTube on iPhone
 
-[Mẹo Sửa Lỗi Không Xem Được Video Trên Safari Trong Nháy Mắt](https://images.openai.com/static-rsc-4/p8YciEthRwdjQu9juh3ccXld9mitiQcVAm6xO398bobL63qN-s7QfwqII_MLFwJbpeSTmL84H0Pz4ZD5gKoMQYOgy4uuPEgJxLcHLVDgh6YyY6JfaGft_x_QTVhx05KwBxUsY1XwS6YDSgJ-ofY8kc3fSVVq5HnFHyFHPYwcEq6HSYpwC-ifIhl0jCh6qnBb?purpose=fullsize)
 
 When a user watches a video through Safari:
 
@@ -221,7 +217,6 @@ The idea is to make BYEADS feel like a native security app, where the dashboard 
 
 Proposed user experience for iPhone, with a similar approach possible on Android.
 
-[Smart Cybersecurity Mobile App Design. by MaMuN AhAmEd on Dribbble](https://images.openai.com/static-rsc-4/mboI85MOt7QLjcr8We7BYKpPZRM-EWDUtsYW8F7AzO5rTswOl8HK-596HyvXkqgzc5r8lC5vkJzRBCQ_kMcyKLe1PATZAnxtW2U09usLsbMZ4oFEeTlPWEcHYwdd2pJWoWi0labWceiiQCdHJJRV0nOZ8gdTtxYuk2G1gXDR51OM6YvcZ1pWi771X8D399jI?purpose=fullsize)
 
 Illustrative dashboard concept, not a screenshot of the current BYEADS app.
 
@@ -346,7 +341,6 @@ Yes. BYEADS can use a similar automatic activation and live dashboard workflow o
 
 Proposed Android user experience · Private DNS + PWA dashboard
 
-[Next Dash DNS | Controle Rápido, Seguro e Inteligente do NextDNS](https://images.openai.com/static-rsc-4/C30Nc0FVHSAIheRkAoIecxoJMq2gf7yzjmbg1yfda-mgwHeYe-QhgmwqJLt5c_zJ_AYyAIWi8CyDcHC1sn6i2htL0qPlVzLvAwDrcSy1zxd4o1vnWFs2I_A2xq-Cz35tac9ou7bBLsqevokd-Ddz7PKCxtrQuD9ktBE3I2rZE5wv3feM3lh1J_SWfzxZYGBO?purpose=fullsize)
 
 ## 1. How it works
 
