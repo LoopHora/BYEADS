@@ -88,15 +88,10 @@
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      // Block ad telemetry & Spotify ad configuration endpoints
+      // Block pure ad telemetry trackers (NEVER block audio-fa.scdn.co or spclient player APIs)
       if (
         url.includes('adeventtracker.spotify.com') ||
-        url.includes('ads-fa.spotify.com') ||
-        url.includes('audio-fa.scdn.co') ||
-        url.includes('/ad-logic/') ||
-        url.includes('/ad-experiences/') ||
-        url.includes('/desktop-omni-ads/') ||
-        url.includes('spclient.wg.spotify.com/ads/')
+        url.includes('ads-fa.spotify.com')
       ) {
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
@@ -138,11 +133,6 @@
           u.includes('/api/stats/ads') ||
           u.includes('adeventtracker.spotify.com') ||
           u.includes('ads-fa.spotify.com') ||
-          u.includes('audio-fa.scdn.co') ||
-          u.includes('/ad-logic/') ||
-          u.includes('/ad-experiences/') ||
-          u.includes('/desktop-omni-ads/') ||
-          u.includes('spclient.wg.spotify.com/ads/') ||
           isAdPattern(u) // God-Level Block: XHR ad patterns
         ) {
           console.warn('[BYEADS Defuser] Blocked background XHR ad request:', u);
@@ -464,5 +454,32 @@
     window.CoinImp = noopMiner;
     window.CryptoLoot = noopMiner;
     window.WebMinePool = noopMiner;
+  } catch {}
+
+  // 9. Spotify Web Player Audio Stream Ad Neutralizer (Main World Hook)
+  try {
+    if (window.location.hostname.includes('spotify.com')) {
+      const origPlay = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function () {
+        if (this.tagName === 'AUDIO') {
+          const docTitle = (document.title || '').toLowerCase();
+          const isAd = docTitle.includes('advertisement') ||
+                       !!document.querySelector('[data-testid="track-info-advertiser"], [data-testid="context-item-info-ad-title"], [aria-label="Advertisement"], [data-testid="ad-break"]');
+          if (isAd) {
+            this.muted = true;
+            try {
+              this.playbackRate = 16.0;
+              if (this.duration && isFinite(this.duration) && this.currentTime < this.duration - 0.2) {
+                this.currentTime = this.duration - 0.1;
+              }
+            } catch {}
+          } else {
+            if (this.playbackRate > 1.0) this.playbackRate = 1.0;
+            this.muted = false;
+          }
+        }
+        return origPlay.apply(this, arguments);
+      };
+    }
   } catch {}
 })();

@@ -162,7 +162,7 @@
       #branch-banner-iframe,
       div[class*="branch-journey"],
 
-      /* Spotify Web Player Ad Slots */
+      /* Spotify Web Player Ad Slots & Upgrade Nags */
       div[data-testid="ad-banner"],
       div[data-testid="in-app-ad"],
       div[data-testid="desktop-client-sponsor-container"],
@@ -175,6 +175,11 @@
       a[href*="spotify:ad:"],
       button[data-testid="ad-feedback-button"],
       span[data-testid="track-info-advertiser"],
+      button[data-testid="upgrade-button"],
+      [aria-label="Upgrade to Premium"],
+      div[class*="GenericModal"]:has([aria-label="Advertisement"]),
+      div[class*="GenericModal"]:has(button[data-testid="ad-feedback-button"]),
+      div:has(> a[href*="spotify:ad:"]),
 
       /* TeraBox Ad & Forced App Download Guide Modals */
       div[class*="GuideModal"],
@@ -388,29 +393,36 @@
 
     // --- B. Spotify Web Player (open.spotify.com) ---
     if (hostname.includes('spotify.com')) {
-      // 1. Direct ad indicators (titles, advertiser tags, ad buttons, ad links)
       const docTitle = document.title.toLowerCase();
-      const hasAdIndicator =
-        docTitle.includes('advertisement') ||
-        docTitle.startsWith('spotify – advertisement') ||
-        !!document.querySelector(
-          '[data-testid="context-item-info-ad-title"], [data-testid="track-info-advertiser"], [aria-label="Advertisement"], a[href*="spotify:ad:"], [data-testid="ad-feedback-button"], [data-testid="ad-break"]'
-        ) ||
-        document.querySelector('[data-testid="now-playing-widget"] [data-testid="context-item-info-title"]')?.textContent?.trim().toLowerCase() === 'advertisement' ||
-        document.querySelector('[data-testid="context-item-link"]')?.textContent?.trim().toLowerCase() === 'advertisement';
 
-      // 2. Track link verification
-      const hasRealTrackLink = !!document.querySelector(
-        '[data-testid="now-playing-widget"] a[href*="/track/"], [data-testid="now-playing-widget"] a[href*="/album/"], [data-testid="context-item-info-title"] a[href*="/track/"]'
+      // 1. Explicit advertisement title indicators
+      const hasAdTitle = docTitle.includes('advertisement');
+
+      // 2. Explicit ad widgets, advertiser badges, ad breaks, or ad feedback buttons
+      const adWidget = document.querySelector(
+        '[data-testid="context-item-info-ad-title"], ' +
+        '[data-testid="track-info-advertiser"], ' +
+        '[aria-label="Advertisement"], ' +
+        '[data-testid="ad-break"], ' +
+        '[data-testid="ad-feedback-button"], ' +
+        'a[href*="spotify:ad:"]'
       );
 
-      // Trigger ad mode if explicit indicator exists OR when playing without a valid track/album link while in generic player state
-      const isSpotifyAd = hasAdIndicator || (!hasRealTrackLink && (docTitle.startsWith('spotify') && !docTitle.includes('·')));
+      // 3. Check track title in player bar
+      const nowPlayingTitle = document.querySelector(
+        '[data-testid="now-playing-widget"] [data-testid="context-item-info-title"], ' +
+        '[data-testid="context-item-info-title"]'
+      );
+      const titleText = nowPlayingTitle ? nowPlayingTitle.textContent.trim().toLowerCase() : '';
+      const isTitleAd = titleText === 'advertisement' || titleText.startsWith('advertisement');
+
+      // Strict, reliable advertisement detection (NO false-positives when browsing or paused)
+      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd;
 
       const audios = document.querySelectorAll('audio, video');
 
       if (isSpotifyAd) {
-        // Mute audio during advertisement
+        // Advertisement detected: Mute audio immediately and fast-forward
         audios.forEach((audio) => {
           if (!audio.muted) {
             audio.muted = true;
@@ -419,14 +431,14 @@
           audio.volume = 0;
           try {
             audio.playbackRate = 16.0;
-            // Advance to the end of the ad track so it completes quickly without skipping real tracks
-            if (audio.duration && !isNaN(audio.duration) && audio.currentTime < audio.duration - 0.2) {
+            // Advance near the end of the ad track so it concludes quickly
+            if (audio.duration && isFinite(audio.duration) && audio.currentTime < audio.duration - 0.2) {
               audio.currentTime = audio.duration - 0.1;
             }
           } catch {}
         });
 
-        // Attempt skip button click if available
+        // Trigger skip button if available and enabled
         try {
           const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
           if (skipBtn && !skipBtn.disabled && skipBtn.getAttribute('aria-disabled') !== 'true') {
@@ -434,9 +446,12 @@
           }
         } catch {}
 
-        // Purge visual billboard and modal overlays
+        // Dismiss visual billboard and modal overlays
         document.querySelectorAll(
-          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-message-wrapper"], [data-testid="ad-break"], [data-testid="track-info-advertiser"], a[href*="spotify:ad:"], div[class*="GenericModal"]'
+          '[data-testid="billboard-ad"], [data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], ' +
+          '[data-testid="in-app-message-wrapper"], [data-testid="ad-break"], [data-testid="track-info-advertiser"], ' +
+          'a[href*="spotify:ad:"], div[class*="GenericModal"]:has([aria-label="Advertisement"]), ' +
+          'div[class*="GenericModal"]:has(button[data-testid="ad-feedback-button"])'
         ).forEach((el) => {
           try { el.remove(); } catch {}
         });
@@ -455,16 +470,16 @@
           } catch {}
         }
       } else {
-        // Real music playing: ALWAYS ensure audio is unmuted and audible
+        // Real music playing or player ready: ALWAYS ensure audio is audible and normal speed
         audios.forEach((audio) => {
-          if (audio.muted) {
+          if (audio.playbackRate > 1.0) {
+            audio.playbackRate = 1.0;
+          }
+          if (wasMutedByAd || audio.muted) {
             audio.muted = false;
           }
           if (audio.volume === 0) {
             audio.volume = 1.0;
-          }
-          if (audio.playbackRate > 1.0) {
-            audio.playbackRate = 1.0;
           }
         });
         if (wasMutedByAd) {
