@@ -1,0 +1,219 @@
+[Adblock Plus 2.0]
+! Title: BYEADS Custom Filter List (wBlock Compatible)
+! Description: Official BYEADS ruleset for wBlock on iOS, iPadOS, and macOS Safari.
+! Version: 1.0.0
+! Homepage: https://github.com/LoopHora/BYEADS
+! License: MIT
+! Last Modified: 2026-10-02
+! Expires: 4 days
+! -----------------------------------------------------------------------------
+! COMPATIBILITY NOTICE:
+! This filter list uses standard Adblock Plus / Safari Content Blocker syntax.
+! Supported in wBlock:
+!  - Domain-level network request blocking (||domain.com^)
+!  - Path and URL pattern matching (||domain.com/path*)
+!  - CSS element hiding (cosmetic filtering: ##.selector)
+!
+! Unsupported in wBlock (Due to Safari Content Blocking declarative architecture):
+!  - Scriptlet defusion and procedural timer acceleration (e.g. fast-forwarding video ads)
+!  - Dynamic fake button click-jacking detection (DOM heuristics)
+!  - Real-time file download double-extension interception (.pdf.exe)
+! These advanced features run natively in BYEADS's first-party Chrome and Firefox extensions.
+! -----------------------------------------------------------------------------
+
+! === SECTION 1: AD NETWORKS & POPUP INVENTORY ===
+||doubleclick.net^
+||googlesyndication.com^
+||adservice.google.com^
+||googleadservices.com^
+||adnxs.com^
+||criteo.com^
+||taboola.com^
+||outbrain.com^
+||amazon-adsystem.com^
+||adsterra.com^
+||adcash.com^
+||popcash.net^
+||popads.net^
+||propellerads.com^
+||onclickads.net^
+||revcontent.com^
+||mgid.com^
+||ezoic.com^
+||media.net^
+||buysellads.com^
+||carbonads.net^
+||moatads.com^
+||openx.net^
+||rubiconproject.com^
+||pubmatic.com^
+||casalemedia.com^
+||smartadserver.com^
+||monetag.com^
+||hilltopads.com^
+||hilltopads.net^
+||exoclick.com^
+||exdynsrv.com^
+||exosrv.com^
+||realsrv.com^
+||rtmark.net^
+||clickadu.com^
+||yllix.com^
+||bidvertiser.com^
+||admaven.com^
+||ad-maven.com^
+||deloton.com^
+||zeroredirect.com^
+||alwingulla.com^
+||onclickperformance.com^
+||popunder.net^
+||popmyads.com^
+||doublepimp.com^
+||traffichaus.com^
+||trafficstars.com^
+||plugrush.com^
+||trafficjunky.com^
+||trafficjunky.net^
+||juicyads.com^
+||tsyndicate.com^
+||directrev.com^
+||adnetworkperformance.com^
+||infolinks.com^
+||adroll.com^
+
+! === SECTION 2: TELEMETRY & BEHAVIORAL TRACKERS ===
+||google-analytics.com^
+||hotjar.com^
+||clarity.ms^
+||scorecardresearch.com^
+||quantserve.com^
+||pushwelcome.com^
+||pushassist.com^
+||pushwoosh.com^
+
+! === SECTION 3: DECEPTIVE REDIRECTS & GAMBLING TRAPS ===
+||clck.ru^
+||terraclicks.com^
+||propellerclick.com^
+||bet365.com^
+||1xbet.com^
+||spinanga.com^
+||vulkanvegas.com^
+
+! === SECTION 4: YOUTUBE AD TELEMETRY (URL-LEVEL) ===
+||youtube.com/api/stats/ads*
+||youtube.com/pagead/*
+||youtube.com/ptracking*
+||music.youtube.com/api/stats/ads*
+
+! === SECTION 5: COSMETIC FILTERING (ELEMENT HIDING) ===
+##.adsbygoogle
+##ins.adsbygoogle
+##[id^="google_ads_iframe"]
+##.taboola-placeholder
+##.outbrain-placeholder
+##[class*="popup-overlay"]
+##[class*="ad-banner"]
+##[id*="ad-container"]
+##[data-ad-slot]
+##.fake-download-btn
+##a[href*="terraclicks.com"]
+##a[href*="propellerclick.com"]
+##div[class*="advertisement"]
+
+! === SECTION 6: SPOTIFY AD TELEMETRY & MEDIA FILTERS ===
+||adeventtracker.spotify.com^
+||ads-fa.spotify.com^
+||adstudio-assets.scdn.co^
+||adstudio-assets.spotifycdn.com^
+||scdn.co/mp3-ad/*
+##[data-testid="ad-companion-card"]
+##[data-testid="ad-companion-card-tagline"]
+##[data-testid="ad-slot-container"]
+##[data-testid="ad-banner"]
+##[data-testid="in-app-ad"]
+##[data-testid="desktop-client-sponsor-container"]
+##[data-testid="billboard-ad"]
+##[data-testid="leaderboard-ad"]
+##[data-testid="top-bar-ad"]
+##[data-testid="in-app-message-wrapper"]
+##[data-testid="ad-break"]
+##[data-testid="track-info-advertiser"]
+##[data-testid="context-item-info-ad-title"]
+##[data-testid="context-item-info-ad-subtitle"]
+##[data-testid="user-widget-upgrade-button"]
+##[data-testid="banner-upsell"]
+##[data-testid="upsell-container"]
+##[data-testid="upsell-banner"]
+##[data-testid="premium-modal"]
+##button[data-testid="ad-feedback-button"]
+##button[data-testid="upgrade-button"]
+##a[data-context-item-type="ad"]
+##a[href*="spotify:ad:"]
+##footer[data-testid*="ad-type-ad"]
+##footer[data-testadtype*="ad-type-ad"]
+
+! === SECTION 7: OUTSTREAM, CORNER VIDEO & POPUP ADWARE DEFUSERS ===
+||richpush.com^
+||a-ads.com^
+||voluumtrk.com^
+||redtrack.io^
+||bemob.com^
+||aniview.com^
+||vdo.ai^
+||connatix.com^
+||playwire.com^
+||brid.tv^
+||primis.tech^
+||teads.tv^
+||teads.com^
+||undertone.com^
+||kargo.com^
+||evadav.com^
+||rollerads.com^
+||clickaine.com^
+##div[class*="corner-player"]
+##div[id*="corner-player"]
+##div[class*="sticky-player"]
+##div[id*="sticky-player"]
+##div[class*="floating-player"]
+##div[id*="floating-player"]
+##div[class*="dock-player"]
+##div[class*="docked-player"]
+##div[class*="outstream"]
+##div[id*="outstream"]
+##div[class*="flyin-ad"]
+##div[class*="slide-in-ad"]
+##div[class*="adhesive-ad"]
+##div[id*="vdoai"]
+##div[class*="vdo-ai"]
+##div[id*="primis"]
+##div[class*="primis"]
+##div[id*="connatix"]
+##div[class*="connatix"]
+##div[id*="brid_"]
+##div[class*="brid-player"]
+##div[id*="aniview"]
+##div[class*="aniview"]
+##div[class*="playwire"]
+##div[id*="playwire"]
+##div[class*="anyclip"]
+##div[id*="anyclip"]
+##div[class*="teads"]
+##div[id*="teads"]
+##div[class*="undertone"]
+##div[id*="undertone"]
+##div[class*="kargo"]
+##div[class*="floating-video"]
+##div[id*="floating-video"]
+##div[class*="interstitial-ad"]
+##div[id*="interstitial-ad"]
+##div[class*="takeover-ad"]
+##div[id*="takeover-ad"]
+##div[class*="overlay-ad"]
+##div[id*="overlay-ad"]
+##div[class*="floating-banner"]
+##div[id*="floating-banner"]
+##div[class*="corner-banner"]
+##div[id*="corner-banner"]
+
