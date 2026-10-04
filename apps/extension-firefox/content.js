@@ -450,7 +450,11 @@
         [data-testid="in-app-message-wrapper"],
         [data-testid="ad-break"],
         a[data-context-item-type="ad"],
-        a[href*="spotify:ad:"] {
+        a[href*="spotify:ad:"],
+        #adblock-warning,
+        [id*="adblock-warning"],
+        [class*="adblock-warning"],
+        .alert-adblock {
           display: none !important;
           visibility: hidden !important;
           height: 0 !important;
@@ -1733,6 +1737,42 @@
       if (document.documentElement && document.documentElement.style.overflow === 'hidden') {
         document.documentElement.style.setProperty('overflow', 'auto', 'important');
       }
+
+      // E. Neutralize In-Page Link Shortener Anti-Adblock Alerts & Unhide Destination Buttons (e.g. AdLinkFly, link99, clksz)
+      document.querySelectorAll('div.alert, div.alert-danger, [id*="adblock"], [class*="adblock"], p, span').forEach((el) => {
+        try {
+          const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
+          if (
+            (txt.includes('disable adblock to proceed') ||
+             txt.includes('disable your ad blocker to proceed') ||
+             txt.includes('disable your adblock to proceed') ||
+             txt.includes('adblock detected: please disable') ||
+             txt.includes('disable adblock to continue')) &&
+            !txt.includes('byeads')
+          ) {
+            el.style.setProperty('display', 'none', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('pointer-events', 'none', 'important');
+
+            // Force unhide and enable any hidden target / get link buttons
+            const container = el.closest('.container, .row, form, .box, .panel, .card, main, body') || document;
+            const buttons = container.querySelectorAll(
+              '#get-link, .get-link, a.get-link, button.get-link, #btn-main, .btn-captcha, form#landing-form button, #invisibleCaptchaShortlink, button[class*="get-link"], a[class*="get-link"], button.btn-success, a.btn-success'
+            );
+            buttons.forEach((btn) => {
+              btn.classList.remove('hidden');
+              btn.classList.remove('invisible');
+              btn.style.setProperty('display', 'inline-block', 'important');
+              btn.style.setProperty('visibility', 'visible', 'important');
+              btn.style.setProperty('opacity', '1', 'important');
+              btn.style.setProperty('pointer-events', 'auto', 'important');
+              btn.removeAttribute('disabled');
+              if ('disabled' in btn) btn.disabled = false;
+            });
+          }
+        } catch {}
+      });
     } catch {}
   }
 

@@ -327,6 +327,45 @@
       };
     }
 
+    // Global adblock bypass flags (AdLinkFly, shorteners, WordPress plugins)
+    try {
+      window.canRunAds = true;
+      window.isAdBlockActive = false;
+      window.adblock = false;
+      window.adBlockDetected = false;
+      window.adblockDetected = false;
+      window.sgpbCanRunAds = true;
+
+      // Trap and neutralize AdLinkFly / URL Shortener anti-adblock variables (app_vars.force_disable_adblock)
+      let _app_vars = window.app_vars;
+      function neutralizeAppVars(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        try {
+          obj.force_disable_adblock = '0';
+          Object.defineProperty(obj, 'force_disable_adblock', {
+            configurable: true,
+            enumerable: true,
+            get: () => '0',
+            set: () => {}
+          });
+        } catch {}
+        return obj;
+      }
+
+      if (window.app_vars) {
+        neutralizeAppVars(window.app_vars);
+      }
+
+      Object.defineProperty(window, 'app_vars', {
+        configurable: true,
+        enumerable: true,
+        get: () => _app_vars,
+        set: (v) => {
+          _app_vars = neutralizeAppVars(v);
+        }
+      });
+    } catch {}
+
     // A. Bait Element getComputedStyle Proxy: Ensures anti-adblock bait probes always report 'display: block'
     const origGetComputedStyle = window.getComputedStyle;
     window.getComputedStyle = function (elt, pseudoElt) {
