@@ -82,21 +82,50 @@
     const style = document.createElement('style');
     style.id = 'byeads-cosmetic-shield';
     style.textContent = `
-      /* Universal Web Ad Slots */
-      ins.adsbygoogle,
-      div[id^="google_ads_"],
-      div[id^="div-gpt-ad"],
-      div[class*="ad-slot"],
-      div[class*="ad-banner"],
+      /* Universal Web Ad Slots (Excludes off-screen baits used by anti-adblock detectors) */
+      ins.adsbygoogle:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      div[id^="google_ads_"]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      div[id^="div-gpt-ad"]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      div[class*="ad-slot"]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      div[class*="ad-banner"]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
       div[class*="sponsored-post"],
       div[id*="taboola-"],
       div[class*="outbrain"],
-      .ad-container,
-      [data-ad-unit],
-      [data-ad-slot],
-      .ad-banner,
-      .advertisement,
-      #advertisement {
+      .ad-container:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      [data-ad-unit]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      [data-ad-slot]:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      .ad-banner:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      .advertisement:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+      #advertisement:not([style*="-9999"]):not([style*="-10000"]):not([style*="left: -"]),
+
+      /* Universal Anti-Adblock Nags, Overlays, Hustle Popups & BlockAdBlock Walls */
+      #adblock-overlay,
+      div[id*="adblock-overlay"],
+      div[class*="adblock-overlay"],
+      div[id*="adblocker-detected"],
+      div[class*="adblocker-detected"],
+      div[id*="adblock-modal"],
+      div[class*="adblock-modal"],
+      div[class*="hustle-popup"],
+      div[class*="hustle-optin-mask"],
+      div[class*="hustle-popup-mask"],
+      div[class*="hustle-ui"],
+      html > div[style*="z-index: 2147483647"],
+      html > div[style*="z-index:2147483647"],
+      body > div[style*="z-index: 2147483647"],
+      body > div[style*="z-index:2147483647"],
+
+      /* Adsterra, Monetag, TieLabs & In-Content Stream Banner Ads */
+      .stream-item-mag,
+      .stream-item,
+      div[id^="container-"][id*="f0295"],
+      div[id^="tie-block_"]:has([id^="container-"]),
+      div[id^="tie-block_"]:has(iframe),
+      div[id^="tie-block_"]:has(script),
+      a[href*="xm.com"],
+      div:has(> a[href*="xm.com"]),
+      a[href*="trading"][href*="deposit"],
+      div:has(> a[href*="trading"][href*="deposit"]) {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -1633,8 +1662,83 @@
     setInterval(sendDashboardTelemetry, 1500);
   }
 
+  // 11. Universal Anti-Adblock Defuser & Nag Shield (Neutralizes AntiAdBlock Core, Hustle, BlockAdBlock, FuckAdBlock)
+  function handleAntiAdblockNagEliminator() {
+    if (!byeadsActive || isWhitelisted) return;
+
+    try {
+      // A. Remove explicit anti-adblock modals, overlays & backdrops
+      const nagSelectors = [
+        '#adblock-overlay',
+        '[id*="adblock-overlay"]',
+        '[class*="adblock-overlay"]',
+        '[id*="adblocker-detected"]',
+        '[class*="adblocker-detected"]',
+        '[id*="adblock-modal"]',
+        '[class*="adblock-modal"]',
+        '.hustle-popup',
+        '.hustle-popup-mask',
+        '.hustle-optin-mask',
+        '.hustle-ui.hustle-popup',
+        '[aria-label*="AdBlock Detected"]',
+        '[aria-label*="adblock detected"]',
+        '.stream-item-mag',
+        '.stream-item:not(.post-item)',
+        '[id^="container-"][id*="f0295"]',
+        'div[id^="tie-block_"]:has([id^="container-"])'
+      ];
+
+      document.querySelectorAll(nagSelectors.join(', ')).forEach((el) => {
+        try {
+          el.remove();
+        } catch {
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.style.setProperty('pointer-events', 'none', 'important');
+        }
+      });
+
+      // B. Remove rogue high z-index root shadow hosts (e.g. AntiAdBlock Core's closed shadow DOM)
+      document.querySelectorAll('html > div, body > div').forEach((el) => {
+        try {
+          const s = el.style;
+          if (s && (s.zIndex === '2147483647' || s.zIndex === '9999' || s.zIndex === '99999')) {
+            if (s.position === 'fixed' && (s.inset === '0px' || s.top === '0px')) {
+              el.remove();
+            }
+          }
+        } catch {}
+      });
+
+      // C. Catch any fixed modal containing "AdBlocker Detected" or "AntiAdBlock" text
+      document.querySelectorAll('body > div, body > section, html > div').forEach((el) => {
+        try {
+          const cs = window.getComputedStyle(el);
+          if (cs && (cs.position === 'fixed' || cs.position === 'absolute')) {
+            const txt = (el.innerText || '').toLowerCase();
+            if (
+              (txt.includes('adblocker detected') || txt.includes('adblock detected') || txt.includes('disable your ad blocker') || txt.includes('disable your adblocker') || txt.includes('powered by antiadblock core') || txt.includes('antiadblock')) &&
+              !txt.includes('byeads')
+            ) {
+              el.remove();
+            }
+          }
+        } catch {}
+      });
+
+      // D. Auto-restore page scrolling if anti-adblock locked it
+      if (document.body && document.body.style.overflow === 'hidden') {
+        document.body.style.setProperty('overflow', 'auto', 'important');
+      }
+      if (document.documentElement && document.documentElement.style.overflow === 'hidden') {
+        document.documentElement.style.setProperty('overflow', 'auto', 'important');
+      }
+    } catch {}
+  }
+
   // Run initializations
   injectCosmeticFilter();
+  handleAntiAdblockNagEliminator();
   handleTeraBoxProtections();
   handleFileHosterCleaners();
   handleSocialMediaCleaners();
@@ -1648,6 +1752,7 @@
   // Media streaming loop — Spotify uses a slower interval to prevent crash-inducing rapid DOM queries
   const loopInterval = hostname.includes('spotify.com') ? 500 : 250;
   setInterval(handleMediaStreamAds, loopInterval);
+  setInterval(handleAntiAdblockNagEliminator, 400);
   setInterval(handleTeraBoxProtections, 500);
   setInterval(handleFileHosterCleaners, 1000);
   setInterval(handleSocialMediaCleaners, 1000);
@@ -1666,6 +1771,7 @@
     mutationTimer = setTimeout(() => {
       mutationTimer = null;
       handleMediaStreamAds();
+      handleAntiAdblockNagEliminator();
       handleTeraBoxProtections();
       handleFileHosterCleaners();
       handleSocialMediaCleaners();

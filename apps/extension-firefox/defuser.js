@@ -282,7 +282,7 @@
     };
   } catch {}
 
-  // 2. Anti-Adblock Defuser & Bait Object Emulation
+  // 2. Anti-Adblock Defuser & Bait Object Emulation (Kills AntiAdBlock Core, BlockAdBlock, FuckAdBlock, Hustle)
   try {
     window.canRunAds = true;
     window.isAdBlockActive = false;
@@ -290,9 +290,33 @@
     window.hasAdBlocker = false;
     window.google_ad_client = "ca-pub-0000000000000000";
 
+    const noopFn = function () { return this; };
+    const noopClass = function () {
+      this.setOption = noopFn;
+      this.check = noopFn;
+      this.clearEvent = noopFn;
+      this.on = function (detected, fn) {
+        if (!detected && typeof fn === 'function') setTimeout(fn, 1);
+        return this;
+      };
+      this.onDetected = noopFn;
+      this.onNotDetected = function (fn) {
+        if (typeof fn === 'function') setTimeout(fn, 1);
+        return this;
+      };
+    };
+
+    window.FuckAdBlock = noopClass;
+    window.fuckAdBlock = new noopClass();
+    window.BlockAdBlock = noopClass;
+    window.blockAdBlock = window.fuckAdBlock;
+    window.SnackAdBlock = noopClass;
+    window.snackAdBlock = window.fuckAdBlock;
+
     if (!window.adsbygoogle) {
       window.adsbygoogle = [];
       window.adsbygoogle.push = function () { return 1; };
+      window.adsbygoogle.loaded = true;
     }
 
     if (!window.Adblock) {
@@ -301,6 +325,64 @@
         active: false
       };
     }
+
+    // A. Bait Element getComputedStyle Proxy: Ensures anti-adblock bait probes always report 'display: block'
+    const origGetComputedStyle = window.getComputedStyle;
+    window.getComputedStyle = function (elt, pseudoElt) {
+      const cs = origGetComputedStyle.apply(this, arguments);
+      if (elt && (elt instanceof Element)) {
+        const cls = String(elt.className || '');
+        const id = String(elt.id || '');
+        if (
+          /adsbox|ad-banner|ad-unit|adsbygoogle|banner-ad|sponsored-ad/i.test(cls) ||
+          /google_ads_|adblock-bait/i.test(id)
+        ) {
+          const styleAttr = elt.getAttribute('style') || '';
+          const isOffscreen = styleAttr.includes('-9999') || styleAttr.includes('-10000') ||
+            (elt.style && (parseInt(elt.style.left, 10) <= -1000 || parseInt(elt.style.top, 10) <= -1000));
+          if (isOffscreen) {
+            return new Proxy(cs, {
+              get(target, prop) {
+                if (prop === 'display') return 'block';
+                if (prop === 'visibility') return 'visible';
+                if (prop === 'opacity') return '1';
+                if (prop === 'width') return '12px';
+                if (prop === 'height') return '12px';
+                const val = target[prop];
+                return typeof val === 'function' ? val.bind(target) : val;
+              }
+            });
+          }
+        }
+      }
+      return cs;
+    };
+
+    // B. Defuse Preload Network Probes (e.g. AntiAdBlock Core checking if adsbygoogle/gpt scripts load)
+    const origAppendChild = Node.prototype.appendChild;
+    Node.prototype.appendChild = function (child) {
+      if (child && child.tagName === 'LINK' && child.as === 'script') {
+        const href = String(child.href || '');
+        if (href.includes('googlesyndication.com') || href.includes('doubleclick.net') || href.includes('gpt.js')) {
+          setTimeout(() => {
+            if (typeof child.onload === 'function') child.onload();
+            child.dispatchEvent(new Event('load'));
+          }, 10);
+        }
+      }
+      return origAppendChild.apply(this, arguments);
+    };
+
+    // C. Neutralize High z-index Root Shadow Hosts (AntiAdBlock Core closed shadow popups)
+    const origAttachShadow = Element.prototype.attachShadow;
+    Element.prototype.attachShadow = function () {
+      if (this.style && (this.style.zIndex === '2147483647' || parseInt(this.style.zIndex, 10) >= 2147483640)) {
+        this.style.setProperty('display', 'none', 'important');
+        this.style.setProperty('visibility', 'hidden', 'important');
+        this.style.setProperty('pointer-events', 'none', 'important');
+      }
+      return origAttachShadow.apply(this, arguments);
+    };
   } catch {}
 
   // 3. Air-Tight Pop-Up, Pop-Under & Click-Hijack Defense
