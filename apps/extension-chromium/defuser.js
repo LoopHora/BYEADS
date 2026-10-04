@@ -355,6 +355,11 @@
     const originalWindowOpen = window.open;
 
     function safeWindowOpen(url, target, features) {
+      const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+      if (curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com')) {
+        return originalWindowOpen.apply(this, arguments);
+      }
+
       const urlStr = String(url || '').trim();
 
       // Intercept if URL matches ad patterns, blank popunder staging, or untrusted cross-origin
