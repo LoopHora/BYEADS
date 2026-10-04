@@ -613,17 +613,19 @@
       if (isSpotifyAd) {
         spotifyMutedByAd = true;
 
-        // Advertisement detected: Mute audio cleanly
+        // Advertisement detected: Mute audio cleanly (NEVER set volume=0, only mute — setting volume=0
+        // triggers Spotify's own error recovery logic which crashes the player)
         audios.forEach((audio) => {
-          if (!audio.muted) {
-            audio.muted = true;
-          }
-          audio.volume = 0;
+          try {
+            if (!audio.muted) {
+              audio.muted = true;
+            }
+          } catch {}
         });
 
-        // Trigger skip button gently (max once per 4 seconds, never flood)
+        // Trigger skip button gently (max once per 6 seconds, never flood — too-fast clicks crash Spotify)
         const now = Date.now();
-        if (now - lastSpotifySkipTime > 4000) {
+        if (now - lastSpotifySkipTime > 6000) {
           lastSpotifySkipTime = now;
           try {
             const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
@@ -1128,11 +1130,18 @@
 
   function killFloatingAndOutstreamAds() {
     if (!byeadsActive || isWhitelisted) return;
+
+    // CRITICAL: Never run on YouTube or Spotify — their players use fixed/sticky containers
+    // that match outstream heuristics but are legitimate media playback UI
+    if (hostname.includes('youtube.com') || hostname.includes('spotify.com')) return;
+
     try {
       // 1. Selector-based fast cleanup
       const selector = OUTSTREAM_PATTERNS.map(p => `div[class*="${p}"], div[id*="${p}"]`).join(', ');
       const candidates = document.querySelectorAll(selector);
       candidates.forEach((el) => {
+        // Extra safety: skip if element is inside a known media player
+        if (el.closest('#movie_player, .html5-video-player, ytd-player, ytmusic-player, [data-testid="now-playing-bar"]')) return;
         el.querySelectorAll('video').forEach(v => {
           try { v.pause(); v.src = ''; } catch {}
         });
@@ -1174,6 +1183,9 @@
   let lastClickjackAlertTime = 0;
   function killInvisibleClickjacks() {
     if (!byeadsActive || isWhitelisted) return;
+
+    // CRITICAL: Never run on YouTube or Spotify — their player overlays are legitimate UI
+    if (hostname.includes('youtube.com') || hostname.includes('spotify.com')) return;
 
     // Scan overlay candidate containers
     const elements = document.querySelectorAll('div, section');
@@ -1502,8 +1514,8 @@
   setTimeout(handleCookieBanners, 800);
   setTimeout(trackCosmeticBlocks, 1200);
 
-  // Fast loop for media streaming & clickjacks (runs at 150ms on Spotify)
-  const loopInterval = hostname.includes('spotify.com') ? 150 : 250;
+  // Media streaming loop — Spotify uses a slower interval to prevent crash-inducing rapid DOM queries
+  const loopInterval = hostname.includes('spotify.com') ? 500 : 250;
   setInterval(handleMediaStreamAds, loopInterval);
   setInterval(handleTeraBoxProtections, 500);
   setInterval(handleFileHosterCleaners, 1000);
@@ -1512,17 +1524,25 @@
   setInterval(killFloatingAndOutstreamAds, 1000);
   setInterval(trackCosmeticBlocks, 2000);
 
-  // Dynamic mutation observer
+  // Dynamic mutation observer with debouncing to prevent rapid-fire execution
+  // that causes Spotify and YouTube player crashes
+  let mutationTimer = null;
+  const MUTATION_DEBOUNCE_MS = hostname.includes('spotify.com') ? 300 : 100;
+
   const observer = new MutationObserver(() => {
-    handleMediaStreamAds();
-    handleTeraBoxProtections();
-    handleFileHosterCleaners();
-    handleSocialMediaCleaners();
-    scanForDeceptiveButtons();
-    handleCookieBanners();
-    killInvisibleClickjacks();
-    killFloatingAndOutstreamAds();
-    trackCosmeticBlocks();
+    if (mutationTimer) return; // Already scheduled
+    mutationTimer = setTimeout(() => {
+      mutationTimer = null;
+      handleMediaStreamAds();
+      handleTeraBoxProtections();
+      handleFileHosterCleaners();
+      handleSocialMediaCleaners();
+      scanForDeceptiveButtons();
+      handleCookieBanners();
+      killInvisibleClickjacks();
+      killFloatingAndOutstreamAds();
+      trackCosmeticBlocks();
+    }, MUTATION_DEBOUNCE_MS);
   });
 
   observer.observe(document.body || document.documentElement, {

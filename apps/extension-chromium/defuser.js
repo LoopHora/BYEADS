@@ -591,29 +591,36 @@
   } catch {}
 
   // 9. Spotify Web Player Audio Stream Ad Neutralizer (Main World Hook)
+  // SAFETY RULES:
+  //   - NEVER set volume=0 (triggers Spotify's own error recovery → crash)
+  //   - NEVER throw errors from play() (breaks Spotify's promise chain → crash)
+  //   - Only mute; let content.js handle unmuting when the real track starts
   try {
     if (window.location.hostname.includes('spotify.com')) {
       const origPlay = HTMLMediaElement.prototype.play;
       HTMLMediaElement.prototype.play = function () {
-        if (this.tagName === 'AUDIO') {
-          const docTitle = (document.title || '').toLowerCase();
-          const isAd = docTitle.includes('advertisement') ||
-                       !!document.querySelector(
-                         '[data-testid="track-info-advertiser"], ' +
-                         '[data-testid="context-item-info-ad-title"], ' +
-                         '[data-testid="context-item-info-ad-subtitle"], ' +
-                         '[data-testid="ad-companion-card"], ' +
-                         'a[data-context-item-type="ad"], ' +
-                         'footer[data-testid*="ad-type-ad"], ' +
-                         'footer[data-testadtype*="ad-type-ad"], ' +
-                         '[aria-label="Advertisement"], ' +
-                         '[data-testid="ad-break"]'
-                       );
-          if (isAd) {
-            this.muted = true;
-            this.volume = 0;
+        try {
+          if (this.tagName === 'AUDIO') {
+            const docTitle = (document.title || '').toLowerCase();
+            const isAd = docTitle.includes('advertisement') ||
+                         !!document.querySelector(
+                           '[data-testid="track-info-advertiser"], ' +
+                           '[data-testid="context-item-info-ad-title"], ' +
+                           '[data-testid="context-item-info-ad-subtitle"], ' +
+                           '[data-testid="ad-companion-card"], ' +
+                           'a[data-context-item-type="ad"], ' +
+                           'footer[data-testid*="ad-type-ad"], ' +
+                           'footer[data-testadtype*="ad-type-ad"], ' +
+                           '[aria-label="Advertisement"], ' +
+                           '[data-testid="ad-break"]'
+                         );
+            if (isAd) {
+              this.muted = true;
+              // Do NOT set volume=0 — it crashes Spotify's internal player state machine
+            }
           }
-          // NEVER unmute in play() - unmuting is safely handled by the debounced real-track verifier in content.js
+        } catch {
+          // Never let our ad-check break Spotify's play chain
         }
         return origPlay.apply(this, arguments);
       };
