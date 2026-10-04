@@ -136,8 +136,7 @@
       ytmusic-action-companion-ad-renderer,
       ytmusic-item-section-renderer:has(ytmusic-ad-slot-renderer),
       ytmusic-ad-slot-renderer,
-      ytd-enforcement-message-view-model,
-      tp-yt-paper-dialog:has(#feedback) {
+      ytd-enforcement-message-view-model {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
@@ -564,28 +563,20 @@
             video.playbackRate = 1.0;
           }
           // Fail-safe unmute: If ad is not active, ensure video is audible
-          if (wasMutedByAd || (video.muted && !player?.classList?.contains('ytp-volume-slider-active'))) {
+          if (wasMutedByAd) {
             video.muted = false;
             wasMutedByAd = false;
           }
-          if (video.volume === 0 && !player?.classList?.contains('ytp-volume-slider-active')) {
-            video.volume = 1.0;
+          // Auto-resume if video paused unexpectedly during ad transition
+          if (video.paused && !video.ended && player && !player.classList.contains('paused-mode')) {
+            video.play().catch(() => {});
           }
         }
-        // Force YouTube / YouTube Music internal player API to unmute
-        try {
-          const ytPlayer = document.getElementById('movie_player') || document.querySelector('.html5-video-player');
-          if (ytPlayer && typeof ytPlayer.unMute === 'function') {
-            if (typeof ytPlayer.isMuted === 'function' && ytPlayer.isMuted()) {
-              ytPlayer.unMute();
-            }
-          }
-        } catch {}
       }
 
       // YouTube anti-adblock enforcement dialog killer
       try {
-        const enforcement = document.querySelector('ytd-enforcement-message-view-model, tp-yt-paper-dialog[dialog-type="action"]');
+        const enforcement = document.querySelector('ytd-enforcement-message-view-model');
         if (enforcement) {
           enforcement.remove();
           const backdrop = document.querySelector('tp-yt-iron-overlay-backdrop');

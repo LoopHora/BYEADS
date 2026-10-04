@@ -144,37 +144,7 @@
     return false;
   }
 
-  // 1. YouTube & YouTube Music Player Response Interceptor
-  let originalPlayerResponse = window.ytInitialPlayerResponse;
-
-  function sanitizePlayerResponse(resp) {
-    if (!resp || typeof resp !== 'object') return resp;
-    try {
-      if (resp.adPlacements) resp.adPlacements = [];
-      if (resp.playerAds) resp.playerAds = [];
-      if (resp.adSlots) resp.adSlots = [];
-      if (resp.playbackTracking) {
-        if (resp.playbackTracking.videostatsPlaybackUrl) {
-          delete resp.playbackTracking.videostatsPlaybackUrl.baseUrl;
-        }
-      }
-    } catch {}
-    return resp;
-  }
-
-  // Hook ytInitialPlayerResponse getter/setter
-  try {
-    Object.defineProperty(window, 'ytInitialPlayerResponse', {
-      configurable: true,
-      enumerable: true,
-      get: () => originalPlayerResponse,
-      set: (val) => {
-        originalPlayerResponse = sanitizePlayerResponse(val);
-      }
-    });
-  } catch {}
-
-  // 1.1. Spotify Web Player Audio Protection: Prevent crashes and speed-skip ads
+  // 1. Spotify Web Player Audio Protection: Prevent crashes and speed-skip ads
   if (location.hostname.includes('spotify.com')) {
     try {
       const origPlay = HTMLMediaElement.prototype.play;
@@ -216,21 +186,11 @@
     window.fetch = async function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
 
-      // Block YouTube ad telemetry endpoints directly at the JS API boundary with instant 200 OK
-      if (
-        url.includes('/api/stats/ads') ||
-        url.includes('/pagead/') ||
-        url.includes('/ptracking') ||
-        url.includes('/get_midroll_info') ||
-        isAdPattern(url) // God-Level Block: prevent dynamic popups/adware from fetching payloads
-      ) {
-        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
-      }
-
-      // Block pure ad telemetry trackers (NEVER block media streams or scdn.co)
+      // Block pure ad telemetry trackers (NEVER block media streams or YouTube playback)
       if (
         url.includes('adeventtracker.spotify.com') ||
-        url.includes('ads-fa.spotify.com')
+        url.includes('ads-fa.spotify.com') ||
+        isAdPattern(url) // God-Level Block: prevent dynamic popups/adware from fetching payloads
       ) {
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
@@ -251,7 +211,6 @@
       if (this._byeads_url) {
         const u = this._byeads_url;
         if (
-          u.includes('/api/stats/ads') ||
           u.includes('adeventtracker.spotify.com') ||
           u.includes('ads-fa.spotify.com') ||
           isAdPattern(u) // God-Level Block: XHR ad patterns
