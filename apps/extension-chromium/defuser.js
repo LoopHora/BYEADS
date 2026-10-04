@@ -109,19 +109,43 @@
   function isAdOrPopup(urlStr, el) {
     if (isSafeDownload(urlStr, el)) return false;
 
+    const currentHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+
+    // YouTube, Spotify, and trusted platforms never have popunder ads — immune
+    if (
+      currentHost.includes('youtube.com') ||
+      currentHost.includes('googlevideo.com') ||
+      currentHost.includes('spotify.com') ||
+      currentHost.includes('google.')
+    ) {
+      return false;
+    }
+
     const s = String(urlStr || '').trim().toLowerCase();
-    if (s === '' || s === 'about:blank' || s === 'about:blank#blocked' || s === 'javascript:void(0)' || s === 'javascript:;' || s.startsWith('data:text/html')) {
-      return true; // blank or synthetic popunder staging
+
+    // In-page triggers, hashes, or empty anchors are NEVER ad popups
+    if (s === '' || s === '#' || s.startsWith('javascript:')) {
+      return false;
+    }
+
+    // Only actual blank popunder staging windows are ad popups
+    if (s === 'about:blank' || s === 'about:blank#blocked' || s.startsWith('data:text/html')) {
+      return true;
     }
     if (isAdPattern(s)) return true;
 
     try {
       const parsed = new URL(urlStr, window.location.href);
-      const currentHost = window.location.hostname.replace(/^www\./, '');
-      const destHost = parsed.hostname.replace(/^www\./, '');
+      const destHost = parsed.hostname.replace(/^www\./, '').toLowerCase();
       const fullPath = (parsed.pathname + parsed.search).toLowerCase();
 
-      // Check known ad patterns on hostname or path
+      // Same-origin internal navigation is NEVER an ad popup
+      const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
+      if (isSameDomain) {
+        return false;
+      }
+
+      // Check known ad patterns on destination hostname or path
       if (isAdPattern(destHost) || isAdPattern(fullPath)) return true;
 
       // Check ad redirect paths combined with ad tracking params
@@ -131,8 +155,7 @@
       }
 
       // Check cross-origin navigation with suspicious ad/affiliate params
-      const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
-      if (!isSameDomain && !isTrustedAuth(destHost) && !isSafeDownload(urlStr, el)) {
+      if (!isTrustedAuth(destHost) && !isSafeDownload(urlStr, el)) {
         if (/[\?&](aff|aff_id|affid|clickid|click_id|zoneid|camp_id|subid|token_hash|pop=|adurl|dest_ad)=/i.test(parsed.search)) {
           return true;
         }
@@ -408,8 +431,14 @@
 
   // B. Hook HTMLAnchorElement.prototype.click & dispatchEvent (blocks synthetic <a> ad clicks)
   try {
+    const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+    const isCleanPlatform = curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com');
+
     const originalAnchorClick = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
+      if (isCleanPlatform) {
+        return originalAnchorClick.apply(this, arguments);
+      }
       const href = String(this.href || '').trim();
       if (this.hasAttribute('download') || this.download || isSafeDownload(href, this)) {
         return originalAnchorClick.apply(this, arguments);
@@ -423,6 +452,9 @@
 
     const origDispatchEvent = EventTarget.prototype.dispatchEvent;
     EventTarget.prototype.dispatchEvent = function (event) {
+      if (isCleanPlatform) {
+        return origDispatchEvent.apply(this, arguments);
+      }
       if (event && (event.type === 'click' || event.type === 'mousedown' || event.type === 'pointerdown' || event.type === 'mouseup')) {
         const anchor = (this instanceof HTMLAnchorElement) ? this : (this.closest && this.closest('a'));
         if (anchor && !isSafeDownload(anchor.href, anchor) && isAdOrPopup(anchor.href, anchor)) {
@@ -449,8 +481,14 @@
 
   // D. Hook EventTarget.prototype.addEventListener (suppress adware click/popunder hijacking)
   try {
+    const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+    const isCleanPlatform = curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com');
+
     const origAddEventListener = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function (type, listener, options) {
+      if (isCleanPlatform) {
+        return origAddEventListener.apply(this, arguments);
+      }
       if (type === 'click' || type === 'mousedown' || type === 'pointerdown' || type === 'mouseup' || type === 'pointerup') {
         if (typeof listener === 'function') {
           const fnStr = listener.toString();
@@ -487,6 +525,11 @@
   // E. Capturing Click Listener: Trap Transparent Overlays & Ad Links (Safe for UI & Downloads)
   try {
     window.addEventListener('click', (e) => {
+      const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+      if (curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com')) {
+        return;
+      }
+
       const target = e.target;
       if (!target) return;
 
