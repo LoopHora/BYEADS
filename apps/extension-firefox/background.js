@@ -226,18 +226,34 @@ function isAdOrPopupUrl(url) {
 }
 
 async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
-  if (!targetUrlStr || !openerTabId) return;
+  if (!targetUrlStr) return;
 
+  const lower = String(targetUrlStr).toLowerCase().trim();
+
+  // 1. Direct ad pattern match (ALWAYS blocks, regardless of openerTabId)
   if (isAdOrPopupUrl(targetUrlStr)) {
     chrome.tabs.remove(tabId, () => {
       stats.adsBlocked = (stats.adsBlocked || 0) + 1;
       chrome.storage.local.set({ byeads_stats: stats });
+      updateBadge();
       logBlockedEvent('popup-killer', 'Blocked Ad Popup Tab', targetUrlStr);
     });
     return;
   }
 
-  if (targetUrlStr.startsWith('http://') || targetUrlStr.startsWith('https://')) {
+  // 2. Block blank / synthetic staging tabs IF opened from another tab (popunder setup phase)
+  if (openerTabId && (lower === '' || lower === 'about:blank' || lower.startsWith('data:text/html') || lower === 'about:blank#blocked')) {
+    chrome.tabs.remove(tabId, () => {
+      stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+      chrome.storage.local.set({ byeads_stats: stats });
+      updateBadge();
+      logBlockedEvent('popup-killer', 'Blocked Blank Popunder Staging Tab', targetUrlStr);
+    });
+    return;
+  }
+
+  // 3. Cross-domain origin inspection (aggressive mode)
+  if (openerTabId && (targetUrlStr.startsWith('http://') || targetUrlStr.startsWith('https://'))) {
     try {
       const opener = await chrome.tabs.get(openerTabId);
       if (!opener || !opener.url) return;
@@ -256,8 +272,29 @@ async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
           chrome.tabs.remove(tabId, () => {
             stats.adsBlocked = (stats.adsBlocked || 0) + 1;
             chrome.storage.local.set({ byeads_stats: stats });
+            updateBadge();
             logBlockedEvent('popup-killer', 'Blocked Cross-Origin Ad Popup Tab', targetHost);
           });
+          return;
+        }
+
+        // Block cross-origin popups with suspicious redirect query params
+        const fullUrl = (targetUrl.pathname + targetUrl.search).toLowerCase();
+        const hasRedirectParams = ['zoneid=', 'pop=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
+          'token_hash=', 'pub_id=', 'camp_id=', 'aff_c=', 'ad_url=', 'dest_ad=', 'ad_redirect=']
+          .some(p => fullUrl.includes(p));
+        const hasRedirectPath = ['/jump', '/go/', '/out/', '/redirect', '/click', '/pop', '/ad/', '/gate/',
+          '/jump.php', '/go.php', '/pop.php', '/click.php', '/direct-link']
+          .some(p => fullUrl.includes(p));
+
+        if (hasRedirectParams || hasRedirectPath) {
+          chrome.tabs.remove(tabId, () => {
+            stats.adsBlocked = (stats.adsBlocked || 0) + 1;
+            chrome.storage.local.set({ byeads_stats: stats });
+            updateBadge();
+            logBlockedEvent('popup-killer', 'Blocked Redirect Popup Tab', targetUrlStr);
+          });
+          return;
         }
       }
     } catch {}
@@ -265,19 +302,41 @@ async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
 }
 
 if (chrome.tabs && chrome.tabs.onCreated) {
-  chrome.tabs.onCreated.addListener((tab) => {
-    if (tab.openerTabId) {
+  chrome.tabs.onCreated.addListener(async (tab) => {
+    chrome.storage.local.get(['byeads_enabled'], async (res) => {
+      if (res.byeads_enabled === false) return;
       const targetUrl = tab.url || tab.title || '';
-      evaluatePopupTab(tab.id, targetUrl, tab.openerTabId);
-    }
+      let openerId = tab.openerTabId;
+      if (!openerId) {
+        try {
+          const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+          if (activeTab && activeTab.id !== tab.id) {
+            openerId = activeTab.id;
+          }
+        } catch {}
+      }
+      evaluatePopupTab(tab.id, targetUrl, openerId);
+    });
   });
 }
 
 if (chrome.tabs && chrome.tabs.onUpdated) {
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.url && tab.openerTabId) {
-      evaluatePopupTab(tabId, changeInfo.url, tab.openerTabId);
-    }
+  chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    chrome.storage.local.get(['byeads_enabled'], async (res) => {
+      if (res.byeads_enabled === false) return;
+      if (changeInfo.url) {
+        let openerId = tab.openerTabId;
+        if (!openerId) {
+          try {
+            const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+            if (activeTab && activeTab.id !== tabId) {
+              openerId = activeTab.id;
+            }
+          } catch {}
+        }
+        evaluatePopupTab(tabId, changeInfo.url, openerId);
+      }
+    });
   });
 }
 

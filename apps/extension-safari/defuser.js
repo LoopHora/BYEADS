@@ -90,11 +90,10 @@
   }
 
   function isAdOrPopup(urlStr, el) {
-    if (!urlStr) return false;
     if (isSafeDownload(urlStr, el)) return false;
 
-    const s = String(urlStr).trim().toLowerCase();
-    if (s === '' || s === 'about:blank' || s === 'javascript:void(0)' || s.startsWith('data:text/html')) {
+    const s = String(urlStr || '').trim().toLowerCase();
+    if (s === '' || s === 'about:blank' || s === 'about:blank#blocked' || s === 'javascript:void(0)' || s === 'javascript:;' || s.startsWith('data:text/html')) {
       return true; // blank or synthetic popunder staging
     }
     if (isAdPattern(s)) return true;
@@ -103,15 +102,23 @@
       const parsed = new URL(urlStr, window.location.href);
       const currentHost = window.location.hostname.replace(/^www\./, '');
       const destHost = parsed.hostname.replace(/^www\./, '');
+      const fullPath = (parsed.pathname + parsed.search).toLowerCase();
 
-      // Check known ad patterns on hostname
-      if (isAdPattern(destHost)) return true;
+      // Check known ad patterns on hostname or path
+      if (isAdPattern(destHost) || isAdPattern(fullPath)) return true;
 
       // Check ad redirect paths combined with ad tracking params
-      const p = parsed.pathname.toLowerCase();
-      const q = parsed.search.toLowerCase();
-      if (REDIRECT_PATHS.some(part => p.includes(part)) && REDIRECT_PARAMS.some(param => q.includes(param))) {
+      if (REDIRECT_PATHS.some(part => parsed.pathname.toLowerCase().includes(part)) ||
+          REDIRECT_PARAMS.some(param => parsed.search.toLowerCase().includes(param))) {
         return true;
+      }
+
+      // Check cross-origin navigation with suspicious ad/affiliate params
+      const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
+      if (!isSameDomain && !isTrustedAuth(destHost) && !isSafeDownload(urlStr, el)) {
+        if (/[\?&](aff|aff_id|affid|clickid|click_id|zoneid|camp_id|subid|token_hash|pop=|adurl|dest_ad)=/i.test(parsed.search)) {
+          return true;
+        }
       }
     } catch {
       return false;
@@ -273,13 +280,22 @@
       focus: () => {},
       blur: () => {},
       close: () => {},
-      closed: true,
+      closed: false, // Keep false so scripts don't execute their "popup-blocked" fallback to hijack current page
+      opener: window,
+      parent: window,
+      top: window,
+      frames: [],
+      length: 0,
+      postMessage: () => {},
+      print: () => {},
       document: {
         write: () => {},
         writeln: () => {},
         open: () => {},
         close: () => {},
-        createElement: () => document.createElement('div')
+        createElement: () => document.createElement('div'),
+        body: document.createElement('body'),
+        head: document.createElement('head')
       },
       location: new Proxy(dummyLoc, {
         get: (t, prop) => t[prop] || '',
@@ -304,10 +320,25 @@
 
     function safeWindowOpen(url, target, features) {
       const urlStr = String(url || '').trim();
+      const hasUserGesture = navigator.userActivation ? navigator.userActivation.isActive : true;
 
+      // Intercept if URL matches ad patterns, blank popunder staging, or untrusted cross-origin
       if (isAdOrPopup(urlStr)) {
-        console.warn('[BYEADS Defuser] Neutralized popup window.open attempt to:', urlStr);
+        console.warn('[BYEADS Defuser] Neutralized popup window.open attempt to:', urlStr || '(blank popunder)');
         return createDummyWindow();
+      }
+
+      if (!hasUserGesture && urlStr) {
+        try {
+          const parsed = new URL(urlStr, window.location.href);
+          const currentHost = window.location.hostname.replace(/^www\./, '');
+          const destHost = parsed.hostname.replace(/^www\./, '');
+          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
+          if (!isSameDomain && !isTrustedAuth(destHost) && !isSafeDownload(urlStr)) {
+            console.warn('[BYEADS Defuser] Blocked background window.open without user gesture to:', destHost);
+            return createDummyWindow();
+          }
+        } catch {}
       }
 
       return originalWindowOpen.apply(this, arguments);

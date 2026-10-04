@@ -1180,15 +1180,16 @@
   }
 
   // 8. Invisible Clickjack & Popunder Trap Killer (with Download & Button Safeguards)
+  // 8. Invisible Clickjack & Popunder Trap Killer (with Download & Button Safeguards)
   let lastClickjackAlertTime = 0;
   function killInvisibleClickjacks() {
     if (!byeadsActive || isWhitelisted) return;
 
     // CRITICAL: Never run on YouTube or Spotify — their player overlays are legitimate UI
-    if (hostname.includes('youtube.com') || hostname.includes('spotify.com')) return;
+    if (hostname.includes('youtube.com') || hostname.includes('spotify.com') || hostname.includes('netflix.com') || hostname.includes('twitch.tv')) return;
 
-    // Scan overlay candidate containers
-    const elements = document.querySelectorAll('div, section');
+    // Scan overlay candidate containers (including transparent <a> and <span> traps)
+    const elements = document.querySelectorAll('div, section, a, span, ins');
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -1196,8 +1197,19 @@
       if (el === document.body || el === document.documentElement) return;
       if (el.id === 'byeads-zapper-overlay' || el.closest('#byeads-zapper-overlay')) return;
 
-      // CRITICAL SAFEGUARD: Never touch buttons, links, download controls, or inputs
-      if (el.closest('button, a, form, input, select, textarea, [download], [role="button"], [class*="download"], [id*="download"], [class*="btn"], [id*="btn"]')) return;
+      // CRITICAL SAFEGUARD: Never touch real interactive controls, inputs, forms, audio/video players
+      if (el.matches('button, input, select, textarea, form, video, audio') ||
+          el.closest('button, form, input, select, textarea, video, audio, [role="button"], [class*="download"], [id*="download"], [class*="btn"], [id*="btn"]')) {
+        return;
+      }
+
+      // Check if it's a legitimate download link or button
+      const anchor = el.matches('a') ? el : el.querySelector('a');
+      if (anchor) {
+        if (anchor.hasAttribute('download') || anchor.download) return;
+        const aText = (anchor.innerText || anchor.textContent || '').trim().toLowerCase();
+        if (/download|install|setup|get\s|save|update/i.test(aText)) return;
+      }
 
       try {
         const style = window.getComputedStyle(el);
@@ -1217,10 +1229,10 @@
           const isTransparent = opacity <= 0.05 || isTransparentBg;
 
           const textLength = (el.innerText || '').trim().length;
-          const hasInteractiveChildren = el.querySelectorAll('button, a, input, select, textarea, form, h1, h2, h3, p, video, img').length > 0;
+          const hasRealMedia = el.querySelectorAll('video, audio, img[src]:not([src=""]), canvas').length > 0;
 
-          // Only eliminate true blank cover sheets with zero text and zero interactive children
-          if (isTransparent && textLength === 0 && !hasInteractiveChildren) {
+          // Only eliminate true blank cover sheets with zero text and zero media
+          if (isTransparent && textLength === 0 && !hasRealMedia) {
             el.remove();
 
             const now = Date.now();
@@ -1326,17 +1338,18 @@
         return false;
       }
 
-      // Check external _blank links on suspicious ad domains
+      // Check external _blank links on suspicious ad domains or ad redirect params
       if (anchor.target === '_blank' && (href.startsWith('http://') || href.startsWith('https://'))) {
         try {
           const currentHost = window.location.hostname.replace(/^www\./, '');
           const destHost = new URL(href).hostname.replace(/^www\./, '');
           const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
-          if (!isSameDomain && EXTENDED_AD_PATTERNS.some(p => destHost.includes(p))) {
+          const hasAdParams = /[\?&](zoneid|clickid|click_id|aff_id|affid|camp_id|subid|token_hash|pub_id|pop=|adurl|dest_ad)=/i.test(href);
+          if (!isSameDomain && (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p)) || hasAdParams)) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            console.warn('[BYEADS] Blocked click on ad network host:', destHost);
+            console.warn('[BYEADS] Blocked click on ad network host or redirect:', destHost);
             return false;
           }
         } catch {}
