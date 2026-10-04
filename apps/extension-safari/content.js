@@ -415,6 +415,7 @@
   // 3. Media Stream Ad Neutralizer (YouTube, YouTube Music & Spotify)
   let wasMutedByAd = false;
   let lastSpotifyMuteTime = 0;
+  let lastSpotifySkipTime = 0;
   let spotifyMutedByAd = false;
   let spotifyConfirmedRealTrackTicks = 0;
 
@@ -461,22 +462,13 @@
       const elements = document.querySelectorAll(SPOTIFY_AD_SELECTORS.join(', '));
       elements.forEach((el) => {
         try {
+          // Hide visually without calling el.remove() to avoid breaking React's virtual DOM tree
           el.style.setProperty('display', 'none', 'important');
           el.style.setProperty('visibility', 'hidden', 'important');
           el.style.setProperty('height', '0px', 'important');
           el.style.setProperty('max-height', '0px', 'important');
           el.style.setProperty('opacity', '0', 'important');
           el.style.setProperty('pointer-events', 'none', 'important');
-          if (
-            el.matches?.(
-              '[data-testid="ad-companion-card"], [data-testid="ad-slot-container"], [data-testid="billboard-ad"], ' +
-              '[data-testid="leaderboard-ad"], [data-testid="top-bar-ad"], [data-testid="in-app-ad"], ' +
-              '[data-testid="in-app-message-wrapper"], [data-testid="banner-upsell"], [data-testid="premium-modal"], ' +
-              'div[class*="GenericModal"], div[class*="ReactModal"]'
-            )
-          ) {
-            el.remove();
-          }
         } catch {}
       });
     } catch {}
@@ -611,27 +603,17 @@
       // 5. Check for ad-break text in now playing widget / footer
       const nowPlayingWidget = document.querySelector('[data-testid="now-playing-widget"], footer');
       const widgetText = nowPlayingWidget ? (nowPlayingWidget.textContent || '').toLowerCase() : '';
-      const hasAdBreakText = widgetText.includes('continue after the break') || widgetText.includes('advertisement');
+      const hasAdBreakText = widgetText.includes('continue after the break');
 
-      // 6. Positive verification of genuine music track link
-      const realTrackLink = document.querySelector(
-        '[data-testid="now-playing-widget"] a[href*="/track/"], ' +
-        '[data-testid="now-playing-widget"] a[href*="/episode/"], ' +
-        'footer a[href*="/track/"], ' +
-        'footer a[href*="/episode/"]'
-      );
-      const hasRealTrack = !!realTrackLink;
-
-      // Detection: any ad indicator or audio playing with advertiser badge / no real track
-      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd || hasAdBreakText || (!hasRealTrack && widgetText.includes('sponsored'));
+      // Detection: explicit ad title, ad widget, or ad break indicator
+      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd || hasAdBreakText;
 
       const audios = document.querySelectorAll('audio, video');
 
       if (isSpotifyAd) {
-        spotifyConfirmedRealTrackTicks = 0;
         spotifyMutedByAd = true;
 
-        // Advertisement detected: Mute audio immediately and continuously
+        // Advertisement detected: Mute audio cleanly
         audios.forEach((audio) => {
           if (!audio.muted) {
             audio.muted = true;
@@ -639,15 +621,18 @@
           audio.volume = 0;
         });
 
-        // Trigger skip button if available and enabled
-        try {
-          const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
-          if (skipBtn && !skipBtn.disabled && skipBtn.getAttribute('aria-disabled') !== 'true') {
-            skipBtn.click();
-          }
-        } catch {}
-
+        // Trigger skip button gently (max once per 4 seconds, never flood)
         const now = Date.now();
+        if (now - lastSpotifySkipTime > 4000) {
+          lastSpotifySkipTime = now;
+          try {
+            const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
+            if (skipBtn && !skipBtn.disabled && skipBtn.getAttribute('aria-disabled') !== 'true') {
+              skipBtn.click();
+            }
+          } catch {}
+        }
+
         if (now - lastSpotifyMuteTime > 2500) {
           lastSpotifyMuteTime = now;
           localTabBlockedCount++;
@@ -661,15 +646,8 @@
           } catch {}
         }
       } else {
-        // Genuine music track confirmed
-        if (hasRealTrack && !hasAdTitle && !isTitleAd) {
-          spotifyConfirmedRealTrackTicks++;
-        } else {
-          spotifyConfirmedRealTrackTicks = 0;
-        }
-
-        // Require 3 consecutive clean ticks (~450ms) to ensure track has stabilized
-        if (spotifyMutedByAd && spotifyConfirmedRealTrackTicks >= 3) {
+        // Genuine music track playing: restore audio immediately
+        if (spotifyMutedByAd) {
           audios.forEach((audio) => {
             audio.muted = false;
             if (audio.volume === 0) {

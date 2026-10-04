@@ -127,10 +127,6 @@
 ||adstudio-assets.scdn.co^
 ||adstudio-assets.spotifycdn.com^
 ||scdn.co/mp3-ad/*
-||spclient.wg.spotify.com/ad-logic/*
-||spclient.wg.spotify.com/ads/*
-||spclient.wg.spotify.com/desktop-omni-ads/*
-||spclient.wg.spotify.com/ad-experiences/*
 ##[data-testid="ad-companion-card"]
 ##[data-testid="ad-companion-card-tagline"]
 ##[data-testid="ad-slot-container"]

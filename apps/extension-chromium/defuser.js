@@ -148,18 +148,6 @@
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      // Neutralize Spotify ad-logic and desktop-omni-ads by returning clean empty roster (prevents ad queuing)
-      if (
-        url.includes('spclient.wg.spotify.com/ad-logic') ||
-        url.includes('spclient.wg.spotify.com/desktop-omni-ads') ||
-        url.includes('spclient.wg.spotify.com/ad-experiences')
-      ) {
-        return new Response(JSON.stringify({ ads: [], breaks: [], payload: {}, mappings: [] }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' }
-        });
-      }
-
       const response = await originalFetch.apply(this, args);
 
       // Sanitize JSON response for dynamic player streams
@@ -200,13 +188,10 @@
           u.includes('adstudio-assets.scdn.co') ||
           u.includes('adstudio-assets.spotifycdn.com') ||
           u.includes('/mp3-ad/') ||
-          u.includes('spclient.wg.spotify.com/ad-logic') ||
-          u.includes('spclient.wg.spotify.com/desktop-omni-ads') ||
-          u.includes('spclient.wg.spotify.com/ad-experiences') ||
           isAdPattern(u) // God-Level Block: XHR ad patterns
         ) {
           console.warn('[BYEADS Defuser] Blocked background XHR ad request:', u);
-          const emptyBody = u.includes('spotify') ? '{"ads":[],"breaks":[],"payload":{}}' : '{}';
+          const emptyBody = '{}';
           Object.defineProperty(this, 'status', { value: 200, writable: false });
           Object.defineProperty(this, 'responseText', { value: emptyBody, writable: false });
           Object.defineProperty(this, 'response', { value: emptyBody, writable: false });
