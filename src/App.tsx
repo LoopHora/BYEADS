@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage';
 import DocsPage from './pages/DocsPage';
 import InstallPage from './pages/InstallPage';
 import DashboardPage from './pages/DashboardPage';
+import TestLabPage from './pages/TestLabPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/install" element={<InstallPage />} />
+        <Route path="/test" element={<TestLabPage />} />
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/docs/:docId" element={<DocsPage />} />
       </Routes>

@@ -40,6 +40,7 @@ export default function Navbar() {
   const navLinks = [
     { to: '/', label: 'Home', active: location.pathname === '/' },
     { to: '/dashboard', label: 'Dashboard', active: location.pathname === '/dashboard' },
+    { to: '/test', label: 'Test Lab', active: location.pathname === '/test' },
     { to: '/install', label: 'Install', active: location.pathname === '/install' },
     { to: '/docs', label: 'Docs', active: location.pathname.startsWith('/docs') },
   ];

@@ -141,15 +141,34 @@ export default function DashboardPage() {
     setDeviceProfile(getDetailedDeviceProfile(selectedDevice));
   }, [selectedDevice]);
 
-  // Real extension detection
+  // Real extension detection via both chrome.runtime and extension postMessage telemetry
   const checkExtension = () => {
     try {
       const detected = typeof window !== 'undefined' && Boolean((window as any).chrome?.runtime?.id);
-      setExtStatus({ detected, checkedAt: new Date() });
+      if (detected) {
+        setExtStatus({ detected: true, checkedAt: new Date() });
+      }
+      // Send PING to extension content script
+      window.postMessage({ source: 'BYEADS_DASHBOARD', type: 'PING' }, '*');
     } catch {
       setExtStatus({ detected: false, checkedAt: new Date() });
     }
   };
+
+  useEffect(() => {
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data && e.data.source === 'BYEADS_EXTENSION' && e.data.type === 'BYEADS_TELEMETRY_UPDATE') {
+        setExtStatus({ detected: true, checkedAt: new Date() });
+      }
+    };
+    window.addEventListener('message', handleMsg);
+    checkExtension();
+    const interval = setInterval(checkExtension, 2000);
+    return () => {
+      window.removeEventListener('message', handleMsg);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Real DNS reachability probe — the ONLY real data on this dashboard
   const runDnsProbe = async () => {
