@@ -364,6 +364,29 @@
           _app_vars = neutralizeAppVars(v);
         }
       });
+
+      // Neutralize Fineshop Design Anti-AdBlock (window.checkAdsStatus)
+      let _checkAdsStatus = function (callback) {
+        if (typeof callback === 'function') {
+          try {
+            callback({ allowed: true, elements: [] });
+          } catch {}
+        }
+      };
+      Object.defineProperty(window, 'checkAdsStatus', {
+        configurable: true,
+        enumerable: true,
+        get: () => _checkAdsStatus,
+        set: (userFn) => {
+          _checkAdsStatus = function (callback) {
+            if (typeof callback === 'function') {
+              try {
+                callback({ allowed: true, elements: [] });
+              } catch {}
+            }
+          };
+        }
+      });
     } catch {}
 
     // A. Bait Element getComputedStyle Proxy: Ensures anti-adblock bait probes always report 'display: block'
@@ -374,11 +397,11 @@
         const cls = String(elt.className || '');
         const id = String(elt.id || '');
         if (
-          /adsbox|ad-banner|ad-unit|adsbygoogle|banner-ad|sponsored-ad/i.test(cls) ||
-          /google_ads_|adblock-bait/i.test(id)
+          /adsbox|ad-banner|ad-unit|adsbygoogle|banner-ad|sponsored-ad|textads/i.test(cls) ||
+          /google_ads_|adblock-bait|div-gpt-ad/i.test(id)
         ) {
           const styleAttr = elt.getAttribute('style') || '';
-          const isOffscreen = styleAttr.includes('-9999') || styleAttr.includes('-10000') ||
+          const isOffscreen = styleAttr.includes('-9999') || styleAttr.includes('-10000') || styleAttr.includes('1px') ||
             (elt.style && (parseInt(elt.style.left, 10) <= -1000 || parseInt(elt.style.top, 10) <= -1000));
           if (isOffscreen) {
             return new Proxy(cs, {
@@ -398,16 +421,40 @@
       return cs;
     };
 
-    // B. Defuse Preload Network Probes (e.g. AntiAdBlock Core checking if adsbygoogle/gpt scripts load)
+    // Bait Element offsetHeight Proxy: Ensures height checks like 0 === a.offsetHeight return 1
+    const origOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+    if (origOffsetHeight && origOffsetHeight.get) {
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+        configurable: true,
+        enumerable: true,
+        get: function () {
+          const cls = String(this.className || '');
+          const id = String(this.id || '');
+          if (/adsbox|banner-ads|banner_ads|ad-unit|ad-zone|textads|div-gpt-ad|adsbygoogle/i.test(cls + ' ' + id)) {
+            const styleAttr = this.getAttribute('style') || '';
+            if (styleAttr.includes('1px') || styleAttr.includes('bottom: 0') || styleAttr.includes('position: fixed')) {
+              return 1;
+            }
+          }
+          return origOffsetHeight.get.call(this);
+        }
+      });
+    }
+
+    // B. Defuse Preload & Script Network Probes (e.g. AntiAdBlock Core & Fineshop Design checking if adsbygoogle loads)
     const origAppendChild = Node.prototype.appendChild;
     Node.prototype.appendChild = function (child) {
-      if (child && child.tagName === 'LINK' && child.as === 'script') {
-        const href = String(child.href || '');
-        if (href.includes('googlesyndication.com') || href.includes('doubleclick.net') || href.includes('gpt.js')) {
-          setTimeout(() => {
-            if (typeof child.onload === 'function') child.onload();
-            child.dispatchEvent(new Event('load'));
-          }, 10);
+      if (child) {
+        const isPreloadLink = child.tagName === 'LINK' && child.as === 'script';
+        const isAdScript = child.tagName === 'SCRIPT';
+        if (isPreloadLink || isAdScript) {
+          const url = String(child.src || child.href || '');
+          if (url.includes('googlesyndication.com') || url.includes('doubleclick.net') || url.includes('gpt.js')) {
+            setTimeout(() => {
+              if (typeof child.onload === 'function') child.onload();
+              child.dispatchEvent(new Event('load'));
+            }, 10);
+          }
         }
       }
       return origAppendChild.apply(this, arguments);

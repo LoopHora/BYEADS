@@ -454,7 +454,10 @@
         #adblock-warning,
         [id*="adblock-warning"],
         [class*="adblock-warning"],
-        .alert-adblock {
+        .alert-adblock,
+        .popSc,
+        .popBo,
+        .popCo {
           display: none !important;
           visibility: hidden !important;
           height: 0 !important;
@@ -1724,7 +1727,12 @@
         '.stream-item-mag',
         '.stream-item:not(.post-item)',
         '[id^="container-"][id*="f0295"]',
-        'div[id^="tie-block_"]:has([id^="container-"])'
+        'div[id^="tie-block_"]:has([id^="container-"])',
+        '.popSc',
+        '.popBo',
+        '.popCo',
+        'div.popSc',
+        'div.popBo'
       ];
 
       document.querySelectorAll(nagSelectors.join(', ')).forEach((el) => {
@@ -1750,13 +1758,13 @@
       });
 
       // C. Catch any fixed modal containing "AdBlocker Detected" or "AntiAdBlock" text
-      document.querySelectorAll('body > div, body > section, html > div').forEach((el) => {
+      document.querySelectorAll('body > div, body > section, html > div, .popSc').forEach((el) => {
         try {
           const cs = window.getComputedStyle(el);
-          if (cs && (cs.position === 'fixed' || cs.position === 'absolute')) {
+          if (cs && (cs.position === 'fixed' || cs.position === 'absolute' || el.classList.contains('popSc'))) {
             const txt = (el.innerText || '').toLowerCase();
             if (
-              (txt.includes('adblocker detected') || txt.includes('adblock detected') || txt.includes('disable your ad blocker') || txt.includes('disable your adblocker') || txt.includes('powered by antiadblock core') || txt.includes('antiadblock')) &&
+              (txt.includes('adblocker detected') || txt.includes('adblock detected') || txt.includes('ad blocker detected') || txt.includes('disable your ad blocker') || txt.includes('disable your adblocker') || txt.includes('powered by antiadblock core') || txt.includes('antiadblock') || txt.includes('using adblocking plugin') || txt.includes('whitelist our website in your adblocking plugin')) &&
               !txt.includes('byeads')
             ) {
               el.remove();
