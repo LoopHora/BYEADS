@@ -57,6 +57,10 @@ const BLOCKED_DOMAINS = [
   "*://*.1xbet.com/*",
   "*://*.vulkanvegas.com/*",
   "*://*.spinanga.com/*",
+  "*://*.hiibel.com/*",
+  "*://*.gpcasla.org/*",
+  "*://*.histats.com/*",
+  "*://*.applejr.xyz/*",
   "*://*.youtube.com/api/stats/ads*",
   "*://*.youtube.com/pagead/*",
   "*://*.youtube.com/ptracking*",
@@ -213,7 +217,8 @@ const POPUP_AD_PATTERNS = [
   'redirect-jump', 'adkeeper', 'adserver', 'infolinks', 'terraclicks', 'propellerclick',
   'linkbucks', 'adf.ly', 'ouo.io', 'richpush', 'a-ads', 'voluumtrk', 'redtrack', 'bemob',
   'aniview', 'vdo.ai', 'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav',
-  'rollerads', 'clickaine'
+  'rollerads', 'clickaine', 'hiibel', 'gpcasla', 'applejr.xyz', 'open-download', 'histats',
+  'puclc', 'purs?', 'transplayer', 'transplink'
 ];
 
 function isAdOrPopupUrl(url) {
@@ -281,10 +286,11 @@ async function evaluatePopupTab(tabId, targetUrlStr, openerTabId) {
         // Block cross-origin popups with suspicious redirect query params
         const fullUrl = (targetUrl.pathname + targetUrl.search).toLowerCase();
         const hasRedirectParams = ['zoneid=', 'pop=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
-          'token_hash=', 'pub_id=', 'camp_id=', 'aff_c=', 'ad_url=', 'dest_ad=', 'ad_redirect=']
+          'token_hash=', 'pub_id=', 'camp_id=', 'aff_c=', 'ad_url=', 'dest_ad=', 'ad_redirect=',
+          'tmpl=', 'plk=', 'puclc', 'purs', 'psid=', 'flb=', 'ibid=', 'bv=']
           .some(p => fullUrl.includes(p));
         const hasRedirectPath = ['/jump', '/go/', '/out/', '/redirect', '/click', '/pop', '/ad/', '/gate/',
-          '/jump.php', '/go.php', '/pop.php', '/click.php', '/direct-link']
+          '/jump.php', '/go.php', '/pop.php', '/click.php', '/direct-link', '/open-download']
           .some(p => fullUrl.includes(p));
 
         if (hasRedirectParams || hasRedirectPath) {

@@ -1888,5 +1888,59 @@
       "urlFilter": "||spclient.wg.spotify.com/ad-tag-proxy/*",
       "resourceTypes": ["xmlhttprequest", "other"]
     }
+  },
+  {
+    "id": 211,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||hiibel.com^",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "image", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 212,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||gpcasla.org^",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "image", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 213,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||histats.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 214,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||applejr.xyz/p/open-download*",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 215,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "*puclc*",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "image", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 216,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "*purs?tmpl=*",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "image", "xmlhttprequest", "other"]
+    }
   }
 ]

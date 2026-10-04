@@ -24,13 +24,16 @@
     'adkernel', 'adreactor', 'adfox', 'adriver', 'aniview', 'vdo.ai', 'connatix',
     'playwire', 'brid.tv', 'primis', 'teads', 'clicksor', 'adcombo', 'propellerads',
     'trackvoluum', 'voluumtrk', 'redtrack', 'bemob', 'redirector', 'redirect-link',
-    'clickid=', 'aff_c=', 'bonus-spin', 'free-spins', 'roulette', 'betway', 'stake.com'
+    'clickid=', 'aff_c=', 'bonus-spin', 'free-spins', 'roulette', 'betway', 'stake.com',
+    'hiibel', 'gpcasla', 'applejr.xyz', 'open-download', 'histats', 'puclc', 'purs?',
+    'transplayer', 'transplink'
   ];
 
   const TRUSTED_AUTH_GATEWAYS = [
     'accounts.google.com', 'appleid.apple.com', 'github.com', 'login.microsoftonline.com',
     'facebook.com', 'twitter.com', 'x.com', 'paypal.com', 'stripe.com', 'discord.com',
-    'checkout.stripe.com', 'pay.google.com', 'auth0.com', 'amazon.com', 'steamcommunity.com'
+    'checkout.stripe.com', 'pay.google.com', 'auth0.com', 'amazon.com', 'steamcommunity.com',
+    'linkedin.com', 'yahoo.com', 'reddit.com', 't.me', 'whatsapp.com', 'wa.me', 'pinterest.com'
   ];
 
   const SAFE_DOWNLOAD_EXTENSIONS = [
@@ -53,12 +56,12 @@
     '/jump', '/go/', '/out/', '/redirect', '/click', '/link/', '/gate/',
     '/pop', '/ad/', '/banner/', '/count/', '/track', '/sponsor', '/load.php',
     '/direct.php', '/ad.php', '/pop.php', '/click.php', '/gate.php', '/jump.php',
-    '/out.php', '/go.php'
+    '/out.php', '/go.php', '/pixel/puclc', '/purs', '/open-download', '/dnn2hkn8'
   ];
 
   const REDIRECT_PARAMS = [
     'zoneid=', 'pop=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
-    'token_hash=', 'pub_id='
+    'token_hash=', 'pub_id=', 'tmpl=', 'plk=', 'puclc', 'purs', 'psid=', 'flb=', 'ibid=', 'bv='
   ];
 
   function isAdPattern(str) {
@@ -71,6 +74,20 @@
     if (!hostname) return false;
     const h = hostname.toLowerCase().replace(/^www\./, '');
     return TRUSTED_AUTH_GATEWAYS.some(t => h === t || h.endsWith('.' + t));
+  }
+
+  function isSocialShare(hostname, pathname) {
+    if (!hostname) return false;
+    const h = hostname.toLowerCase().replace(/^www\./, '');
+    const p = (pathname || '').toLowerCase();
+    if (h.includes('twitter.com') || h.includes('x.com')) return p.includes('/intent') || p.includes('/share');
+    if (h.includes('facebook.com')) return p.includes('/sharer');
+    if (h.includes('linkedin.com')) return p.includes('/sharing') || p.includes('/share');
+    if (h.includes('reddit.com')) return p.includes('/submit');
+    if (h.includes('whatsapp.com') || h === 'wa.me') return true;
+    if (h.includes('telegram.org') || h === 't.me') return p.includes('/share');
+    if (h.includes('pinterest.com')) return p.includes('/pin');
+    return false;
   }
 
   function isSafeDownload(urlStr, el) {
@@ -320,7 +337,6 @@
 
     function safeWindowOpen(url, target, features) {
       const urlStr = String(url || '').trim();
-      const hasUserGesture = navigator.userActivation ? navigator.userActivation.isActive : true;
 
       // Intercept if URL matches ad patterns, blank popunder staging, or untrusted cross-origin
       if (isAdOrPopup(urlStr)) {
@@ -328,14 +344,17 @@
         return createDummyWindow();
       }
 
-      if (!hasUserGesture && urlStr) {
+      if (urlStr) {
         try {
           const parsed = new URL(urlStr, window.location.href);
           const currentHost = window.location.hostname.replace(/^www\./, '');
           const destHost = parsed.hostname.replace(/^www\./, '');
-          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
-          if (!isSameDomain && !isTrustedAuth(destHost) && !isSafeDownload(urlStr)) {
-            console.warn('[BYEADS Defuser] Blocked background window.open without user gesture to:', destHost);
+          const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
+
+          // Universal cross-origin popup shield:
+          // A web page script has no reason to window.open an arbitrary third-party domain unless auth/share/download
+          if (!isSameDomain && !isTrustedAuth(destHost) && !isSocialShare(destHost, parsed.pathname) && !isSafeDownload(urlStr)) {
+            console.warn('[BYEADS Defuser] Neutralized cross-origin third-party window.open popup attempt to:', destHost);
             return createDummyWindow();
           }
         } catch {}
@@ -450,7 +469,13 @@
             fnStr.includes('hilltop') ||
             fnStr.includes('monetag') ||
             fnStr.includes('clickadu') ||
-            fnStr.includes('admaven')
+            fnStr.includes('admaven') ||
+            fnStr.includes('gpcasla') ||
+            fnStr.includes('hiibel') ||
+            fnStr.includes('transplayer') ||
+            fnStr.includes('transplink') ||
+            fnStr.includes('puclc') ||
+            fnStr.includes('purs')
           ) {
             console.warn('[BYEADS Defuser] Suppressed adware click/mousedown listener registration');
             return;
@@ -458,6 +483,43 @@
         }
       }
       return origAddEventListener.apply(this, arguments);
+    };
+  } catch {}
+
+  // E. Neutralize Dynamic Ad Script Element Injections (blocks Adsterra, Monetag, Popunder scripts)
+  try {
+    const origCreateElement = document.createElement;
+    document.createElement = function (tagName, ...args) {
+      const el = origCreateElement.apply(this, [tagName, ...args]);
+      if (typeof tagName === 'string' && tagName.toLowerCase() === 'script') {
+        const origSetAttribute = el.setAttribute;
+        el.setAttribute = function (name, val) {
+          if (name && name.toLowerCase() === 'src' && isAdPattern(val)) {
+            console.warn('[BYEADS Defuser] Blocked dynamic ad script setAttribute:', val);
+            return;
+          }
+          return origSetAttribute.apply(this, arguments);
+        };
+        try {
+          let scriptUrl = '';
+          Object.defineProperty(el, 'src', {
+            get: () => scriptUrl,
+            set: function (val) {
+              const str = String(val || '');
+              if (isAdPattern(str)) {
+                console.warn('[BYEADS Defuser] Blocked dynamic ad script .src assignment:', str);
+                scriptUrl = 'data:text/javascript,/* BYEADS neutralized */';
+                origSetAttribute.call(el, 'src', scriptUrl);
+                return;
+              }
+              scriptUrl = str;
+              origSetAttribute.call(el, 'src', str);
+            },
+            configurable: true
+          });
+        } catch {}
+      }
+      return el;
     };
   } catch {}
 

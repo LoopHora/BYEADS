@@ -128,6 +128,14 @@
       ytmusic-banner-promo-renderer,
       .ytmusic-ad-player-overlay-renderer,
       ytmusic-popup-container ytmusic-mealbar-promo-renderer,
+      ytmusic-player-page #ad-container,
+      ytmusic-player-page .ytmusic-ad-player-overlay-renderer,
+      ytmusic-player-bar[is-ad="true"],
+      ytmusic-nav-bar [aria-label*="Upgrade"],
+      ytmusic-upsell-dialog-renderer,
+      ytmusic-action-companion-ad-renderer,
+      ytmusic-item-section-renderer:has(ytmusic-ad-slot-renderer),
+      ytmusic-ad-slot-renderer,
       ytd-enforcement-message-view-model,
       tp-yt-paper-dialog:has(#feedback) {
         display: none !important;
@@ -230,12 +238,16 @@
 
       /* X / Twitter Promoted Ads & Premium Nagging */
       div[data-testid="cellInnerDiv"]:has([data-testid="placementTracking"]),
+      div[data-testid="cellInnerDiv"]:has(a[href*="ads.twitter.com"]),
+      div[data-testid="cellInnerDiv"]:has(a[href*="promoted-tweets"]),
       aside[aria-label*="Subscribe to Premium"],
       aside[aria-label*="Who to follow"],
       div[data-testid="inline-upgrade-prompt"],
 
       /* Reddit Promoted Posts & App Selector Modals */
       shreddit-post[is-promoted="true"],
+      shreddit-post[promoted="true"],
+      shreddit-ad-post,
       .promotedlink,
       [data-adclickarea="media"],
       [data-adclickarea="top"],
@@ -313,6 +325,17 @@
       iframe[src*="hilltopads"],
       iframe[src*="adcash"],
       div[style*="z-index: 2147483647"]:empty,
+      div[style*="z-index: 999999999"]:empty,
+      div[style*="z-index: 99999999"]:empty,
+      #transpLayerId,
+      #transpLinkId,
+      [id*="transpLayer"],
+      [id*="transpLink"],
+      [class*="transpLayer"],
+      [class*="transpLink"],
+      a[href*="applejr.xyz/p/open-download"],
+      a[href*="puclc"],
+      a[href*="purs?tmpl="],
       a[href*="popads.net"],
       a[href*="propellerads.com"],
       a[href*="adsterra.com"],
@@ -485,7 +508,9 @@
       // Strict ad indicator check (NEVER match static .video-ads container)
       const isAdActive = isPlayerAdShowing ||
         !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
-        !!document.querySelector('.ytp-ad-player-overlay-instream');
+        !!document.querySelector('.ytp-ad-player-overlay-instream') ||
+        !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
+        !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)');
 
       const video = document.querySelector('video');
 
@@ -498,20 +523,25 @@
           video.playbackRate = 16.0;
 
           // Only skip ahead if explicitly inside an active ad player class
-          if (isPlayerAdShowing && isFinite(video.duration) && video.duration > 0) {
+          if (isFinite(video.duration) && video.duration > 0) {
             video.currentTime = video.duration;
           }
         }
 
         // Trigger skip buttons immediately
         const skipButtons = document.querySelectorAll(
-          '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot button, .videoAdUiSkipButton, [id*="skip-button"], button.ytmusic-ad-player-overlay-renderer, ytmusic-mealbar-promo-renderer #dismiss-button'
+          '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot button, .videoAdUiSkipButton, [id*="skip-button"], button.ytmusic-ad-player-overlay-renderer, ytmusic-mealbar-promo-renderer #dismiss-button, tp-yt-paper-button[aria-label*="Skip"], .ytp-ad-overlay-close-button'
         );
 
         skipButtons.forEach((btn) => {
           try {
             btn.click();
           } catch {}
+        });
+
+        // Dismiss promo mealbars and dialogs
+        document.querySelectorAll('ytmusic-mealbar-promo-renderer, ytmusic-upsell-dialog-renderer').forEach((el) => {
+          try { el.remove(); } catch {}
         });
 
         // Record stats (throttled)
@@ -613,19 +643,22 @@
       if (isSpotifyAd) {
         spotifyMutedByAd = true;
 
-        // Advertisement detected: Mute audio cleanly (NEVER set volume=0, only mute — setting volume=0
-        // triggers Spotify's own error recovery logic which crashes the player)
+        // Advertisement detected: Mute audio cleanly & accelerate to quickly finish ad break
         audios.forEach((audio) => {
           try {
             if (!audio.muted) {
               audio.muted = true;
             }
+            audio.playbackRate = 16.0;
+            if (isFinite(audio.duration) && audio.duration > 0) {
+              audio.currentTime = Math.max(0, audio.duration - 0.1);
+            }
           } catch {}
         });
 
-        // Trigger skip button gently (max once per 6 seconds, never flood — too-fast clicks crash Spotify)
+        // Trigger skip button gently (max once per 3 seconds, never flood)
         const now = Date.now();
-        if (now - lastSpotifySkipTime > 6000) {
+        if (now - lastSpotifySkipTime > 3000) {
           lastSpotifySkipTime = now;
           try {
             const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');
@@ -652,6 +685,9 @@
         if (spotifyMutedByAd) {
           audios.forEach((audio) => {
             audio.muted = false;
+            if (audio.playbackRate > 1.0) {
+              audio.playbackRate = 1.0;
+            }
             if (audio.volume === 0) {
               audio.volume = 1.0;
             }
@@ -809,15 +845,41 @@
       sponsoredCells.forEach((c) => {
         try { c.remove(); } catch {}
       });
-      document.querySelectorAll('aside[aria-label*="Subscribe to Premium"], div[data-testid="inline-upgrade-prompt"]').forEach((el) => {
+      // Scan tweets/articles for sponsored markers or Ad badges
+      document.querySelectorAll('article').forEach((art) => {
+        try {
+          if (art.querySelector('[data-testid="placementTracking"], a[href*="ads.twitter.com"], a[href*="promoted-tweets"]')) {
+            const cell = art.closest('div[data-testid="cellInnerDiv"]') || art;
+            cell.remove();
+            return;
+          }
+          const spans = art.querySelectorAll('span');
+          for (const s of spans) {
+            const txt = (s.textContent || '').trim();
+            if (txt === 'Ad' || txt === 'Promoted' || txt === 'Sponsored') {
+              const cell = art.closest('div[data-testid="cellInnerDiv"]') || art;
+              cell.remove();
+              break;
+            }
+          }
+        } catch {}
+      });
+      document.querySelectorAll('aside[aria-label*="Subscribe to Premium"], aside[aria-label*="Who to follow"], div[data-testid="inline-upgrade-prompt"]').forEach((el) => {
         try { el.remove(); } catch {}
       });
     }
 
     // B. Reddit promoted posts & "Open in App" killer
     if (hostname.includes('reddit.com')) {
-      document.querySelectorAll('shreddit-post[is-promoted="true"], .promotedlink, [data-adclickarea], div[data-testid="post-container"]:has([data-testid="placementTracking"])').forEach((el) => {
+      document.querySelectorAll('shreddit-post[is-promoted="true"], shreddit-post[promoted="true"], shreddit-ad-post, .promotedlink, [data-adclickarea], div[data-testid="post-container"]:has([data-testid="placementTracking"])').forEach((el) => {
         try { el.remove(); } catch {}
+      });
+      document.querySelectorAll('shreddit-post').forEach((sp) => {
+        try {
+          if (sp.getAttribute('is-promoted') === 'true' || sp.getAttribute('promoted') === 'true' || sp.querySelector('shreddit-ad-post, [data-adclickarea]')) {
+            sp.remove();
+          }
+        } catch {}
       });
       document.querySelectorAll('shreddit-async-loader[bundlename="bottom_sheet"], reddit-bottom-sheet, xpromo-app-selector').forEach((el) => {
         try {
@@ -866,6 +928,14 @@
     if (hostname.includes('facebook.com') || hostname.includes('instagram.com')) {
       document.querySelectorAll('div[data-pagelet*="FeedUnit"]:has(a[href*="/ads/about"]), div[data-testid="fb-sponsored-feed-unit"], article:has(a[href*="/about/ads"])').forEach((el) => {
         try { el.remove(); } catch {}
+      });
+      document.querySelectorAll('article, div[role="feed"] > div').forEach((card) => {
+        try {
+          const adLinks = card.querySelectorAll('a[href*="/ads/about"], a[href*="/about/ads"], a[href*="help.instagram.com/1415228085373580"]');
+          if (adLinks.length > 0) {
+            card.remove();
+          }
+        } catch {}
       });
       // Neutralize sticky login wall modals blocking page viewing
       document.querySelectorAll('div[id="login_popup_cta"], div[class*="login-cta"], div[role="dialog"]:has(a[href*="accounts/login"])').forEach((el) => {
@@ -1188,6 +1258,12 @@
     // CRITICAL: Never run on YouTube or Spotify — their player overlays are legitimate UI
     if (hostname.includes('youtube.com') || hostname.includes('spotify.com') || hostname.includes('netflix.com') || hostname.includes('twitch.tv')) return;
 
+    // Immediate target ID/class check for Adsterra/Monetag transparent trap layers
+    const trapLayers = document.querySelectorAll('#transpLayerId, #transpLinkId, [id*="transpLayer"], [id*="transpLink"], [class*="transpLayer"], [class*="transpLink"]');
+    trapLayers.forEach(el => {
+      try { el.remove(); } catch {}
+    });
+
     // Scan overlay candidate containers (including transparent <a> and <span> traps)
     const elements = document.querySelectorAll('div, section, a, span, ins');
     const vw = window.innerWidth;
@@ -1217,10 +1293,12 @@
         if (pos !== 'fixed' && pos !== 'absolute') return;
 
         const rect = el.getBoundingClientRect();
-        // True invisible clickjack must cover a large portion of the viewport (>= 50% width and height)
+        // True invisible clickjack covers >= 50% of viewport or has extreme z-index
         const isCoverageTrap = rect.width >= vw * 0.5 && rect.height >= vh * 0.5;
+        const zIndexNum = parseInt(style.zIndex, 10);
+        const isExtremeZ = !isNaN(zIndexNum) && zIndexNum >= 99999;
 
-        if (isCoverageTrap) {
+        if (isCoverageTrap || isExtremeZ) {
           const opacity = parseFloat(style.opacity);
           const bg = style.backgroundColor;
           const isTransparentBg = bg === 'transparent' ||
@@ -1251,7 +1329,28 @@
     });
   }
 
-  // 9. Trap Any Click on an Invisible Overlay or Ad Redirect Link in Capturing Phase
+  // 8.1. Clean Download Bridges & Intermediary Gates (e.g. applejr.xyz/p/open-download.html?url=...)
+  function cleanDownloadBridges() {
+    if (!byeadsActive || isWhitelisted) return;
+    try {
+      const links = document.querySelectorAll('a[href*="open-download"], a[href*="safelink"], a[href*="download-bridge"]');
+      links.forEach((a) => {
+        try {
+          const href = a.href || '';
+          if (!href) return;
+          const urlObj = new URL(href, window.location.href);
+          const target = urlObj.searchParams.get('url') || urlObj.searchParams.get('link') || urlObj.searchParams.get('target') || urlObj.searchParams.get('download');
+          if (target && (target.startsWith('http://') || target.startsWith('https://'))) {
+            a.href = decodeURIComponent(target);
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener noreferrer');
+          }
+        } catch {}
+      });
+    } catch {}
+  }
+
+  // 9. Trap Any Click/Interaction on an Invisible Overlay or Ad Redirect Link in Capturing Phase
   const EXTENDED_AD_PATTERNS = [
     'popads', 'popcash', 'propeller', 'adsterra', 'exoclick', 'monetag', 'hilltopads',
     'adcash', 'onclickads', 'trafficjunky', 'juicyads', 'exdynsrv', 'exosrv', 'realsrv',
@@ -1262,7 +1361,9 @@
     'smartadserver', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga', 'onclick',
     'direct-link', 'redirect-jump', 'linkbucks', 'ouo.io', 'adf.ly', 'shorte.st',
     'richpush', 'a-ads', 'voluumtrk', 'redtrack', 'bemob', 'aniview', 'vdo.ai',
-    'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav', 'rollerads', 'clickaine'
+    'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav', 'rollerads', 'clickaine',
+    'hiibel', 'gpcasla', 'applejr.xyz', 'open-download', 'histats', 'puclc', 'purs?',
+    'transplayer', 'transplink'
   ];
 
   const EXPLICIT_AD_REDIRECT_PATHS = [
@@ -1299,6 +1400,9 @@
       // Direct ad domain match
       if (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p))) return true;
 
+      // Ad redirect query parameters like tmpl=, plk=, puclc, purs
+      if (/(\?|&)(tmpl|plk|puclc|purs|psid|flb|ibid|bv)=/i.test(fullPath)) return true;
+
       // Same-host explicit ad redirect traps
       if (destHost === currentHost || destHost.endsWith('.' + currentHost)) {
         if (EXPLICIT_AD_REDIRECT_PATHS.some(rg => fullPath.includes(rg))) return true;
@@ -1308,10 +1412,19 @@
     return false;
   }
 
-  window.addEventListener('click', (e) => {
+  function trapAdInteractions(e) {
     if (!byeadsActive || isWhitelisted) return;
     const target = e.target;
     if (!target) return;
+
+    // Direct Adsterra / Monetag trap overlay check
+    if (target.id && (target.id.includes('transpLayer') || target.id.includes('transpLink'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      try { target.remove(); } catch {}
+      return false;
+    }
 
     // SAFEGUARD: If target or parent is a legitimate button, download, form input, or interactive control, ALLOW IMMEDIATELY!
     if (
@@ -1344,7 +1457,7 @@
           const currentHost = window.location.hostname.replace(/^www\./, '');
           const destHost = new URL(href).hostname.replace(/^www\./, '');
           const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost);
-          const hasAdParams = /[\?&](zoneid|clickid|click_id|aff_id|affid|camp_id|subid|token_hash|pub_id|pop=|adurl|dest_ad)=/i.test(href);
+          const hasAdParams = /[\?&](zoneid|clickid|click_id|aff_id|affid|camp_id|subid|token_hash|pub_id|pop=|adurl|dest_ad|tmpl|plk|puclc|purs)=/i.test(href);
           if (!isSameDomain && (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p)) || hasAdParams)) {
             e.preventDefault();
             e.stopPropagation();
@@ -1358,11 +1471,10 @@
     }
 
     // 2. Check if clicked element is a true transparent clickjack overlay
-    // A true overlay must be a large fixed/absolute cover covering >= 70% of the screen with ZERO visible text and NO child controls
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = target.getBoundingClientRect();
-    const isLargeCover = rect.width >= vw * 0.7 && rect.height >= vh * 0.7;
+    const isLargeCover = rect.width >= vw * 0.5 && rect.height >= vh * 0.5;
 
     if (isLargeCover && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
       const style = window.getComputedStyle(target);
@@ -1378,12 +1490,15 @@
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        target.style.setProperty('pointer-events', 'none', 'important');
-        target.style.setProperty('display', 'none', 'important');
+        try { target.remove(); } catch {}
         return false;
       }
     }
-  }, true);
+  }
+
+  ['click', 'mousedown', 'pointerdown'].forEach((evtName) => {
+    window.addEventListener(evtName, trapAdInteractions, true);
+  });
 
   // 8. Smart Auto-Healer (Fix This Page)
   function handleFixThisPage() {
@@ -1521,6 +1636,7 @@
   handleTeraBoxProtections();
   handleFileHosterCleaners();
   handleSocialMediaCleaners();
+  cleanDownloadBridges();
   scanForDeceptiveButtons();
   killInvisibleClickjacks();
   killFloatingAndOutstreamAds();
@@ -1533,6 +1649,7 @@
   setInterval(handleTeraBoxProtections, 500);
   setInterval(handleFileHosterCleaners, 1000);
   setInterval(handleSocialMediaCleaners, 1000);
+  setInterval(cleanDownloadBridges, 1000);
   setInterval(killInvisibleClickjacks, 1000);
   setInterval(killFloatingAndOutstreamAds, 1000);
   setInterval(trackCosmeticBlocks, 2000);
@@ -1550,6 +1667,7 @@
       handleTeraBoxProtections();
       handleFileHosterCleaners();
       handleSocialMediaCleaners();
+      cleanDownloadBridges();
       scanForDeceptiveButtons();
       handleCookieBanners();
       killInvisibleClickjacks();
