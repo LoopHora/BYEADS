@@ -26,7 +26,8 @@
     'trackvoluum', 'voluumtrk', 'redtrack', 'bemob', 'redirector', 'redirect-link',
     'clickid=', 'aff_c=', 'bonus-spin', 'free-spins', 'roulette', 'betway', 'stake.com',
     'hiibel', 'gpcasla', 'applejr.xyz', 'open-download', 'histats', 'puclc', 'purs?',
-    'transplayer', 'transplink'
+    'transplayer', 'transplink', 'antiadblockcore', 'compiledonatevanity', 'adition',
+    'kameleoon', '3lift', 'adpushup', 'npttech', 'trafficfactory', 'sovrn', 'lijit'
   ];
 
   const TRUSTED_AUTH_GATEWAYS = [
