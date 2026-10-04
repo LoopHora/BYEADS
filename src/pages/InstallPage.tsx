@@ -171,12 +171,13 @@ export default function InstallPage() {
                     }}
                   />
                   <div>
-                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>Download BYEADS Chromium Archive</span>
-                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.1.0</span>
+                      <span style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', fontWeight: 700, border: '1px solid rgba(34, 197, 94, 0.3)' }}>LATEST BUILD</span>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                      Official Chromium Manifest V3 Package · Compatible with Chrome, Brave &amp; Edge
+                      Official Chromium Manifest V3 Package · Hardened Popup Shield &amp; 210+ Rules · Chrome, Brave &amp; Edge
                     </div>
                   </div>
                 </div>
@@ -189,9 +190,15 @@ export default function InstallPage() {
                     style={{
                       boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                       padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)'
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer'
                     }}
                     title="Direct native download"
+                    onClick={() => {
+                      try {
+                        downloadPwaFile('/byeads-extension-chromium.zip', 'byeads-extension-chromium.zip');
+                      } catch {}
+                    }}
                   >
                     <Download style={{ width: 16, height: 16 }} />
                     <span>Download .ZIP</span>
@@ -999,12 +1006,13 @@ export default function InstallPage() {
                     }}
                   />
                   <div>
-                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '1.0625rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>Download Firefox Extension Package</span>
-                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.0.0</span>
+                      <span className="badge badge-protection" style={{ fontSize: '0.6875rem', padding: '2px 8px' }}>v1.1.0</span>
+                      <span style={{ fontSize: '0.6875rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', fontWeight: 700, border: '1px solid rgba(34, 197, 94, 0.3)' }}>LATEST BUILD</span>
                     </div>
                     <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)', marginTop: '3px' }}>
-                      Official WebExtension Package · Compatible with Mozilla Firefox
+                      Official WebExtension Package · Hardened Popup Shield · Mozilla Firefox
                     </div>
                   </div>
                 </div>
@@ -1017,9 +1025,15 @@ export default function InstallPage() {
                     style={{
                       boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
                       padding: '10px 20px',
-                      borderRadius: 'var(--radius-md)'
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer'
                     }}
                     title="Direct native download"
+                    onClick={() => {
+                      try {
+                        downloadPwaFile('/byeads-extension-firefox.zip', 'byeads-extension-firefox.zip');
+                      } catch {}
+                    }}
                   >
                     <Download style={{ width: 16, height: 16 }} />
                     <span>Download .ZIP</span>

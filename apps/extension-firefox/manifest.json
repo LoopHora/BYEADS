@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "BYEADS — Web Shield & Deception Engine",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Free, open-source protection against intrusive ads, tracking, scams, and deceptive downloads by LoopHora.",
   "permissions": [
     "webRequest",

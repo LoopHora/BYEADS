@@ -1486,10 +1486,10 @@
           type: 'BYEADS_TELEMETRY_UPDATE',
           payload: {
             installed: true,
-            version: '1.0.0',
+            version: '1.1.0',
             active: byeadsActive && !isWhitelisted,
             blockedInTab: Math.max(localTabBlockedCount, getTabBlockedCount()),
-            rulesActive: 77,
+            rulesActive: 210,
             shields: {
               webShield: true,
               deceptionEngine: true,
