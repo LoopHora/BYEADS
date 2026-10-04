@@ -181,24 +181,33 @@ export default function InstallPage() {
                   </div>
                 </div>
 
-                <a
-                  href={getGithubDownloadUrl('/byeads-extension-chromium.zip')}
-                  download="byeads-extension-chromium.zip"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    downloadPwaFile('/byeads-extension-chromium.zip', 'byeads-extension-chromium.zip');
-                  }}
-                  className="btn btn-primary"
-                  style={{
-                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)'
-                  }}
-                  title="Direct download from GitHub"
-                >
-                  <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .ZIP (GitHub)</span>
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <a
+                    href="/byeads-extension-chromium.zip"
+                    download="byeads-extension-chromium.zip"
+                    className="btn btn-primary"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)'
+                    }}
+                    title="Direct native download"
+                  >
+                    <Download style={{ width: 16, height: 16 }} />
+                    <span>Download .ZIP</span>
+                  </a>
+                  <a
+                    href={getGithubDownloadUrl('/byeads-extension-chromium.zip')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-md)', padding: '10px 14px' }}
+                    title="GitHub Raw Mirror"
+                  >
+                    <ExternalLink style={{ width: 14, height: 14 }} />
+                    <span>GitHub Mirror</span>
+                  </a>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -356,24 +365,33 @@ export default function InstallPage() {
                   </div>
                 </div>
 
-                <a
-                  href={getGithubDownloadUrl('/install-byeads-dns.bat')}
-                  download="install-byeads-dns.bat"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    downloadPwaFile('/install-byeads-dns.bat', 'install-byeads-dns.bat');
-                  }}
-                  className="btn btn-primary"
-                  style={{
-                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)'
-                  }}
-                  title="Direct download from GitHub"
-                >
-                  <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .BAT (GitHub)</span>
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <a
+                    href="/install-byeads-dns.bat"
+                    download="install-byeads-dns.bat"
+                    className="btn btn-primary"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)'
+                    }}
+                    title="Direct native download"
+                  >
+                    <Download style={{ width: 16, height: 16 }} />
+                    <span>Download .BAT</span>
+                  </a>
+                  <a
+                    href={getGithubDownloadUrl('/install-byeads-dns.bat')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-md)', padding: '10px 14px' }}
+                    title="GitHub Raw Mirror"
+                  >
+                    <ExternalLink style={{ width: 14, height: 14 }} />
+                    <span>GitHub Mirror</span>
+                  </a>
+                </div>
               </div>
 
               {/* Option A: One-Liner PowerShell Command */}
@@ -604,12 +622,8 @@ export default function InstallPage() {
                   </div>
 
                   <a
-                    href={getGithubDownloadUrl('/byeads-wblock-filters.txt')}
+                    href="/byeads-wblock-filters.txt"
                     download="byeads-wblock-filters.txt"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      downloadPwaFile('/byeads-wblock-filters.txt', 'byeads-wblock-filters.txt');
-                    }}
                     className="btn btn-secondary btn-sm"
                     style={{ borderRadius: 'var(--radius-md)' }}
                     title="Direct download filter text file"
@@ -796,12 +810,8 @@ export default function InstallPage() {
                     <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: 'var(--text-main)', marginBottom: '4px' }}>Option C: BYEADS .mobileconfig</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>Native Apple Configuration Profile routing to dns.byeads.net.</div>
                     <a
-                      href={getGithubDownloadUrl('/byeads-encrypted-dns.mobileconfig')}
+                      href="/byeads-encrypted-dns.mobileconfig"
                       download="byeads-encrypted-dns.mobileconfig"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        downloadPwaFile('/byeads-encrypted-dns.mobileconfig', 'byeads-encrypted-dns.mobileconfig');
-                      }}
                       style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
                     >
                       <Download style={{ width: 12, height: 12 }} /> <span>Download Profile</span>
@@ -999,24 +1009,33 @@ export default function InstallPage() {
                   </div>
                 </div>
 
-                <a
-                  href={getGithubDownloadUrl('/byeads-extension-firefox.zip')}
-                  download="byeads-extension-firefox.zip"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    downloadPwaFile('/byeads-extension-firefox.zip', 'byeads-extension-firefox.zip');
-                  }}
-                  className="btn btn-primary"
-                  style={{
-                    boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
-                    padding: '10px 20px',
-                    borderRadius: 'var(--radius-md)'
-                  }}
-                  title="Direct download from GitHub"
-                >
-                  <Download style={{ width: 16, height: 16 }} />
-                  <span>Download .ZIP (GitHub)</span>
-                </a>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <a
+                    href="/byeads-extension-firefox.zip"
+                    download="byeads-extension-firefox.zip"
+                    className="btn btn-primary"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(249, 115, 22, 0.35)',
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)'
+                    }}
+                    title="Direct native download"
+                  >
+                    <Download style={{ width: 16, height: 16 }} />
+                    <span>Download .ZIP</span>
+                  </a>
+                  <a
+                    href={getGithubDownloadUrl('/byeads-extension-firefox.zip')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary btn-sm"
+                    style={{ borderRadius: 'var(--radius-md)', padding: '10px 14px' }}
+                    title="GitHub Raw Mirror"
+                  >
+                    <ExternalLink style={{ width: 14, height: 14 }} />
+                    <span>GitHub Mirror</span>
+                  </a>
+                </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

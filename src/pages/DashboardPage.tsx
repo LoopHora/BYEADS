@@ -491,10 +491,10 @@ export default function DashboardPage() {
                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
                   Download and install the Apple Encrypted DNS configuration profile:
                 </div>
-                <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
+                <a href="/byeads-encrypted-dns.mobileconfig" download="byeads-encrypted-dns.mobileconfig" className="btn btn-primary btn-sm">
                   <Download style={{ width: 14, height: 14 }} />
                   <span>Download Profile (.mobileconfig)</span>
-                </button>
+                </a>
               </div>
             )}
 
@@ -503,10 +503,10 @@ export default function DashboardPage() {
                 <div style={{ fontSize: '0.8125rem', color: 'var(--text-sub)' }}>
                   Download and double-click the batch installer:
                 </div>
-                <button onClick={handleDeviceDownload} className="btn btn-primary btn-sm">
+                <a href="/install-byeads-dns.bat" download="install-byeads-dns.bat" className="btn btn-primary btn-sm">
                   <Download style={{ width: 14, height: 14 }} />
                   <span>Download install-byeads-dns.bat</span>
-                </button>
+                </a>
               </div>
             )}
           </div>

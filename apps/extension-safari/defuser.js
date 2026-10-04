@@ -33,6 +33,22 @@
     'checkout.stripe.com', 'pay.google.com', 'auth0.com', 'amazon.com', 'steamcommunity.com'
   ];
 
+  const SAFE_DOWNLOAD_EXTENSIONS = [
+    '.zip', '.tar', '.gz', '.tgz', '.bz2', '.7z', '.rar',
+    '.exe', '.msi', '.pkg', '.dmg', '.deb', '.rpm', '.apk', '.ipa',
+    '.mobileconfig', '.bat', '.cmd', '.ps1', '.sh',
+    '.pdf', '.txt', '.csv', '.json', '.xml', '.bin', '.iso', '.torrent',
+    '.mp3', '.mp4', '.wav', '.flac', '.epub'
+  ];
+
+  const TRUSTED_DOWNLOAD_DOMAINS = [
+    'github.com', 'raw.githubusercontent.com', 'objects.githubusercontent.com',
+    'github-production-release-asset-2e65be.s3.amazonaws.com',
+    'github-releases.githubusercontent.com',
+    'gitlab.com', 'sourceforge.net', 'archive.org',
+    'dns.byeads.net', 'byeads.net', 'localhost'
+  ];
+
   const REDIRECT_PATHS = [
     '/jump', '/go/', '/out/', '/redirect', '/click', '/link/', '/gate/',
     '/pop', '/ad/', '/banner/', '/count/', '/track', '/sponsor', '/load.php',
@@ -41,8 +57,7 @@
   ];
 
   const REDIRECT_PARAMS = [
-    'redirect=', 'url=', 'target=', 'dest=', 'goto=', 'link=', 'zoneid=',
-    'pop=', 'campaign=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
+    'zoneid=', 'pop=', 'clickid=', 'aff_id=', 'aff_sub=', 'subid=',
     'token_hash=', 'pub_id='
   ];
 
@@ -58,10 +73,28 @@
     return TRUSTED_AUTH_GATEWAYS.some(t => h === t || h.endsWith('.' + t));
   }
 
-  function isAdOrPopup(urlStr) {
+  function isSafeDownload(urlStr, el) {
     if (!urlStr) return false;
+    const s = String(urlStr).toLowerCase();
+    if (s.startsWith('blob:')) return true;
+    if (SAFE_DOWNLOAD_EXTENSIONS.some(ext => s.includes(ext))) return true;
+    if (TRUSTED_DOWNLOAD_DOMAINS.some(d => s.includes(d))) return true;
+    if (el) {
+      if (el.hasAttribute && (el.hasAttribute('download') || el.download)) return true;
+      const text = (el.innerText || el.textContent || '').trim().toLowerCase();
+      if (/download|install|setup|get\s|save|update/i.test(text)) return true;
+      const cls = (el.className || '') + ' ' + (el.id || '');
+      if (/download|btn|button/i.test(cls)) return true;
+    }
+    return false;
+  }
+
+  function isAdOrPopup(urlStr, el) {
+    if (!urlStr) return false;
+    if (isSafeDownload(urlStr, el)) return false;
+
     const s = String(urlStr).trim().toLowerCase();
-    if (s === '' || s === 'about:blank' || s === 'javascript:void(0)' || s.startsWith('data:text/html') || s.startsWith('blob:')) {
+    if (s === '' || s === 'about:blank' || s === 'javascript:void(0)' || s.startsWith('data:text/html')) {
       return true; // blank or synthetic popunder staging
     }
     if (isAdPattern(s)) return true;
@@ -70,20 +103,18 @@
       const parsed = new URL(urlStr, window.location.href);
       const currentHost = window.location.hostname.replace(/^www\./, '');
       const destHost = parsed.hostname.replace(/^www\./, '');
-      const isSameDomain = destHost === currentHost || destHost.endsWith('.' + currentHost) || currentHost.endsWith('.' + destHost);
 
+      // Check known ad patterns on hostname
+      if (isAdPattern(destHost)) return true;
+
+      // Check ad redirect paths combined with ad tracking params
       const p = parsed.pathname.toLowerCase();
       const q = parsed.search.toLowerCase();
-      if (REDIRECT_PATHS.some(part => p.includes(part)) || REDIRECT_PARAMS.some(param => q.includes(param))) {
-        return true;
-      }
-
-      // If cross-origin: allow ONLY recognized OAuth or checkout providers
-      if (!isSameDomain && !isTrustedAuth(destHost)) {
+      if (REDIRECT_PATHS.some(part => p.includes(part)) && REDIRECT_PARAMS.some(param => q.includes(param))) {
         return true;
       }
     } catch {
-      return true; // Malformed URL
+      return false;
     }
 
     return false;
@@ -334,7 +365,10 @@
     const originalAnchorClick = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
       const href = String(this.href || '').trim();
-      if (isAdOrPopup(href) || (!this.isConnected && href) || (this.target === '_blank' && isAdOrPopup(href))) {
+      if (this.hasAttribute('download') || this.download || isSafeDownload(href, this)) {
+        return originalAnchorClick.apply(this, arguments);
+      }
+      if (isAdOrPopup(href, this) || (this.target === '_blank' && isAdOrPopup(href, this))) {
         console.warn('[BYEADS Defuser] Blocked synthetic anchor click ad redirect:', href);
         return;
       }
@@ -345,7 +379,7 @@
     EventTarget.prototype.dispatchEvent = function (event) {
       if (event && (event.type === 'click' || event.type === 'mousedown' || event.type === 'pointerdown' || event.type === 'mouseup')) {
         const anchor = (this instanceof HTMLAnchorElement) ? this : (this.closest && this.closest('a'));
-        if (anchor && isAdOrPopup(anchor.href)) {
+        if (anchor && !isSafeDownload(anchor.href, anchor) && isAdOrPopup(anchor.href, anchor)) {
           console.warn('[BYEADS Defuser] Blocked synthetic dispatchEvent ad popup:', anchor.href);
           return false;
         }
@@ -359,7 +393,7 @@
     const originalFormSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
       const action = String(this.action || '').trim();
-      if ((this.target === '_blank' || this.style.display === 'none') && isAdOrPopup(action)) {
+      if ((this.target === '_blank' || this.style.display === 'none') && isAdOrPopup(action, this)) {
         console.warn('[BYEADS Defuser] Blocked synthetic form submit ad popup:', action);
         return;
       }
@@ -396,47 +430,61 @@
     };
   } catch {}
 
-  // E. Capturing Click Listener: Trap Transparent Overlays & Ad Links
+  // E. Capturing Click Listener: Trap Transparent Overlays & Ad Links (Safe for UI & Downloads)
   try {
     window.addEventListener('click', (e) => {
       const target = e.target;
       if (!target) return;
 
-      // 1. Transparent / fixed clickjack overlay detection (sensitive to player and button traps)
-      if (target.tagName !== 'VIDEO' && target.tagName !== 'AUDIO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
-        const cs = window.getComputedStyle(target);
-        const isFixedOrAbs = cs.position === 'fixed' || cs.position === 'absolute';
-        const opacity = parseFloat(cs.opacity);
-        const bg = cs.backgroundColor || '';
-        const isTransparentBg = bg === 'transparent' || bg.includes('rgba(0, 0, 0, 0)') || bg === 'rgba(0,0,0,0)' || bg.includes('rgba(255, 255, 255, 0)');
-        const isTransparent = opacity <= 0.1 || isTransparentBg;
-        const zIndex = parseInt(cs.zIndex, 10);
-        const hasHighZ = !isNaN(zIndex) && zIndex >= 10;
-        const textLen = (target.innerText || '').trim().length;
-        const hasVisibleControls = target.querySelectorAll('input, button, select, textarea').length > 0;
-        const rect = target.getBoundingClientRect();
-
-        if (isFixedOrAbs && isTransparent && textLen < 15 && !hasVisibleControls && (hasHighZ || (rect.width >= 120 && rect.height >= 80))) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          target.remove();
-          console.warn('[BYEADS Defuser] Neutralized and removed clickjack trap overlay');
-          return false;
-        }
+      // SAFEGUARD 1: Legitimate UI controls, buttons, forms, and downloads are ALWAYS immune
+      if (
+        target.closest('button, input, select, textarea, label, [role="button"], [download], [class*="download"], [id*="download"], [class*="btn"], [id*="btn"]')
+      ) {
+        return;
       }
 
-      // 2. Intercept clicks on links pointing to ad networks or untrusted external popup tabs
+      // SAFEGUARD 2: Check anchors safely (NEVER call anchor.remove() which causes buttons to disappear)
       const anchor = target.closest('a');
       if (anchor) {
+        if (isSafeDownload(anchor.href, anchor)) return;
         const href = String(anchor.href || '').trim();
-        if (isAdOrPopup(href)) {
+        if (isAdOrPopup(href, anchor)) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
-          anchor.remove();
           console.warn('[BYEADS Defuser] Neutralized click on ad link:', href);
           return false;
+        }
+        return;
+      }
+
+      // 3. Transparent / fixed full-screen clickjack overlay detection (only true blank cover sheets)
+      if (target.tagName !== 'VIDEO' && target.tagName !== 'AUDIO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const rect = target.getBoundingClientRect();
+        const isMassiveCover = rect.width >= vw * 0.7 && rect.height >= vh * 0.7;
+
+        if (isMassiveCover) {
+          const cs = window.getComputedStyle(target);
+          const isFixedOrAbs = cs.position === 'fixed' || cs.position === 'absolute';
+          const opacity = parseFloat(cs.opacity);
+          const bg = cs.backgroundColor || '';
+          const isTransparentBg = bg === 'transparent' || bg.includes('rgba(0, 0, 0, 0)') || bg === 'rgba(0,0,0,0)' || bg.includes('rgba(255, 255, 255, 0)');
+          const isTransparent = opacity <= 0.05 || isTransparentBg;
+          const textLen = (target.innerText || target.textContent || '').trim().length;
+          const hasInteractiveControls = target.querySelector('button, a, input, select, textarea, form, h1, h2, h3, p, video, audio, img');
+
+          if (isFixedOrAbs && isTransparent && textLen === 0 && !hasInteractiveControls) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            // Disable interactions safely without breaking React DOM tree
+            target.style.setProperty('pointer-events', 'none', 'important');
+            target.style.setProperty('display', 'none', 'important');
+            console.warn('[BYEADS Defuser] Neutralized clickjack trap overlay');
+            return false;
+          }
         }
       }
     }, true);

@@ -1296,12 +1296,12 @@
       return;
     }
 
-    // 1. Check if target or parent is an ad-link
+    // 1. Check if target or parent is an ad-link (NEVER call anchor.remove() so buttons never disappear)
     const anchor = target.closest('a');
     if (anchor) {
-      // If it's a download link or has download text, NEVER touch or remove it!
+      // If it's a download link or has download text, NEVER touch or block it!
       const anchorText = (anchor.innerText || anchor.textContent || '').trim().toLowerCase();
-      if (anchor.hasAttribute('download') || /download|install|setup|get\s|save|update/i.test(anchorText)) {
+      if (anchor.hasAttribute('download') || anchor.download || /download|install|setup|get\s|save|update/i.test(anchorText)) {
         return;
       }
 
@@ -1310,7 +1310,7 @@
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        anchor.remove();
+        console.warn('[BYEADS] Blocked click on ad destination:', href);
         return false;
       }
 
@@ -1324,7 +1324,7 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            anchor.remove();
+            console.warn('[BYEADS] Blocked click on ad network host:', destHost);
             return false;
           }
         } catch {}
@@ -1333,11 +1333,11 @@
     }
 
     // 2. Check if clicked element is a true transparent clickjack overlay
-    // A true overlay must be a large fixed/absolute cover covering >= 50% of the screen with ZERO visible text and NO child controls
+    // A true overlay must be a large fixed/absolute cover covering >= 70% of the screen with ZERO visible text and NO child controls
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const rect = target.getBoundingClientRect();
-    const isLargeCover = rect.width >= vw * 0.5 && rect.height >= vh * 0.5;
+    const isLargeCover = rect.width >= vw * 0.7 && rect.height >= vh * 0.7;
 
     if (isLargeCover && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
       const style = window.getComputedStyle(target);
@@ -1353,7 +1353,8 @@
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        target.remove();
+        target.style.setProperty('pointer-events', 'none', 'important');
+        target.style.setProperty('display', 'none', 'important');
         return false;
       }
     }

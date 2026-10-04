@@ -48,8 +48,10 @@ export function downloadPwaFile(urlOrPath: string, filename: string): DownloadRe
     return { success: false, message: 'Window not defined' };
   }
 
-  // Resolve to direct GitHub download URL
-  const targetUrl = getGithubDownloadUrl(urlOrPath);
+  // Resolve to download URL (relative local file or GitHub)
+  const targetUrl = (urlOrPath.startsWith('/') && !urlOrPath.startsWith('//'))
+    ? urlOrPath
+    : getGithubDownloadUrl(urlOrPath);
 
   const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   const isMobileConfig = filename.endsWith('.mobileconfig');
