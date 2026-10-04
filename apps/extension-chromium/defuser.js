@@ -14,7 +14,7 @@
     'clck.ru', 'adnxs', 'criteo', 'taboola', 'outbrain', 'mgid', 'revcontent', 'doubleclick',
     'googlesyndication', 'adservice.google', 'googleadservices', 'smartadserver', 'rubiconproject',
     'pubmatic', 'openx', 'casalemedia', 'bet365', '1xbet', 'vulkan', 'parimatch', 'spinanga',
-    'onclick', 'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump', 'adkeeper',
+    'click_id=', 'camp_id=', 'aff_id=', 'direct-link', 'redirect-jump', 'adkeeper',
     'adserver', 'infolinks', 'yieldlove', 'zergnet', 'adtarget', 'adscale',
     'trafficmovers', 'propellerclick', 'terraclicks', 'linkbucks', 'adf.ly', 'ouo.io',
     'shorte.st', 'bc.vc', 'shrinkearn', 'clk.sh', 'gplinks', 'droplink',
@@ -186,7 +186,15 @@
     window.fetch = async function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
 
-      // Block pure ad telemetry trackers (NEVER block media streams or YouTube playback)
+      // On YouTube, ensure all player, SABr chunks, and video streams pass completely untouched
+      if (location.hostname.includes('youtube.com') || location.hostname.includes('googlevideo.com')) {
+        if (url.includes('/api/stats/ads') || url.includes('/pagead/')) {
+          return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        return originalFetch.apply(this, args);
+      }
+
+      // Block pure ad telemetry trackers (NEVER block media streams or playback)
       if (
         url.includes('adeventtracker.spotify.com') ||
         url.includes('ads-fa.spotify.com') ||
@@ -210,6 +218,25 @@
     XMLHttpRequest.prototype.send = function (...args) {
       if (this._byeads_url) {
         const u = this._byeads_url;
+
+        // On YouTube, ensure all player and video chunks pass completely untouched
+        if (location.hostname.includes('youtube.com') || location.hostname.includes('googlevideo.com')) {
+          if (u.includes('/api/stats/ads') || u.includes('/pagead/')) {
+            const emptyBody = '{}';
+            Object.defineProperty(this, 'status', { value: 200, writable: false });
+            Object.defineProperty(this, 'responseText', { value: emptyBody, writable: false });
+            Object.defineProperty(this, 'response', { value: emptyBody, writable: false });
+            Object.defineProperty(this, 'readyState', { value: 4, writable: false });
+            setTimeout(() => {
+              this.dispatchEvent(new Event('readystatechange'));
+              this.dispatchEvent(new Event('load'));
+              this.dispatchEvent(new Event('loadend'));
+            }, 5);
+            return;
+          }
+          return origXHRSend.apply(this, args);
+        }
+
         if (
           u.includes('adeventtracker.spotify.com') ||
           u.includes('ads-fa.spotify.com') ||
@@ -455,42 +482,7 @@
     };
   } catch {}
 
-  // E. Neutralize Dynamic Ad Script Element Injections (blocks Adsterra, Monetag, Popunder scripts)
-  try {
-    const origCreateElement = document.createElement;
-    document.createElement = function (tagName, ...args) {
-      const el = origCreateElement.apply(this, [tagName, ...args]);
-      if (typeof tagName === 'string' && tagName.toLowerCase() === 'script') {
-        const origSetAttribute = el.setAttribute;
-        el.setAttribute = function (name, val) {
-          if (name && name.toLowerCase() === 'src' && isAdPattern(val)) {
-            console.warn('[BYEADS Defuser] Blocked dynamic ad script setAttribute:', val);
-            return;
-          }
-          return origSetAttribute.apply(this, arguments);
-        };
-        try {
-          let scriptUrl = '';
-          Object.defineProperty(el, 'src', {
-            get: () => scriptUrl,
-            set: function (val) {
-              const str = String(val || '');
-              if (isAdPattern(str)) {
-                console.warn('[BYEADS Defuser] Blocked dynamic ad script .src assignment:', str);
-                scriptUrl = 'data:text/javascript,/* BYEADS neutralized */';
-                origSetAttribute.call(el, 'src', scriptUrl);
-                return;
-              }
-              scriptUrl = str;
-              origSetAttribute.call(el, 'src', str);
-            },
-            configurable: true
-          });
-        } catch {}
-      }
-      return el;
-    };
-  } catch {}
+
 
   // E. Capturing Click Listener: Trap Transparent Overlays & Ad Links (Safe for UI & Downloads)
   try {
