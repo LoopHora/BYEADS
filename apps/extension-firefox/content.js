@@ -1170,12 +1170,13 @@
     } catch {}
   }
 
-  // 8. Invisible Clickjack & Popunder Trap Killer
+  // 8. Invisible Clickjack & Popunder Trap Killer (with Download & Button Safeguards)
   let lastClickjackAlertTime = 0;
   function killInvisibleClickjacks() {
     if (!byeadsActive || isWhitelisted) return;
 
-    const elements = document.querySelectorAll('div, a, span, section, p');
+    // Scan overlay candidate containers
+    const elements = document.querySelectorAll('div, section');
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
@@ -1183,32 +1184,31 @@
       if (el === document.body || el === document.documentElement) return;
       if (el.id === 'byeads-zapper-overlay' || el.closest('#byeads-zapper-overlay')) return;
 
+      // CRITICAL SAFEGUARD: Never touch buttons, links, download controls, or inputs
+      if (el.closest('button, a, form, input, select, textarea, [download], [role="button"], [class*="download"], [id*="download"], [class*="btn"], [id*="btn"]')) return;
+
       try {
         const style = window.getComputedStyle(el);
         const pos = style.position;
         if (pos !== 'fixed' && pos !== 'absolute') return;
 
-        const zIndex = parseInt(style.zIndex, 10);
-        if (isNaN(zIndex) || zIndex < 10) return;
-
         const rect = el.getBoundingClientRect();
-        // Catch both full-screen invisible covers and targeted button/player clickjackers
-        const isCoverageTrap = (rect.width >= vw * 0.4 && rect.height >= vh * 0.4) ||
-                               (rect.width >= 100 && rect.height >= 60 && zIndex >= 50);
+        // True invisible clickjack must cover a large portion of the viewport (>= 50% width and height)
+        const isCoverageTrap = rect.width >= vw * 0.5 && rect.height >= vh * 0.5;
 
         if (isCoverageTrap) {
           const opacity = parseFloat(style.opacity);
           const bg = style.backgroundColor;
           const isTransparentBg = bg === 'transparent' ||
                                   bg.includes('rgba(0, 0, 0, 0)') ||
-                                  bg === 'rgba(0,0,0,0)' ||
-                                  bg.includes('rgba(255, 255, 255, 0)');
-          const isTransparent = opacity <= 0.15 || isTransparentBg;
+                                  bg === 'rgba(0,0,0,0)';
+          const isTransparent = opacity <= 0.05 || isTransparentBg;
 
-          const hasRealControls = el.querySelectorAll('input, select, textarea, form, h1, h2, h3, video').length > 0;
           const textLength = (el.innerText || '').trim().length;
+          const hasInteractiveChildren = el.querySelectorAll('button, a, input, select, textarea, form, h1, h2, h3, p, video, img').length > 0;
 
-          if ((isTransparent && textLength < 15 && !hasRealControls) || opacity === 0) {
+          // Only eliminate true blank cover sheets with zero text and zero interactive children
+          if (isTransparent && textLength === 0 && !hasInteractiveChildren) {
             el.remove();
 
             const now = Date.now();
@@ -1241,25 +1241,44 @@
     'connatix', 'playwire', 'brid.tv', 'primis', 'teads', 'evadav', 'rollerads', 'clickaine'
   ];
 
-  const REDIRECT_GATE_PATHS = [
-    '/jump', '/go/', '/out/', '/redirect', '/click', '/link/', '/gate/', '/pop', '/track', '/away'
+  const EXPLICIT_AD_REDIRECT_PATHS = [
+    '/jump.php', '/jump?', '/go.php', '/go?', '/ad/click', '/pop.php', '/popunder', '/redirect.php?ad=', '/direct-link'
   ];
 
-  function isAdClickTarget(targetHref) {
+  const SAFE_DOWNLOAD_EXTENSIONS = [
+    '.zip', '.tar', '.gz', '.tgz', '.exe', '.msi', '.iso', '.dmg', '.pkg',
+    '.apk', '.pdf', '.mp3', '.mp4', '.wav', '.epub', '.7z', '.rar', '.json',
+    '.mobileconfig', '.ps1', '.sh', '.bat', '.cmd'
+  ];
+
+  function isAdClickTarget(targetHref, anchor) {
     if (!targetHref || targetHref === '#' || targetHref.startsWith('javascript:')) return false;
+
+    // Never block legitimate downloads or form actions
+    if (anchor) {
+      if (anchor.hasAttribute('download')) return false;
+      const text = (anchor.innerText || anchor.textContent || '').toLowerCase();
+      if (/download|install|setup|get\s|save|update/i.test(text)) return false;
+    }
+
     try {
       const resolved = new URL(targetHref, window.location.href);
       const destHost = resolved.hostname.toLowerCase().replace(/^www\./, '');
       const currentHost = window.location.hostname.toLowerCase().replace(/^www\./, '');
       const fullPath = (resolved.pathname + resolved.search).toLowerCase();
 
-      // Direct pattern match
-      if (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p) || fullPath.includes(p))) return true;
+      // If URL points to a legitimate download file extension, allow immediately!
+      if (SAFE_DOWNLOAD_EXTENSIONS.some(ext => resolved.pathname.toLowerCase().endsWith(ext))) {
+        return false;
+      }
 
-      // Same-host redirect gates
+      // Direct ad domain match
+      if (EXTENDED_AD_PATTERNS.some(p => destHost.includes(p))) return true;
+
+      // Same-host explicit ad redirect traps
       if (destHost === currentHost || destHost.endsWith('.' + currentHost)) {
-        if (REDIRECT_GATE_PATHS.some(rg => fullPath.includes(rg))) return true;
-        if (/(\?|&)(url|dest|target|redirect|link|to|clickid)=https?:\/\//i.test(fullPath)) return true;
+        if (EXPLICIT_AD_REDIRECT_PATHS.some(rg => fullPath.includes(rg))) return true;
+        if (/(\?|&)(ad_url|dest_ad|ad_redirect)=https?:\/\//i.test(fullPath)) return true;
       }
     } catch {}
     return false;
@@ -1270,11 +1289,24 @@
     const target = e.target;
     if (!target) return;
 
+    // SAFEGUARD: If target or parent is a legitimate button, download, form input, or interactive control, ALLOW IMMEDIATELY!
+    if (
+      target.closest('button, input, select, textarea, label, [role="button"], [download], [class*="download"], [id*="download"], [class*="btn"], [id*="btn"]')
+    ) {
+      return;
+    }
+
     // 1. Check if target or parent is an ad-link
     const anchor = target.closest('a');
     if (anchor) {
+      // If it's a download link or has download text, NEVER touch or remove it!
+      const anchorText = (anchor.innerText || anchor.textContent || '').trim().toLowerCase();
+      if (anchor.hasAttribute('download') || /download|install|setup|get\s|save|update/i.test(anchorText)) {
+        return;
+      }
+
       const href = String(anchor.href || '');
-      if (isAdClickTarget(href)) {
+      if (isAdClickTarget(href, anchor)) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -1282,7 +1314,7 @@
         return false;
       }
 
-      // Check external _blank links on suspicious or media/streaming sites
+      // Check external _blank links on suspicious ad domains
       if (anchor.target === '_blank' && (href.startsWith('http://') || href.startsWith('https://'))) {
         try {
           const currentHost = window.location.hostname.replace(/^www\./, '');
@@ -1297,26 +1329,27 @@
           }
         } catch {}
       }
+      return; // Do NOT proceed to overlay check if clicking inside a link
     }
 
-    // 2. Check if clicked element is a transparent or clickjack overlay
+    // 2. Check if clicked element is a true transparent clickjack overlay
+    // A true overlay must be a large fixed/absolute cover covering >= 50% of the screen with ZERO visible text and NO child controls
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const rect = target.getBoundingClientRect();
-    const isOverlaySize = (rect.width >= window.innerWidth * 0.25 && rect.height >= window.innerHeight * 0.25) ||
-                          (rect.width >= 100 && rect.height >= 60);
+    const isLargeCover = rect.width >= vw * 0.5 && rect.height >= vh * 0.5;
 
-    if (isOverlaySize && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
+    if (isLargeCover && target.tagName !== 'VIDEO' && target.tagName !== 'MAIN' && target.tagName !== 'BODY' && target.tagName !== 'HTML') {
       const style = window.getComputedStyle(target);
       const isFixed = style.position === 'fixed' || style.position === 'absolute';
-      const isTransparent = parseFloat(style.opacity) <= 0.2 ||
+      const isTransparent = parseFloat(style.opacity) <= 0.05 ||
                             style.backgroundColor === 'transparent' ||
                             style.backgroundColor.includes('rgba(0, 0, 0, 0)') ||
-                            style.backgroundColor === 'rgba(0,0,0,0)' ||
-                            style.backgroundColor.includes('rgba(255, 255, 255, 0)');
-      const zIndex = parseInt(style.zIndex, 10);
-      const hasHighZ = !isNaN(zIndex) && zIndex >= 20;
+                            style.backgroundColor === 'rgba(0,0,0,0)';
       const textLen = (target.innerText || '').trim().length;
 
-      if (isFixed && (isTransparent || hasHighZ) && textLen < 20 && !target.querySelector('input, select, textarea, form, video')) {
+      // Only eliminate true blank cover sheets with zero text and no interactive controls
+      if (isFixed && isTransparent && textLen === 0 && !target.querySelector('button, a, input, select, textarea, form, h1, h2, h3, p, video, img')) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
