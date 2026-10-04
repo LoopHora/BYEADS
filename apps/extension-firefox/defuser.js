@@ -174,13 +174,49 @@
     });
   } catch {}
 
+  // 1.1. Spotify Web Player Audio Protection: Prevent crashes and speed-skip ads
+  if (location.hostname.includes('spotify.com')) {
+    try {
+      const origPlay = HTMLMediaElement.prototype.play;
+      HTMLMediaElement.prototype.play = function (...args) {
+        const src = this.src || this.currentSrc || '';
+        if (src.includes('adstudio') || src.includes('mp3-ad') || src.includes('ads-fa')) {
+          this.muted = true;
+          this.playbackRate = 16.0;
+        }
+        return origPlay.apply(this, args);
+      };
+
+      // Intercept errors on media element so an ad error NEVER halts playback
+      const origAddEventListener = HTMLMediaElement.prototype.addEventListener;
+      HTMLMediaElement.prototype.addEventListener = function (type, listener, options) {
+        if (type === 'error') {
+          const wrappedListener = function (e) {
+            const src = this.src || this.currentSrc || '';
+            const docTitle = (document.title || '').toLowerCase();
+            if (src.includes('adstudio') || src.includes('mp3-ad') || src.includes('ads-fa') || docTitle.includes('advertisement')) {
+              console.warn('[BYEADS Defuser] Neutralized Spotify ad media error; skipping to next track');
+              e.preventDefault?.();
+              e.stopImmediatePropagation?.();
+              this.dispatchEvent(new Event('ended'));
+              return;
+            }
+            return listener.apply(this, arguments);
+          };
+          return origAddEventListener.call(this, type, wrappedListener, options);
+        }
+        return origAddEventListener.call(this, type, listener, options);
+      };
+    } catch {}
+  }
+
   // Hook window.fetch for dynamic player calls & adware dynamic fetches
   const originalFetch = window.fetch;
   if (originalFetch) {
     window.fetch = async function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
 
-      // Block YouTube ad telemetry endpoints directly at the JS API boundary
+      // Block YouTube ad telemetry endpoints directly at the JS API boundary with instant 200 OK
       if (
         url.includes('/api/stats/ads') ||
         url.includes('/pagead/') ||
@@ -188,40 +224,18 @@
         url.includes('/get_midroll_info') ||
         isAdPattern(url) // God-Level Block: prevent dynamic popups/adware from fetching payloads
       ) {
-        console.warn('[BYEADS Defuser] Blocked dynamic ad/telemetry fetch payload:', url);
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      // Block pure ad telemetry trackers & ad audio asset CDNs (NEVER block audio-fa.scdn.co or legit streams)
+      // Block pure ad telemetry trackers (NEVER block media streams or scdn.co)
       if (
         url.includes('adeventtracker.spotify.com') ||
-        url.includes('ads-fa.spotify.com') ||
-        url.includes('adstudio-assets.scdn.co') ||
-        url.includes('adstudio-assets.spotifycdn.com') ||
-        url.includes('/mp3-ad/')
+        url.includes('ads-fa.spotify.com')
       ) {
         return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
-      const response = await originalFetch.apply(this, args);
-
-      // Sanitize JSON response for dynamic player streams
-      if (url.includes('/youtubei/v1/player')) {
-        try {
-          const clone = response.clone();
-          const json = await clone.json();
-          const cleaned = sanitizePlayerResponse(json);
-          return new Response(JSON.stringify(cleaned), {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
-          });
-        } catch {
-          return response;
-        }
-      }
-
-      return response;
+      return originalFetch.apply(this, args);
     };
   }
 
@@ -240,12 +254,8 @@
           u.includes('/api/stats/ads') ||
           u.includes('adeventtracker.spotify.com') ||
           u.includes('ads-fa.spotify.com') ||
-          u.includes('adstudio-assets.scdn.co') ||
-          u.includes('adstudio-assets.spotifycdn.com') ||
-          u.includes('/mp3-ad/') ||
           isAdPattern(u) // God-Level Block: XHR ad patterns
         ) {
-          console.warn('[BYEADS Defuser] Blocked background XHR ad request:', u);
           const emptyBody = '{}';
           Object.defineProperty(this, 'status', { value: 200, writable: false });
           Object.defineProperty(this, 'responseText', { value: emptyBody, writable: false });

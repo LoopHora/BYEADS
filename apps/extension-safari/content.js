@@ -505,12 +505,13 @@
       const player = document.querySelector('#movie_player, .html5-video-player, ytd-player, ytmusic-player');
       const isPlayerAdShowing = !!(player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting')));
 
-      // Strict ad indicator check (NEVER match static .video-ads container)
+      // Strict ad indicator check: regular YouTube ONLY triggers on player ad classes
       const isAdActive = isPlayerAdShowing ||
-        !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
-        !!document.querySelector('.ytp-ad-player-overlay-instream') ||
-        !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
-        !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)');
+        (hostname.includes('music.youtube.com') && (
+          !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
+          !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
+          !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)')
+        ));
 
       const video = document.querySelector('video');
 
@@ -522,8 +523,8 @@
           }
           video.playbackRate = 16.0;
 
-          // Only skip ahead if explicitly inside an active ad player class
-          if (isFinite(video.duration) && video.duration > 0) {
+          // Only skip ahead if explicitly inside an active ad player class (NEVER on main video loading!)
+          if (isPlayerAdShowing && isFinite(video.duration) && video.duration > 0) {
             video.currentTime = video.duration;
           }
         }
@@ -636,9 +637,17 @@
       const hasAdBreakText = widgetText.includes('continue after the break');
 
       // Detection: explicit ad title, ad widget, or ad break indicator
-      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd || hasAdBreakText;
-
+      // Also check if any playing audio tag has an ad src
+      let audioSrcIsAd = false;
       const audios = document.querySelectorAll('audio, video');
+      audios.forEach((a) => {
+        const s = a.src || a.currentSrc || '';
+        if (s.includes('adstudio') || s.includes('mp3-ad') || s.includes('ads-fa')) {
+          audioSrcIsAd = true;
+        }
+      });
+
+      const isSpotifyAd = hasAdTitle || !!adWidget || isTitleAd || hasAdBreakText || audioSrcIsAd;
 
       if (isSpotifyAd) {
         spotifyMutedByAd = true;
@@ -651,14 +660,16 @@
             }
             audio.playbackRate = 16.0;
             if (isFinite(audio.duration) && audio.duration > 0) {
-              audio.currentTime = Math.max(0, audio.duration - 0.1);
+              audio.currentTime = Math.max(0, audio.duration - 0.05);
             }
+            // Signal track completion to advance Spotify queue cleanly
+            audio.dispatchEvent(new Event('ended'));
           } catch {}
         });
 
-        // Trigger skip button gently (max once per 3 seconds, never flood)
+        // Trigger skip button gently (max once per 2 seconds, never flood)
         const now = Date.now();
-        if (now - lastSpotifySkipTime > 3000) {
+        if (now - lastSpotifySkipTime > 2000) {
           lastSpotifySkipTime = now;
           try {
             const skipBtn = document.querySelector('[data-testid="control-button-skip-forward"]');

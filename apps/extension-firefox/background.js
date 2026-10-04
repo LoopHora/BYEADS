@@ -61,20 +61,9 @@ const BLOCKED_DOMAINS = [
   "*://*.gpcasla.org/*",
   "*://*.histats.com/*",
   "*://*.applejr.xyz/*",
-  "*://*.youtube.com/api/stats/ads*",
-  "*://*.youtube.com/pagead/*",
-  "*://*.youtube.com/ptracking*",
-  "*://*.music.youtube.com/api/stats/ads*",
   "*://*.googleads.g.doubleclick.net/pagead/*",
   "*://*.adeventtracker.spotify.com/*",
-  "*://*.ads-fa.spotify.com/*",
-  "*://*.adstudio-assets.scdn.co/*",
-  "*://*.adstudio-assets.spotifycdn.com/*",
-  "*://*.scdn.co/mp3-ad/*",
-  "*://spclient.wg.spotify.com/ad-logic/*",
-  "*://spclient.wg.spotify.com/ads/*",
-  "*://spclient.wg.spotify.com/desktop-omni-ads/*",
-  "*://spclient.wg.spotify.com/ad-experiences/*"
+  "*://*.ads-fa.spotify.com/*"
 ];
 
 let stats = {
