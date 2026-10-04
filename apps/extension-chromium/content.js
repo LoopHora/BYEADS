@@ -1045,11 +1045,29 @@
     if (!byeadsActive || isWhitelisted) return;
     const isHoster =
       hostname.includes('mediafire.com') ||
+      hostname.includes('megaup.net') ||
       hostname.includes('rapidgator.net') ||
       hostname.includes('1fichier.com') ||
       hostname.includes('mega.nz') ||
       hostname.includes('filefactory.com') ||
       hostname.includes('uploaded.net') ||
+      hostname.includes('turbobit.net') ||
+      hostname.includes('hitfile.net') ||
+      hostname.includes('nitroflare.com') ||
+      hostname.includes('uploadhaven.com') ||
+      hostname.includes('gofile.io') ||
+      hostname.includes('userscloud.com') ||
+      hostname.includes('dropapk.to') ||
+      hostname.includes('dailyuploads.net') ||
+      hostname.includes('uploadee.com') ||
+      hostname.includes('sendspace.com') ||
+      hostname.includes('depositfiles.com') ||
+      hostname.includes('uptobox.com') ||
+      hostname.includes('krakenfiles.com') ||
+      hostname.includes('pixeldrain.com') ||
+      hostname.includes('anonfiles.com') ||
+      hostname.includes('bayfiles.com') ||
+      hostname.includes('letsupload.io') ||
       hostname.includes('zippyshare');
 
     if (!isHoster) return;
@@ -1075,12 +1093,29 @@
       '.ads-bottom',
       'div[class*="promo-download"]',
       'div[id*="banner-container"]',
+      '.download-timer-ad',
+      '.ad-slot',
       'iframe[src*="ad"]'
     ];
     fakeDlSelectors.forEach((sel) => {
       try {
         const els = document.querySelectorAll(sel);
         els.forEach((el) => el.remove());
+      } catch {}
+    });
+
+    // Reveal and ensure real download buttons are visible and active
+    const realDlButtons = document.querySelectorAll(
+      '#downloadButton, .download-btn, #btn-download, a.btn-download, #download_btn, .btn-free, #slow-download, #free-download, .download_button, #direct_link, #get_download_link'
+    );
+    realDlButtons.forEach((btn) => {
+      try {
+        btn.style.setProperty('display', 'inline-block', 'important');
+        btn.style.setProperty('visibility', 'visible', 'important');
+        btn.style.setProperty('opacity', '1', 'important');
+        btn.style.setProperty('pointer-events', 'auto', 'important');
+        btn.removeAttribute('disabled');
+        if ('disabled' in btn) btn.disabled = false;
       } catch {}
     });
   }
