@@ -284,193 +284,263 @@
   } catch {}
 
   // 2. Anti-Adblock Defuser & Bait Object Emulation (Kills AntiAdBlock Core, BlockAdBlock, FuckAdBlock, Hustle)
-  try {
-    window.canRunAds = true;
-    window.isAdBlockActive = false;
-    window.adblock = false;
-    window.hasAdBlocker = false;
-    window.google_ad_client = "ca-pub-0000000000000000";
+  // CRITICAL: MUST NEVER run on YouTube, GoogleVideo, or Spotify where player state machines, SABr chunks, and audio/video engines must remain untouched
+  const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+  const isCleanPlatform = curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com');
 
-    const noopFn = function () { return this; };
-    const noopClass = function () {
-      this.setOption = noopFn;
-      this.check = noopFn;
-      this.clearEvent = noopFn;
-      this.on = function (detected, fn) {
-        if (!detected && typeof fn === 'function') setTimeout(fn, 1);
-        return this;
-      };
-      this.onDetected = noopFn;
-      this.onNotDetected = function (fn) {
-        if (typeof fn === 'function') setTimeout(fn, 1);
-        return this;
-      };
-    };
-
-    window.FuckAdBlock = noopClass;
-    window.fuckAdBlock = new noopClass();
-    window.BlockAdBlock = noopClass;
-    window.blockAdBlock = window.fuckAdBlock;
-    window.SnackAdBlock = noopClass;
-    window.snackAdBlock = window.fuckAdBlock;
-
-    if (!window.adsbygoogle) {
-      window.adsbygoogle = [];
-      window.adsbygoogle.push = function () { return 1; };
-      window.adsbygoogle.loaded = true;
-    }
-
-    if (!window.Adblock) {
-      window.Adblock = {
-        isDetected: function () { return false; },
-        active: false
-      };
-    }
-
-    // Global adblock bypass flags (AdLinkFly, shorteners, WordPress plugins)
+  if (!isCleanPlatform) {
     try {
       window.canRunAds = true;
       window.isAdBlockActive = false;
       window.adblock = false;
-      window.adBlockDetected = false;
-      window.adblockDetected = false;
-      window.sgpbCanRunAds = true;
+      window.hasAdBlocker = false;
+      window.google_ad_client = "ca-pub-0000000000000000";
 
-      // Trap and neutralize AdLinkFly / URL Shortener anti-adblock variables (app_vars.force_disable_adblock)
-      let _app_vars = window.app_vars;
-      function neutralizeAppVars(obj) {
-        if (!obj || typeof obj !== 'object') return obj;
-        try {
-          obj.force_disable_adblock = '0';
-          Object.defineProperty(obj, 'force_disable_adblock', {
-            configurable: true,
-            enumerable: true,
-            get: () => '0',
-            set: () => {}
-          });
-        } catch {}
-        return obj;
-      }
-
-      if (window.app_vars) {
-        neutralizeAppVars(window.app_vars);
-      }
-
-      Object.defineProperty(window, 'app_vars', {
-        configurable: true,
-        enumerable: true,
-        get: () => _app_vars,
-        set: (v) => {
-          _app_vars = neutralizeAppVars(v);
-        }
-      });
-
-      // Neutralize Fineshop Design Anti-AdBlock (window.checkAdsStatus)
-      let _checkAdsStatus = function (callback) {
-        if (typeof callback === 'function') {
-          try {
-            callback({ allowed: true, elements: [] });
-          } catch {}
-        }
+      const noopFn = function () { return this; };
+      const noopClass = function () {
+        this.setOption = noopFn;
+        this.check = noopFn;
+        this.clearEvent = noopFn;
+        this.on = function (detected, fn) {
+          if (!detected && typeof fn === 'function') setTimeout(fn, 1);
+          return this;
+        };
+        this.onDetected = noopFn;
+        this.onNotDetected = function (fn) {
+          if (typeof fn === 'function') setTimeout(fn, 1);
+          return this;
+        };
       };
-      Object.defineProperty(window, 'checkAdsStatus', {
-        configurable: true,
-        enumerable: true,
-        get: () => _checkAdsStatus,
-        set: (userFn) => {
-          _checkAdsStatus = function (callback) {
-            if (typeof callback === 'function') {
-              try {
-                callback({ allowed: true, elements: [] });
-              } catch {}
-            }
-          };
-        }
-      });
-    } catch {}
 
-    // A. Bait Element getComputedStyle Proxy: Ensures anti-adblock bait probes always report 'display: block'
-    const origGetComputedStyle = window.getComputedStyle;
-    window.getComputedStyle = function (elt, pseudoElt) {
-      const cs = origGetComputedStyle.apply(this, arguments);
-      if (elt && (elt instanceof Element)) {
-        const cls = String(elt.className || '');
-        const id = String(elt.id || '');
-        if (
-          /adsbox|ad-banner|ad-unit|adsbygoogle|banner-ad|sponsored-ad|textads/i.test(cls) ||
-          /google_ads_|adblock-bait|div-gpt-ad/i.test(id)
-        ) {
-          const styleAttr = elt.getAttribute('style') || '';
-          const isOffscreen = styleAttr.includes('-9999') || styleAttr.includes('-10000') || styleAttr.includes('1px') ||
-            (elt.style && (parseInt(elt.style.left, 10) <= -1000 || parseInt(elt.style.top, 10) <= -1000));
-          if (isOffscreen) {
-            return new Proxy(cs, {
-              get(target, prop) {
-                if (prop === 'display') return 'block';
-                if (prop === 'visibility') return 'visible';
-                if (prop === 'opacity') return '1';
-                if (prop === 'width') return '12px';
-                if (prop === 'height') return '12px';
-                const val = target[prop];
-                return typeof val === 'function' ? val.bind(target) : val;
-              }
+      window.FuckAdBlock = noopClass;
+      window.fuckAdBlock = new noopClass();
+      window.BlockAdBlock = noopClass;
+      window.blockAdBlock = window.fuckAdBlock;
+      window.SnackAdBlock = noopClass;
+      window.snackAdBlock = window.fuckAdBlock;
+
+      if (!window.adsbygoogle) {
+        window.adsbygoogle = [];
+        window.adsbygoogle.push = function () { return 1; };
+        window.adsbygoogle.loaded = true;
+      }
+
+      if (!window.Adblock) {
+        window.Adblock = {
+          isDetected: function () { return false; },
+          active: false
+        };
+      }
+
+      // Global adblock bypass flags (AdLinkFly, shorteners, WordPress plugins)
+      try {
+        window.canRunAds = true;
+        window.isAdBlockActive = false;
+        window.adblock = false;
+        window.adBlockDetected = false;
+        window.adblockDetected = false;
+        window.sgpbCanRunAds = true;
+
+        // Trap and neutralize AdLinkFly / URL Shortener anti-adblock variables (app_vars.force_disable_adblock)
+        let _app_vars = window.app_vars;
+        function neutralizeAppVars(obj) {
+          if (!obj || typeof obj !== 'object') return obj;
+          try {
+            obj.force_disable_adblock = '0';
+            Object.defineProperty(obj, 'force_disable_adblock', {
+              configurable: true,
+              enumerable: true,
+              get: () => '0',
+              set: () => {}
             });
-          }
+          } catch {}
+          return obj;
         }
-      }
-      return cs;
-    };
 
-    // Bait Element offsetHeight Proxy: Ensures height checks like 0 === a.offsetHeight return 1
-    const origOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-    if (origOffsetHeight && origOffsetHeight.get) {
-      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-        configurable: true,
-        enumerable: true,
-        get: function () {
-          const cls = String(this.className || '');
-          const id = String(this.id || '');
-          if (/adsbox|banner-ads|banner_ads|ad-unit|ad-zone|textads|div-gpt-ad|adsbygoogle/i.test(cls + ' ' + id)) {
-            const styleAttr = this.getAttribute('style') || '';
-            if (styleAttr.includes('1px') || styleAttr.includes('bottom: 0') || styleAttr.includes('position: fixed')) {
-              return 1;
+        if (window.app_vars) {
+          neutralizeAppVars(window.app_vars);
+        }
+
+        Object.defineProperty(window, 'app_vars', {
+          configurable: true,
+          enumerable: true,
+          get: () => _app_vars,
+          set: (v) => {
+            _app_vars = neutralizeAppVars(v);
+          }
+        });
+
+        // Neutralize Fineshop Design Anti-AdBlock (window.checkAdsStatus)
+        let _checkAdsStatus = function (callback) {
+          if (typeof callback === 'function') {
+            try {
+              callback({ allowed: true, elements: [] });
+            } catch {}
+          }
+        };
+        Object.defineProperty(window, 'checkAdsStatus', {
+          configurable: true,
+          enumerable: true,
+          get: () => _checkAdsStatus,
+          set: (userFn) => {
+            _checkAdsStatus = function (callback) {
+              if (typeof callback === 'function') {
+                try {
+                  callback({ allowed: true, elements: [] });
+                } catch {}
+              }
+            };
+          }
+        });
+      } catch {}
+
+      // A. Bait Element getComputedStyle Proxy: Ensures anti-adblock bait probes always report 'display: block'
+      const origGetComputedStyle = window.getComputedStyle;
+      window.getComputedStyle = function (elt, pseudoElt) {
+        const cs = origGetComputedStyle.apply(this, arguments);
+        if (elt && (elt instanceof Element)) {
+          const cls = String(elt.className || '');
+          const id = String(elt.id || '');
+          if (
+            /adsbox|ad-banner|ad-unit|adsbygoogle|banner-ad|sponsored-ad|textads/i.test(cls) ||
+            /google_ads_|adblock-bait|div-gpt-ad/i.test(id)
+          ) {
+            const styleAttr = elt.getAttribute('style') || '';
+            const isOffscreen = styleAttr.includes('-9999') || styleAttr.includes('-10000') || styleAttr.includes('1px') ||
+              (elt.style && (parseInt(elt.style.left, 10) <= -1000 || parseInt(elt.style.top, 10) <= -1000));
+            if (isOffscreen) {
+              return new Proxy(cs, {
+                get(target, prop) {
+                  if (prop === 'display') return 'block';
+                  if (prop === 'visibility') return 'visible';
+                  if (prop === 'opacity') return '1';
+                  if (prop === 'width') return '12px';
+                  if (prop === 'height') return '12px';
+                  const val = target[prop];
+                  return typeof val === 'function' ? val.bind(target) : val;
+                }
+              });
             }
           }
-          return origOffsetHeight.get.call(this);
         }
-      });
-    }
+        return cs;
+      };
 
-    // B. Defuse Preload & Script Network Probes (e.g. AntiAdBlock Core & Fineshop Design checking if adsbygoogle loads)
-    const origAppendChild = Node.prototype.appendChild;
-    Node.prototype.appendChild = function (child) {
-      if (child) {
-        const isPreloadLink = child.tagName === 'LINK' && child.as === 'script';
-        const isAdScript = child.tagName === 'SCRIPT';
-        if (isPreloadLink || isAdScript) {
-          const url = String(child.src || child.href || '');
-          if (url.includes('googlesyndication.com') || url.includes('doubleclick.net') || url.includes('gpt.js')) {
-            setTimeout(() => {
-              if (typeof child.onload === 'function') child.onload();
-              child.dispatchEvent(new Event('load'));
-            }, 10);
+      // Bait Element offsetHeight Proxy: Ensures height checks like 0 === a.offsetHeight return 1
+      const origOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+      if (origOffsetHeight && origOffsetHeight.get) {
+        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
+          configurable: true,
+          enumerable: true,
+          get: function () {
+            const cls = String(this.className || '');
+            const id = String(this.id || '');
+            if (/adsbox|banner-ads|banner_ads|ad-unit|ad-zone|textads|div-gpt-ad|adsbygoogle/i.test(cls + ' ' + id)) {
+              const styleAttr = this.getAttribute('style') || '';
+              if (styleAttr.includes('1px') || styleAttr.includes('bottom: 0') || styleAttr.includes('position: fixed')) {
+                return 1;
+              }
+            }
+            return origOffsetHeight.get.call(this);
+          }
+        });
+      }
+
+      // B. Defuse Preload & Script Network Probes (e.g. AntiAdBlock Core & Fineshop Design checking if adsbygoogle loads)
+      const origAppendChild = Node.prototype.appendChild;
+      Node.prototype.appendChild = function (child) {
+        if (child) {
+          const isPreloadLink = child.tagName === 'LINK' && child.as === 'script';
+          const isAdScript = child.tagName === 'SCRIPT';
+          if (isPreloadLink || isAdScript) {
+            const url = String(child.src || child.href || '');
+            if (url.includes('googlesyndication.com') || url.includes('doubleclick.net') || url.includes('gpt.js')) {
+              setTimeout(() => {
+                if (typeof child.onload === 'function') child.onload();
+                child.dispatchEvent(new Event('load'));
+              }, 10);
+            }
           }
         }
-      }
-      return origAppendChild.apply(this, arguments);
-    };
+        return origAppendChild.apply(this, arguments);
+      };
 
-    // C. Neutralize High z-index Root Shadow Hosts (AntiAdBlock Core closed shadow popups)
-    const origAttachShadow = Element.prototype.attachShadow;
-    Element.prototype.attachShadow = function () {
-      if (this.style && (this.style.zIndex === '2147483647' || parseInt(this.style.zIndex, 10) >= 2147483640)) {
-        this.style.setProperty('display', 'none', 'important');
-        this.style.setProperty('visibility', 'hidden', 'important');
-        this.style.setProperty('pointer-events', 'none', 'important');
-      }
-      return origAttachShadow.apply(this, arguments);
-    };
-  } catch {}
+      // C. Neutralize High z-index Root Shadow Hosts (AntiAdBlock Core closed shadow popups)
+      const origAttachShadow = Element.prototype.attachShadow;
+      Element.prototype.attachShadow = function () {
+        if (this.style && (this.style.zIndex === '2147483647' || parseInt(this.style.zIndex, 10) >= 2147483640)) {
+          this.style.setProperty('display', 'none', 'important');
+          this.style.setProperty('visibility', 'hidden', 'important');
+          this.style.setProperty('pointer-events', 'none', 'important');
+        }
+        return origAttachShadow.apply(this, arguments);
+      };
+    } catch {}
+  }
+
+  // 2.1. YouTube & YouTube Music Main-World Instant Ad Neutralizer
+  if (curHost.includes('youtube.com')) {
+    try {
+      let ytAdWasMuted = false;
+
+      const skipYTAdsMainWorld = () => {
+        try {
+          const player = document.getElementById('movie_player') || document.querySelector('.html5-video-player, ytd-player, ytmusic-player');
+          const video = document.querySelector('video');
+
+          const isPlayerAd = !!(
+            (player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting'))) ||
+            document.querySelector('.ad-showing, .ad-interrupting, .video-ads:not(:empty), .ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text, .ytp-ad-preview-container') ||
+            (curHost.includes('music.youtube.com') && (
+              !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
+              !!document.querySelector('ytmusic-player-bar.advertisement') ||
+              !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
+              !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)') ||
+              (document.title || '').toLowerCase().includes('advertisement')
+            ))
+          );
+
+          if (isPlayerAd) {
+            // 1. Direct native YouTube player skip API if available in main world
+            if (player && typeof player.skipAd === 'function') {
+              try { player.skipAd(); } catch {}
+            }
+
+            // 2. Mute and fast-skip ad media immediately
+            if (video) {
+              if (!video.muted) {
+                video.muted = true;
+                ytAdWasMuted = true;
+              }
+              video.playbackRate = 16.0;
+              if (isFinite(video.duration) && video.duration > 0) {
+                video.currentTime = video.duration;
+              }
+            }
+
+            // 3. Fast-click skip buttons
+            const skipBtns = document.querySelectorAll(
+              '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot button, .ytp-ad-skip-button-container button, .videoAdUiSkipButton, [id*="skip-button"], button.ytmusic-ad-player-overlay-renderer, tp-yt-paper-button[aria-label*="Skip"], .ytp-ad-overlay-close-button'
+            );
+            skipBtns.forEach(btn => { try { btn.click(); } catch {} });
+          } else {
+            // Restore playback rate and volume once ad has concluded
+            if (video) {
+              if (video.playbackRate > 1.0) {
+                video.playbackRate = 1.0;
+              }
+              if (ytAdWasMuted) {
+                video.muted = false;
+                ytAdWasMuted = false;
+              }
+            }
+          }
+        } catch {}
+      };
+
+      setInterval(skipYTAdsMainWorld, 100);
+    } catch {}
+  }
 
   // 3. Air-Tight Pop-Up, Pop-Under & Click-Hijack Defense
   // Safe dummy window proxy that absorbs delayed popup redirection
@@ -642,8 +712,14 @@
 
   // C. Hook HTMLFormElement.prototype.submit (blocks hidden form popup submits)
   try {
+    const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+    const isCleanPlatform = curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com');
+
     const originalFormSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
+      if (isCleanPlatform) {
+        return originalFormSubmit.apply(this, arguments);
+      }
       const action = String(this.action || '').trim();
       if ((this.target === '_blank' || this.style.display === 'none') && isAdOrPopup(action, this)) {
         console.warn('[BYEADS Defuser] Blocked synthetic form submit ad popup:', action);
@@ -825,11 +901,17 @@
 
   // 7. Back-Button Hijack & History Flood Neutralizer
   try {
+    const curHost = window.location.hostname.replace(/^www\./, '').toLowerCase();
+    const isCleanPlatform = curHost.includes('youtube.com') || curHost.includes('googlevideo.com') || curHost.includes('spotify.com');
+
     let pushCount = 0;
     let lastPushTime = Date.now();
     const origPushState = history.pushState;
 
     history.pushState = function (...args) {
+      if (isCleanPlatform) {
+        return origPushState.apply(this, args);
+      }
       const now = Date.now();
       if (now - lastPushTime < 1000) {
         pushCount++;

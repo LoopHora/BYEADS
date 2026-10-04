@@ -538,15 +538,21 @@
     // --- A. YouTube & YouTube Music ---
     if (hostname.includes('youtube.com')) {
       const player = document.querySelector('#movie_player, .html5-video-player, ytd-player, ytmusic-player');
-      const isPlayerAdShowing = !!(player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting')));
+      const isPlayerAdShowing = !!(
+        (player && (player.classList.contains('ad-showing') || player.classList.contains('ad-interrupting'))) ||
+        document.querySelector('.ad-showing, .ad-interrupting, .video-ads:not(:empty), .ytp-ad-player-overlay, .ytp-ad-player-overlay-layout, .ytp-ad-text, .ytp-ad-preview-container')
+      );
 
-      // Strict ad indicator check: regular YouTube ONLY triggers on player ad classes
-      const isAdActive = isPlayerAdShowing ||
-        (hostname.includes('music.youtube.com') && (
-          !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
-          !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
-          !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)')
-        ));
+      // Multi-indicator check for YouTube Music
+      const isYtMusicAd = hostname.includes('music.youtube.com') && (
+        !!document.querySelector('ytmusic-player-bar[is-ad="true"]') ||
+        !!document.querySelector('ytmusic-player-bar.advertisement') ||
+        !!document.querySelector('.ytmusic-ad-player-overlay-renderer') ||
+        !!document.querySelector('ytmusic-player-page #ad-container:not(:empty)') ||
+        (document.title || '').toLowerCase().includes('advertisement')
+      );
+
+      const isAdActive = isPlayerAdShowing || isYtMusicAd;
 
       const video = document.querySelector('video');
 
@@ -558,15 +564,15 @@
           }
           video.playbackRate = 16.0;
 
-          // Only skip ahead if explicitly inside an active ad player class (NEVER on main video loading!)
-          if (isPlayerAdShowing && isFinite(video.duration) && video.duration > 0) {
+          // Skip ahead immediately for both YouTube and YouTube Music ad media
+          if (isFinite(video.duration) && video.duration > 0) {
             video.currentTime = video.duration;
           }
         }
 
         // Trigger skip buttons immediately
         const skipButtons = document.querySelectorAll(
-          '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot button, .videoAdUiSkipButton, [id*="skip-button"], button.ytmusic-ad-player-overlay-renderer, ytmusic-mealbar-promo-renderer #dismiss-button, tp-yt-paper-button[aria-label*="Skip"], .ytp-ad-overlay-close-button'
+          '.ytp-ad-skip-button, .ytp-ad-skip-button-modern, .ytp-skip-ad-button, .ytp-ad-skip-button-slot button, .ytp-ad-skip-button-container button, .videoAdUiSkipButton, [id*="skip-button"], button.ytmusic-ad-player-overlay-renderer, ytmusic-mealbar-promo-renderer #dismiss-button, tp-yt-paper-button[aria-label*="Skip"], .ytp-ad-overlay-close-button, .ytp-ad-survey-close-button'
         );
 
         skipButtons.forEach((btn) => {
@@ -1707,6 +1713,7 @@
   // 11. Universal Anti-Adblock Defuser & Nag Shield (Neutralizes AntiAdBlock Core, Hustle, BlockAdBlock, FuckAdBlock)
   function handleAntiAdblockNagEliminator() {
     if (!byeadsActive || isWhitelisted) return;
+    if (hostname.includes('youtube.com') || hostname.includes('googlevideo.com') || hostname.includes('spotify.com')) return;
 
     try {
       // A. Remove explicit anti-adblock modals, overlays & backdrops
